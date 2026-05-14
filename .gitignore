@@ -1,0 +1,13 @@
+# Cache de scraping (fetch-all-chants.py)
+.cv-cache/
+
+# macOS
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+
+# Python
+__pycache__/
+*.pyc

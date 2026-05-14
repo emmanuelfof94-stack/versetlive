@@ -1,0 +1,642 @@
+// Panneau de contrôle VersetLive
+
+const CHANNEL_NAME = 'versetlive';
+const STORAGE_KEY = 'versetlive:state';
+const STYLE_KEY = 'versetlive:style';
+const HISTORY_KEY = 'versetlive:history';
+
+const bc = (() => { try { return new BroadcastChannel(CHANNEL_NAME); } catch { return null; } })();
+
+// Canal direct vers l'iframe d'aperçu : BroadcastChannel ne traverse pas toujours
+// les iframes (notamment en file://). postMessage est garanti même origine.
+function postToPreview(msg) {
+  const iframe = document.getElementById('previewFrame');
+  iframe?.contentWindow?.postMessage(msg, '*');
+}
+
+const els = {
+  translation: document.getElementById('translationSelect'),
+  book: document.getElementById('bookSelect'),
+  chapter: document.getElementById('chapterSelect'),
+  verseList: document.getElementById('verseList'),
+  loadChapterBtn: document.getElementById('loadChapterBtn'),
+
+  searchInput: document.getElementById('searchInput'),
+  searchBtn: document.getElementById('searchBtn'),
+  searchResults: document.getElementById('searchResults'),
+
+  manualRef: document.getElementById('manualRef'),
+  manualText: document.getElementById('manualText'),
+  manualSendBtn: document.getElementById('manualSendBtn'),
+
+  currentRef: document.getElementById('currentRef'),
+  currentTrans: document.getElementById('currentTrans'),
+  prevBtn: document.getElementById('prevVerseBtn'),
+  nextBtn: document.getElementById('nextVerseBtn'),
+  sendLiveBtn: document.getElementById('sendLiveBtn'),
+  clearLiveBtn: document.getElementById('clearLiveBtn'),
+  openObsBtn: document.getElementById('openObsBtn'),
+
+  liveDot: document.getElementById('liveDot'),
+  liveStatus: document.getElementById('liveStatus'),
+  expandBtn: document.getElementById('expandBtn'),
+  fullscreenBtn: document.getElementById('fullscreenBtn'),
+
+  historyList: document.getElementById('historyList'),
+  toast: document.getElementById('toast'),
+  helpBtn: document.getElementById('helpBtn'),
+  helpModal: document.getElementById('helpModal'),
+  closeHelp: document.getElementById('closeHelp'),
+
+  fontFamily: document.getElementById('fontFamily'),
+  fontSize: document.getElementById('fontSize'),
+  fontSizeVal: document.getElementById('fontSizeVal'),
+  textColor: document.getElementById('textColor'),
+  textColorHex: document.getElementById('textColorHex'),
+  textShadow: document.getElementById('textShadow'),
+  textAlign: document.getElementById('textAlign'),
+  bgType: document.getElementById('bgType'),
+  bgColor: document.getElementById('bgColor'),
+  bgColorHex: document.getElementById('bgColorHex'),
+  bgOpacity: document.getElementById('bgOpacity'),
+  bgOpacityVal: document.getElementById('bgOpacityVal'),
+  vAlign: document.getElementById('vAlign'),
+  showRef: document.getElementById('showRef'),
+  animation: document.getElementById('animation'),
+};
+
+let chapterVerses = [];
+let activeIndex = -1;
+let currentBookName = '';
+let currentChapter = 1;
+let currentTranslation = 'FRLSG';
+
+function toast(msg) {
+  els.toast.textContent = msg;
+  els.toast.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => els.toast.classList.remove('show'), 2200);
+}
+
+function getStyle() {
+  return {
+    fontFamily: els.fontFamily.value,
+    fontSize: parseFloat(els.fontSize.value),
+    textColor: els.textColor.value,
+    textShadow: els.textShadow.value,
+    textAlign: els.textAlign.value,
+    bgType: els.bgType.value,
+    bgColor: els.bgColor.value,
+    bgOpacity: parseFloat(els.bgOpacity.value),
+    vAlign: els.vAlign.value,
+    showRef: els.showRef.value,
+    animation: els.animation.value,
+  };
+}
+
+function persistStyle() {
+  localStorage.setItem(STYLE_KEY, JSON.stringify(getStyle()));
+}
+
+function restoreStyle() {
+  try {
+    const s = JSON.parse(localStorage.getItem(STYLE_KEY) || 'null');
+    if (!s) return;
+    if (s.fontFamily) els.fontFamily.value = s.fontFamily;
+    if (s.fontSize != null) els.fontSize.value = s.fontSize;
+    if (s.textColor) { els.textColor.value = s.textColor; els.textColorHex.value = s.textColor; }
+    if (s.textShadow) els.textShadow.value = s.textShadow;
+    if (s.textAlign) els.textAlign.value = s.textAlign;
+    if (s.bgType) els.bgType.value = s.bgType;
+    if (s.bgColor) { els.bgColor.value = s.bgColor; els.bgColorHex.value = s.bgColor; }
+    if (s.bgOpacity != null) els.bgOpacity.value = s.bgOpacity;
+    if (s.vAlign) els.vAlign.value = s.vAlign;
+    if (s.showRef) els.showRef.value = s.showRef;
+    if (s.animation) els.animation.value = s.animation;
+    refreshRangeLabels();
+  } catch {}
+}
+
+function refreshRangeLabels() {
+  els.fontSizeVal.textContent = parseFloat(els.fontSize.value).toFixed(1);
+  els.bgOpacityVal.textContent = parseFloat(els.bgOpacity.value).toFixed(2);
+}
+
+function broadcastStyleOnly() {
+  persistStyle();
+  const last = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+  const payload = { ...(last || {}), style: getStyle() };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+  bc?.postMessage({ type: 'style', payload: getStyle() });
+  postToPreview({ type: 'style', payload: getStyle() });
+}
+
+function broadcastVerse(reference, text, translation) {
+  const state = {
+    reference,
+    text,
+    translation: translation || currentTranslation,
+    style: getStyle(),
+    ts: Date.now(),
+  };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  bc?.postMessage({ type: 'show', payload: state });
+  postToPreview({ type: 'show', payload: state });
+
+  els.currentRef.textContent = reference || '—';
+  els.currentTrans.textContent = state.translation;
+  els.liveDot.classList.add('live');
+  els.liveStatus.textContent = 'En direct';
+  addToHistory(state);
+  toast('Diffusion en cours : ' + reference);
+}
+
+function clearLive() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({ style: getStyle() }));
+  bc?.postMessage({ type: 'clear' });
+  postToPreview({ type: 'clear' });
+  els.liveDot.classList.remove('live');
+  els.liveStatus.textContent = 'En attente';
+  els.currentRef.textContent = '—';
+  els.currentTrans.textContent = '';
+  toast('Écran effacé');
+}
+
+function addToHistory(state) {
+  if (!state.text) return;
+  let history = [];
+  try { history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); } catch {}
+  history = history.filter(h => h.reference !== state.reference);
+  history.unshift({ reference: state.reference, text: state.text, translation: state.translation });
+  history = history.slice(0, 20);
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+  renderHistory();
+}
+
+function renderHistory() {
+  let history = [];
+  try { history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); } catch {}
+  if (!history.length) {
+    els.historyList.innerHTML = '<div class="empty">Aucun verset diffusé</div>';
+    return;
+  }
+  els.historyList.innerHTML = history.map((h, i) => `
+    <div class="slide-item" data-i="${i}">
+      <div style="flex:1; overflow:hidden;">
+        <div class="slide-item-ref">${escapeHtml(h.reference)}</div>
+        <div class="slide-item-text">${escapeHtml(h.text.substring(0, 60))}${h.text.length > 60 ? '…' : ''}</div>
+      </div>
+    </div>
+  `).join('');
+  els.historyList.querySelectorAll('.slide-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const h = history[parseInt(item.dataset.i)];
+      broadcastVerse(h.reference, h.text, h.translation);
+    });
+  });
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, m => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[m]));
+}
+
+// ====== INIT SELECTS ======
+function initBooks() {
+  TRANSLATIONS.forEach(t => {
+    const opt = document.createElement('option');
+    opt.value = t.code; opt.textContent = t.name;
+    els.translation.appendChild(opt);
+  });
+  els.translation.value = 'FRLSG';
+
+  BIBLE_BOOKS.forEach(b => {
+    const opt = document.createElement('option');
+    opt.value = b.id;
+    opt.textContent = (b.testament === 'AT' ? '🟦 ' : '🟥 ') + b.name;
+    els.book.appendChild(opt);
+  });
+  els.book.value = 43; // Jean par défaut
+  updateChapters();
+}
+
+function updateChapters() {
+  const book = BIBLE_BOOKS.find(b => b.id == els.book.value);
+  if (!book) return;
+  els.chapter.innerHTML = '';
+  for (let i = 1; i <= book.chapters; i++) {
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = 'Chapitre ' + i;
+    els.chapter.appendChild(opt);
+  }
+  els.chapter.value = book.id === 43 ? 3 : 1; // Jean 3 par défaut
+}
+
+// ====== API CALLS (bolls.life) ======
+async function fetchChapter(translation, bookId, chapter) {
+  const url = `https://bolls.life/get-text/${translation}/${bookId}/${chapter}/`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('Erreur API: ' + res.status);
+  const data = await res.json();
+  // data = [{ verse, text, ... }]
+  return data;
+}
+
+async function searchBible(translation, query) {
+  const url = `https://bolls.life/v2/find/${translation}/?search=${encodeURIComponent(query)}&match_case=0&match_whole=0`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('Erreur recherche: ' + res.status);
+  return await res.json();
+}
+
+function cleanVerseHtml(html) {
+  // Retire les balises HTML/notes/Strong et nettoie l'espace
+  return String(html)
+    .replace(/<[^>]+>/g, '')
+    .replace(/\s+/g, ' ')
+    .replace(/ /g, ' ')
+    .trim();
+}
+
+async function loadChapter() {
+  els.verseList.innerHTML = '<div class="empty">Chargement…</div>';
+  const book = BIBLE_BOOKS.find(b => b.id == els.book.value);
+  const chap = parseInt(els.chapter.value);
+  const trans = els.translation.value;
+  currentBookName = book.name;
+  currentChapter = chap;
+  currentTranslation = trans;
+
+  try {
+    const verses = await fetchChapter(trans, book.id, chap);
+    chapterVerses = verses.map(v => ({
+      num: v.verse,
+      text: cleanVerseHtml(v.text),
+      reference: `${book.name} ${chap}:${v.verse}`,
+    }));
+    renderVerseList();
+  } catch (e) {
+    els.verseList.innerHTML = `<div class="empty">❌ Impossible de charger.<br>Vérifiez votre connexion ou utilisez l'onglet <strong>Manuel</strong>.<br><small>${escapeHtml(e.message)}</small></div>`;
+  }
+}
+
+function renderVerseList() {
+  if (!chapterVerses.length) {
+    els.verseList.innerHTML = '<div class="empty">Aucun verset</div>';
+    return;
+  }
+  els.verseList.innerHTML = chapterVerses.map((v, i) => `
+    <div class="verse-item" data-i="${i}">
+      <span class="verse-num">${v.num}</span>${escapeHtml(v.text)}
+    </div>
+  `).join('');
+  els.verseList.querySelectorAll('.verse-item').forEach(item => {
+    const i = parseInt(item.dataset.i);
+    item.addEventListener('click', () => selectVerse(i));
+    item.addEventListener('dblclick', () => {
+      selectVerse(i);
+      sendCurrentVerse();
+    });
+  });
+}
+
+function selectVerse(i) {
+  if (i < 0 || i >= chapterVerses.length) return;
+  activeIndex = i;
+  els.verseList.querySelectorAll('.verse-item').forEach((el, j) => {
+    el.classList.toggle('active', j === i);
+    if (j === i) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  });
+  const v = chapterVerses[i];
+  els.currentRef.textContent = v.reference + ' (sélectionné)';
+}
+
+function sendCurrentVerse() {
+  if (activeIndex < 0) {
+    toast('Sélectionnez d\'abord un verset');
+    return;
+  }
+  const v = chapterVerses[activeIndex];
+  broadcastVerse(v.reference, v.text);
+}
+
+// ====== SEARCH ======
+async function doSearch() {
+  const q = els.searchInput.value.trim();
+  if (!q) return;
+  els.searchResults.innerHTML = '<div class="empty">Recherche…</div>';
+
+  // Détecter si c'est une référence (ex: Jean 3:16, 1 Jean 4:8, Jean 3:18-20)
+  const refMatch = q.match(/^([\d]?\s*[A-Za-zéèêàâîôùçÉÈÊÀÂÎÔÙÇ]+\.?)\s+(\d+)(?::(\d+)(?:\s*-\s*(\d+))?)?$/);
+  if (refMatch) {
+    const bookName = refMatch[1].trim().toLowerCase();
+    const chap = parseInt(refMatch[2]);
+    const verseStart = refMatch[3] ? parseInt(refMatch[3]) : null;
+    const verseEnd = refMatch[4] ? parseInt(refMatch[4]) : verseStart;
+    const book = BIBLE_BOOKS.find(b =>
+      b.name.toLowerCase() === bookName ||
+      b.name.toLowerCase().startsWith(bookName) ||
+      b.short.toLowerCase() === bookName
+    );
+    if (book) {
+      try {
+        const verses = await fetchChapter(els.translation.value, book.id, chap);
+        const filtered = verseStart
+          ? verses.filter(v => v.verse >= verseStart && v.verse <= verseEnd)
+          : verses;
+        const results = filtered.map(v => ({
+          reference: `${book.name} ${chap}:${v.verse}`,
+          text: cleanVerseHtml(v.text),
+        }));
+        // Si plage de versets : ajouter en tête une entrée "combinée" diffusable d'un coup
+        if (verseStart && verseEnd > verseStart && results.length > 1) {
+          const combinedText = results
+            .map(r => `${r.reference.split(':')[1]}. ${r.text}`)
+            .join(' ');
+          results.unshift({
+            reference: `${book.name} ${chap}:${verseStart}-${verseEnd}`,
+            text: combinedText,
+          });
+        }
+        renderSearchResults(results);
+        return;
+      } catch (e) { /* fallback to keyword search */ }
+    }
+  }
+
+  // Recherche par mot-clé
+  try {
+    const data = await searchBible(els.translation.value, q);
+    const results = (data.results || []).slice(0, 50).map(r => {
+      const book = BIBLE_BOOKS.find(b => b.id == r.book);
+      return {
+        reference: `${book ? book.name : '?'} ${r.chapter}:${r.verse}`,
+        text: cleanVerseHtml(r.text),
+      };
+    });
+    renderSearchResults(results);
+  } catch (e) {
+    els.searchResults.innerHTML = `<div class="empty">❌ Recherche impossible<br><small>${escapeHtml(e.message)}</small></div>`;
+  }
+}
+
+function renderSearchResults(results) {
+  if (!results.length) {
+    els.searchResults.innerHTML = '<div class="empty">Aucun résultat</div>';
+    return;
+  }
+  els.searchResults.innerHTML = results.map((r, i) => `
+    <div class="search-result" data-i="${i}">
+      <div class="search-ref">${escapeHtml(r.reference)}</div>
+      <div>${escapeHtml(r.text)}</div>
+    </div>
+  `).join('');
+  els.searchResults.querySelectorAll('.search-result').forEach(el => {
+    const i = parseInt(el.dataset.i);
+    el.addEventListener('click', () => {
+      const r = results[i];
+      broadcastVerse(r.reference, r.text);
+    });
+  });
+}
+
+// ====== EVENT BINDINGS ======
+els.book.addEventListener('change', updateChapters);
+els.loadChapterBtn.addEventListener('click', loadChapter);
+els.searchBtn.addEventListener('click', doSearch);
+els.searchInput.addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+
+els.manualSendBtn.addEventListener('click', () => {
+  const ref = els.manualRef.value.trim() || 'Verset';
+  const text = els.manualText.value.trim();
+  if (!text) { toast('Saisissez un texte'); return; }
+  broadcastVerse(ref, text);
+});
+
+els.sendLiveBtn.addEventListener('click', sendCurrentVerse);
+els.clearLiveBtn.addEventListener('click', clearLive);
+els.prevBtn.addEventListener('click', () => {
+  if (activeIndex > 0) { selectVerse(activeIndex - 1); sendCurrentVerse(); }
+});
+els.nextBtn.addEventListener('click', () => {
+  if (activeIndex < chapterVerses.length - 1) { selectVerse(activeIndex + 1); sendCurrentVerse(); }
+});
+
+els.openObsBtn.addEventListener('click', () => {
+  const url = new URL('obs.html', window.location.href).href;
+  window.open(url, 'obs-display', 'width=1280,height=720');
+  navigator.clipboard?.writeText(url).then(() => toast('URL OBS copiée : ' + url)).catch(() => toast('URL : ' + url));
+});
+
+const openPresenterBtn = document.getElementById('openPresenterBtn');
+if (openPresenterBtn) {
+  openPresenterBtn.addEventListener('click', () => {
+    const url = new URL('presenter.html', window.location.href).href;
+    window.open(url, 'presenter-view', 'width=1100,height=720');
+  });
+}
+
+// ====== AGRANDIR / PLEIN ÉCRAN ======
+function setExpanded(on) {
+  document.querySelector('.app').classList.toggle('expanded', on);
+  els.expandBtn.textContent = on ? '🔳 Réduire' : '🔲 Agrandir';
+  els.expandBtn.title = on ? 'Réduire (F ou Échap)' : 'Agrandir l\'aperçu (F)';
+}
+function toggleExpanded() {
+  const isOn = !document.querySelector('.app').classList.contains('expanded');
+  setExpanded(isOn);
+}
+function toggleFullscreen() {
+  const previewArea = document.querySelector('.preview-area');
+  if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+    (previewArea.requestFullscreen?.() || previewArea.webkitRequestFullscreen?.());
+  } else {
+    (document.exitFullscreen?.() || document.webkitExitFullscreen?.());
+  }
+}
+els.expandBtn.addEventListener('click', toggleExpanded);
+els.fullscreenBtn.addEventListener('click', toggleFullscreen);
+
+// ====== AJUSTEMENT MANUEL (drag-to-resize) ======
+const LAYOUT_KEY = 'versetlive:layout';
+const DEFAULT_LEFT = 320;
+const DEFAULT_RIGHT = 360;
+const MIN_PANEL = 0;       // Permet d'aller jusqu'à 0 (panneau quasi caché)
+const MAX_LEFT_RATIO = 0.6;
+const MAX_RIGHT_RATIO = 0.6;
+
+function applyLayout(leftPx, rightPx) {
+  const app = document.querySelector('.app');
+  app.style.setProperty('--col-left', leftPx + 'px');
+  app.style.setProperty('--col-right', rightPx + 'px');
+}
+
+function loadLayout() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(LAYOUT_KEY) || 'null');
+    if (saved && typeof saved.left === 'number' && typeof saved.right === 'number') {
+      applyLayout(saved.left, saved.right);
+    }
+  } catch {}
+}
+
+function saveLayout() {
+  const app = document.querySelector('.app');
+  const cs = getComputedStyle(app);
+  const left = parseInt(cs.getPropertyValue('--col-left')) || DEFAULT_LEFT;
+  const right = parseInt(cs.getPropertyValue('--col-right')) || DEFAULT_RIGHT;
+  localStorage.setItem(LAYOUT_KEY, JSON.stringify({ left, right }));
+}
+
+function setupResizer(el, side) {
+  let dragging = false;
+  let startX = 0;
+  let startSize = 0;
+
+  el.addEventListener('mousedown', (e) => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    dragging = true;
+    startX = e.clientX;
+    const app = document.querySelector('.app');
+    const cs = getComputedStyle(app);
+    startSize = parseInt(cs.getPropertyValue(side === 'left' ? '--col-left' : '--col-right')) || (side === 'left' ? DEFAULT_LEFT : DEFAULT_RIGHT);
+    app.classList.add('resizing');
+    el.classList.add('active');
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!dragging) return;
+    const delta = e.clientX - startX;
+    const winW = window.innerWidth;
+    let newSize;
+    if (side === 'left') {
+      newSize = Math.max(MIN_PANEL, Math.min(winW * MAX_LEFT_RATIO, startSize + delta));
+      document.querySelector('.app').style.setProperty('--col-left', newSize + 'px');
+    } else {
+      newSize = Math.max(MIN_PANEL, Math.min(winW * MAX_RIGHT_RATIO, startSize - delta));
+      document.querySelector('.app').style.setProperty('--col-right', newSize + 'px');
+    }
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (!dragging) return;
+    dragging = false;
+    document.querySelector('.app').classList.remove('resizing');
+    el.classList.remove('active');
+    saveLayout();
+  });
+
+  // Double-clic = réinitialiser à la valeur par défaut
+  el.addEventListener('dblclick', () => {
+    if (side === 'left') {
+      document.querySelector('.app').style.setProperty('--col-left', DEFAULT_LEFT + 'px');
+    } else {
+      document.querySelector('.app').style.setProperty('--col-right', DEFAULT_RIGHT + 'px');
+    }
+    saveLayout();
+    toast('Panneau réinitialisé');
+  });
+}
+
+setupResizer(document.getElementById('resizerLeft'), 'left');
+setupResizer(document.getElementById('resizerRight'), 'right');
+loadLayout();
+
+// Au tout premier lancement, faire pulser les poignées + afficher un message
+const HINT_KEY = 'versetlive:resizer-hint-shown';
+if (!localStorage.getItem(HINT_KEY)) {
+  document.getElementById('resizerLeft').classList.add('hint');
+  document.getElementById('resizerRight').classList.add('hint');
+  setTimeout(() => toast('💡 Glissez les poignées ↔ pour redimensionner les panneaux'), 600);
+  localStorage.setItem(HINT_KEY, '1');
+}
+
+// Tabs
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const target = tab.dataset.tab;
+    document.querySelectorAll('.tab-pane').forEach(p => {
+      p.style.display = p.dataset.pane === target ? 'block' : 'none';
+    });
+    // Le détail du chant n'apparait que sur l'onglet Chants
+    const songDetail = document.getElementById('songDetail');
+    if (songDetail) {
+      songDetail.classList.toggle('visible', target === 'songs');
+    }
+  });
+});
+
+// Style live updates
+['fontFamily','fontSize','textColor','textShadow','textAlign','bgType','bgColor','bgOpacity','vAlign','showRef','animation']
+  .forEach(k => els[k].addEventListener('input', () => {
+    refreshRangeLabels();
+    if (k === 'textColor') els.textColorHex.value = els.textColor.value;
+    if (k === 'bgColor') els.bgColorHex.value = els.bgColor.value;
+    broadcastStyleOnly();
+  }));
+
+els.textColorHex.addEventListener('change', () => {
+  if (/^#[0-9a-fA-F]{6}$/.test(els.textColorHex.value)) {
+    els.textColor.value = els.textColorHex.value;
+    broadcastStyleOnly();
+  }
+});
+els.bgColorHex.addEventListener('change', () => {
+  if (/^#[0-9a-fA-F]{6}$/.test(els.bgColorHex.value)) {
+    els.bgColor.value = els.bgColorHex.value;
+    broadcastStyleOnly();
+  }
+});
+
+// Help modal
+els.helpBtn.addEventListener('click', () => els.helpModal.classList.add('show'));
+els.closeHelp.addEventListener('click', () => els.helpModal.classList.remove('show'));
+els.helpModal.addEventListener('click', e => {
+  if (e.target === els.helpModal) els.helpModal.classList.remove('show');
+});
+
+// Keyboard shortcuts
+document.addEventListener('keydown', e => {
+  if (e.target.matches('input, textarea, select')) return;
+  if (e.key === 'ArrowDown' || e.key === 'PageDown') {
+    if (activeIndex < chapterVerses.length - 1) selectVerse(activeIndex + 1);
+    e.preventDefault();
+  } else if (e.key === 'ArrowUp' || e.key === 'PageUp') {
+    if (activeIndex > 0) selectVerse(activeIndex - 1);
+    e.preventDefault();
+  } else if (e.key === 'Enter' || e.key === ' ') {
+    sendCurrentVerse();
+    e.preventDefault();
+  } else if (e.key === 'f' || e.key === 'F') {
+    toggleExpanded();
+    e.preventDefault();
+  } else if (e.key === 'Escape') {
+    // Priorité : sortir du plein écran, puis du mode agrandi, sinon effacer
+    if (document.fullscreenElement || document.webkitFullscreenElement) {
+      (document.exitFullscreen?.() || document.webkitExitFullscreen?.());
+    } else if (document.querySelector('.app').classList.contains('expanded')) {
+      setExpanded(false);
+    } else {
+      clearLive();
+    }
+  }
+});
+
+// Synchroniser le bouton plein écran avec l'état réel (Échap natif, etc.)
+document.addEventListener('fullscreenchange', () => {
+  const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
+  els.fullscreenBtn.textContent = isFs ? '⛌' : '⛶';
+  els.fullscreenBtn.title = isFs ? 'Quitter le plein écran (Échap)' : 'Plein écran (F11)';
+});
+
+// ====== BOOT ======
+initBooks();
+restoreStyle();
+refreshRangeLabels();
+renderHistory();
+broadcastStyleOnly(); // pousse le style initial vers la preview

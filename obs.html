@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VersetLive — Affichage OBS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      background: transparent;
+      font-family: Georgia, serif;
+    }
+    body.preview-mode {
+      background: linear-gradient(135deg, #1e3a8a, #831843);
+    }
+    .stage {
+      width: 100%; height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 5vh 6vw;
+      position: relative;
+    }
+    .stage.v-top { justify-content: flex-start; padding-top: 8vh; }
+    .stage.v-bottom { justify-content: flex-end; padding-bottom: 8vh; }
+
+    .bg-layer {
+      position: absolute; inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0;
+      transition: opacity 0.4s;
+    }
+    .bg-layer.show { opacity: 1; }
+
+    .content {
+      position: relative;
+      z-index: 1;
+      max-width: 90%;
+      text-align: center;
+      opacity: 0;
+      transition: opacity 0.5s, transform 0.5s;
+    }
+    .content.visible { opacity: 1; }
+
+    /* Animations */
+    .anim-fade .content { transform: scale(1); }
+    .anim-fade .content:not(.visible) { opacity: 0; }
+
+    .anim-slide-up .content { transform: translateY(40px); }
+    .anim-slide-up .content.visible { transform: translateY(0); }
+
+    .anim-zoom .content { transform: scale(0.85); }
+    .anim-zoom .content.visible { transform: scale(1); }
+
+    .anim-none .content { transition: none; }
+
+    .verse-text {
+      font-size: 4.5vw;
+      line-height: 1.35;
+      font-weight: 500;
+      color: white;
+      word-wrap: break-word;
+    }
+
+    .verse-ref {
+      font-size: 2.2vw;
+      margin-top: 2vh;
+      opacity: 0.85;
+      font-style: italic;
+      letter-spacing: 0.05em;
+    }
+    .verse-ref.above { margin-top: 0; margin-bottom: 2vh; }
+    .verse-ref.hide { display: none; }
+
+    /* Shadows */
+    .shadow-soft .verse-text, .shadow-soft .verse-ref {
+      text-shadow: 0 2px 8px rgba(0,0,0,0.6), 0 4px 18px rgba(0,0,0,0.5);
+    }
+    .shadow-strong .verse-text, .shadow-strong .verse-ref {
+      text-shadow: 0 3px 0 rgba(0,0,0,0.85), 0 6px 30px rgba(0,0,0,0.9);
+    }
+    .shadow-outline .verse-text, .shadow-outline .verse-ref {
+      -webkit-text-stroke: 1.5px rgba(0,0,0,0.95);
+      text-shadow: 0 0 12px rgba(0,0,0,0.6);
+      paint-order: stroke fill;
+    }
+    .shadow-glow .verse-text, .shadow-glow .verse-ref {
+      text-shadow: 0 0 14px rgba(255,210,90,0.85), 0 0 30px rgba(255,180,40,0.55), 0 2px 4px rgba(0,0,0,0.6);
+    }
+
+    /* ===== TITRES ===== */
+    .title-content {
+      position: relative;
+      z-index: 2;
+      max-width: 90%;
+      text-align: center;
+      opacity: 0;
+      transition: opacity 0.6s, transform 0.6s;
+      display: none;
+      color: white;
+      --accent: #d4af37;
+    }
+    .title-content.active { display: block; }
+    .title-content.visible { opacity: 1; }
+
+    .title-main {
+      font-size: 7vw;
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: 0.05em;
+      margin: 0;
+    }
+    .title-sub {
+      font-size: 2.6vw;
+      font-weight: 400;
+      margin-top: 1.5vh;
+      opacity: 0.92;
+      font-style: italic;
+      line-height: 1.4;
+    }
+    .title-sub:empty { display: none; }
+    .title-deco-top, .title-deco-mid, .title-deco-bottom {
+      display: none;
+    }
+
+    /* ---- CLASSIC ---- */
+    .title-tpl-classic .title-main {
+      text-shadow: 0 4px 20px rgba(0,0,0,0.6);
+    }
+    .title-tpl-classic .title-deco-mid {
+      display: block;
+      width: 30vw;
+      height: 3px;
+      background: var(--accent);
+      margin: 2vh auto;
+      border-radius: 2px;
+      box-shadow: 0 0 12px var(--accent);
+    }
+
+    /* ---- ELEGANT ---- */
+    .title-tpl-elegant .title-main {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-style: italic;
+      font-weight: 700;
+      text-shadow: 0 4px 24px rgba(0,0,0,0.5);
+    }
+    .title-tpl-elegant .title-main::before { content: "✦  "; color: var(--accent); }
+    .title-tpl-elegant .title-main::after { content: "  ✦"; color: var(--accent); }
+    .title-tpl-elegant .title-sub {
+      font-family: 'Playfair Display', serif;
+      letter-spacing: 0.15em;
+    }
+
+    /* ---- BANNER ---- */
+    .title-tpl-banner {
+      background: var(--accent);
+      padding: 5vh 6vw;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+      max-width: 100%;
+      width: 100%;
+      transform: skewY(-1deg);
+    }
+    .title-tpl-banner > * { transform: skewY(1deg); }
+    .title-tpl-banner .title-main {
+      color: white;
+      text-shadow: 3px 3px 0 rgba(0,0,0,0.25);
+    }
+    .title-tpl-banner .title-sub { color: rgba(255,255,255,0.95); }
+
+    /* ---- MODERN ---- */
+    .title-tpl-modern {
+      text-align: left;
+      padding-left: 3vw;
+      border-left: 0.8vw solid var(--accent);
+    }
+    .title-tpl-modern .title-main {
+      font-family: -apple-system, "Helvetica Neue", sans-serif;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: -0.01em;
+    }
+    .title-tpl-modern .title-sub {
+      font-style: normal;
+      text-transform: uppercase;
+      letter-spacing: 0.3em;
+      font-size: 1.6vw;
+      opacity: 0.7;
+    }
+
+    /* ---- CARD (gradient) ---- */
+    .title-tpl-card {
+      padding: 5vh 6vw;
+      border-radius: 16px;
+      background: linear-gradient(135deg, var(--accent), rgba(0,0,0,0.4));
+      box-shadow: 0 25px 60px rgba(0,0,0,0.5);
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(255,255,255,0.15);
+    }
+    .title-tpl-card .title-main { text-shadow: 0 3px 12px rgba(0,0,0,0.6); }
+
+    /* ---- DOUBLE LINE ---- */
+    .title-tpl-double .title-deco-top,
+    .title-tpl-double .title-deco-bottom {
+      display: block;
+      height: 4px;
+      background: linear-gradient(to right, transparent, var(--accent), transparent);
+      margin: 1.5vh auto;
+      width: 60vw;
+    }
+    .title-tpl-double .title-deco-top { margin-bottom: 3vh; }
+    .title-tpl-double .title-deco-bottom { margin-top: 3vh; }
+
+    /* ---- ORNAMENT (church style) ---- */
+    .title-tpl-ornament .title-main {
+      font-family: 'Cinzel', 'Playfair Display', serif;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+    }
+    .title-tpl-ornament .title-deco-top,
+    .title-tpl-ornament .title-deco-bottom {
+      display: block;
+      font-size: 3vw;
+      color: var(--accent);
+      margin: 1vh 0;
+    }
+    .title-tpl-ornament .title-deco-top::before { content: "❦ ❦ ❦"; letter-spacing: 1vw; }
+    .title-tpl-ornament .title-deco-bottom::before { content: "❦ ❦ ❦"; letter-spacing: 1vw; }
+    .title-tpl-ornament .title-sub { font-family: 'Playfair Display', serif; }
+
+    /* ---- MINIMAL ---- */
+    .title-tpl-minimal .title-main {
+      font-family: -apple-system, "Helvetica Neue", sans-serif;
+      font-weight: 200;
+      letter-spacing: 0.4em;
+      text-transform: uppercase;
+      font-size: 5vw;
+    }
+    .title-tpl-minimal .title-sub {
+      font-style: normal;
+      font-weight: 300;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      font-size: 1.4vw;
+      margin-top: 3vh;
+      opacity: 0.7;
+    }
+
+    /* ---- LOWER THIRD ---- */
+    .stage:has(.title-tpl-lower-third) {
+      align-items: flex-start;
+      justify-content: flex-end;
+      padding-bottom: 0;
+    }
+    .title-tpl-lower-third {
+      width: 100%;
+      max-width: 100%;
+      background: linear-gradient(to right, var(--accent) 0%, var(--accent) 70%, transparent 100%);
+      padding: 3vh 6vw 3vh 5vw;
+      text-align: left;
+      border-left: 0.7vw solid white;
+      box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
+    }
+    .title-tpl-lower-third .title-main {
+      font-size: 4.5vw;
+      font-family: -apple-system, sans-serif;
+      font-weight: 800;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    }
+    .title-tpl-lower-third .title-sub {
+      font-size: 1.9vw;
+      font-style: normal;
+      letter-spacing: 0.1em;
+      margin-top: 0.5vh;
+    }
+
+    /* ---- BADGE ---- */
+    .title-tpl-badge {
+      padding: 4vh 6vw;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 15px 40px rgba(0,0,0,0.5), inset 0 -6px 12px rgba(0,0,0,0.15);
+    }
+    .title-tpl-badge .title-main {
+      color: white;
+      font-weight: 800;
+      text-shadow: 0 3px 0 rgba(0,0,0,0.2);
+    }
+    .title-tpl-badge .title-sub { color: rgba(255,255,255,0.9); }
+
+    /* Watermark in preview only */
+    .preview-mode::before {
+      content: "APERÇU OBS";
+      position: absolute;
+      top: 12px; right: 16px;
+      font-family: -apple-system, sans-serif;
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      color: rgba(255,255,255,0.5);
+      background: rgba(0,0,0,0.4);
+      padding: 4px 8px;
+      border-radius: 4px;
+      z-index: 10;
+    }
+  </style>
+</head>
+<body>
+  <div class="stage anim-fade" id="stage">
+    <div class="bg-layer" id="bgLayer"></div>
+    <div class="content" id="content">
+      <div class="verse-ref" id="refTop" style="display:none;"></div>
+      <div class="verse-text" id="verseText"></div>
+      <div class="verse-ref" id="refBottom"></div>
+    </div>
+    <div class="title-content" id="titleContent">
+      <div class="title-deco-top" id="titleDecoTop"></div>
+      <div class="title-main" id="titleMainEl"></div>
+      <div class="title-deco-mid" id="titleDecoMid"></div>
+      <div class="title-sub" id="titleSubEl"></div>
+      <div class="title-deco-bottom" id="titleDecoBottom"></div>
+    </div>
+  </div>
+  <script src="obs.js"></script>
+</body>
+</html>

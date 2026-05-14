@@ -1,0 +1,9683 @@
+// Chants de Victoire 1926 — édition Delachaux & Niestlé (domaine public)
+// Source : cantiques.yapper.fr/CV — extraction automatisée
+// 308 chants, 1381 sections (1238 couplets, 143 refrains)
+
+const CHANTS_VICTOIRE_1926 = [
+  {
+    "id": "cv-1926-001",
+    "number": "1",
+    "title": "Grand Dieu, nous te bénissons",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Grand Dieu, nous te bénissons,\nNous célébrons tes louanges !\nÉternel, nous t’exaltons,\nDe concert avec les anges,\n— Et prosternés devant Toi,\nNous t’adorons, ô grand Roi ! — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Les saints et les bienheureux,\nLes trônes et les puissances,\nToutes les vertus des cieux,\nDisent tes magnificences,\n— Proclamant dans leurs concerts,\nLe grand Dieu de l’Univers. — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Saint, saint, saint, est l’Éternel,\nLe Seigneur, Dieu des armées ;\nSon pouvoir est immortel ;\nSes œuvres partout semées\n— Font éclater sa grandeur,\nSa majesté, sa splendeur. — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Sauve ton peuple, Seigneur,\nEt bénis ton héritage ;\nQue ta gloire et ta splendeur\nSoient à jamais son partage,\n— Conduis-le par ton amour\nJusqu’au céleste séjour ! — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Gloire soit au Saint-Esprit !\nGloire soit à Dieu le Père !\nGloire soit à Jésus-Christ,\nNotre Sauveur, notre Frère !\n— Son immense charité\nDure à perpétuité. — (bis)"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-002",
+    "number": "2",
+    "title": "Je chanterai, Seigneur",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Je chanterai, Seigneur, tes œuvres magnifiques,\nTon auguste pouvoir, ta suprême grandeur ;\nAux concerts de tes saints j’unirai les cantiques\nQue pour toi me dicte mon cœur. (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Oh ! que de l’Éternel la parole est féconde !\nL’univers fut jadis l’ouvrage de sa voix ;\nIl dit… les éléments, le ciel, la terre et l’onde\nDu néant sortent à la fois. (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Le monde passera ; ce superbe édifice\nUn jour s’ébranlera jusqu’en ses fondements.\nTa sagesse, grand Dieu, ta bonté, ta justice\nSubsisteront dans tous les temps. (bis)"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-003",
+    "number": "3",
+    "title": "Gloire, gloire à l’Éternel",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Gloire, gloire à l’Éternel !\nQu’un cantique solennel (bis)\nDe nos cœurs monte à son trône !\nQuand il crée, oh ! qu’il est grand ! (bis)\nQu’il est juste en punissant !\nQu’il est bon quand il pardonne !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Il parle !… et cet Univers\nSe lève aux puissants concerts (bis)\nDe sa parole vivante ;\nEt des astres radieux, (bis)\nSa main jette dans les cieux\nLa poussière étincelante !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Il accuse !… et le pécheur\nDevant cet accusateur, (bis)\nSent sa profonde misère,\nEt s’écrie en son effroi : (bis)\nMontagnes, tombez sur moi,\nCachez-moi de sa colère !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Mais l’âme à qui le Seigneur\nS’est donné pour Rédempteur, (bis)\nGoûte une paix ineffable.\nObjet d’un si grand amour, (bis)\nElle éprouve un doux retour\nPour ce Sauveur adorable."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Ô Dieu, que tes rachetés\nToujours chantent les bontés (bis)\nDe Celui qui leur pardonne !\nGloire, gloire à l’Éternel ! (bis)\nCe cantique solennel\nMontera jusqu’à son trône."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-004",
+    "number": "4",
+    "title": "Je veux chanter, louer",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Je veux chanter, louer mon Dieu,\nDans tous les temps, dans tous les lieux !\nQue dans ma vie\nTout glorifie\nLe nom puissant d’Emmanuel !\nAlléluia ! (bis)\nAvec les anges dans le ciel,\nAlléluia ! (bis)\nCélébrons tous Emmanuel !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Je veux chanter mon Rédempteur,\nL’amour profond de mon Sauveur !\nSa mort sanglante\nEt triomphante\nM’affranchit du joug du péché.\nAlléluia ! (bis)\nGloire à Jésus, je suis sauvé !\nAlléluia ! (bis)\nOui ! Sauvé pour l’éternité !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Exaltons tous et célébrons\nLe nom de notre Dieu ; chantons !\nDans l’allégresse\nSoyons sans cesse !\nVous tous qui souffrez, malheureux,\nAlléluia ! (bis)\nNon ! plus de larmes dans vos yeux !\nAlléluia ! (bis)\nVenez, il veut vous rendre heureux !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-005",
+    "number": "5",
+    "title": "Jésus ! Jésus !",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Jésus, Jésus, Jésus, Jésus,\nSeul nom que mon cœur aime,\nJe voudrais ne prononcer plus\nQu’un seul mot, ce nom même."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Jésus, Jésus, ce nom si beau,\nC’est celui dont les anges,\nProsternés autour de l’Agneau,\nRemplissent leurs louanges."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Jésus, c’est le nom de Celui\nQui descendit du Père,\nDont l’amour sur la croix a lui,\nEn qui la terre espère."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Jésus, c’est le nom du Sauveur\nFavorable à toute âme,\nEt qu’aujourd’hui plus d’un pécheur\nDe tout son cœur acclame."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Jésus, Jésus, Jésus, Jésus,\nBientôt mon cœur qui t’aime,\nAuprès de Toi ne dira plus\nQu’un seul mot, ton nom même."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-006",
+    "number": "6",
+    "title": "À Dieu soit la Gloire !",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "À Dieu soit la Gloire !\nPar son Grand Amour\nDans mon âme noire\nS’est levé le jour.\nJésus à ma place,\nMourut sur la Croix,\nIl m’offre sa Grâce\nEt je le reçois !"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Gloire à Dieu ! (bis)\nTerre, écoute sa voix !\nGloire à Dieu ! (bis)\nMonde, réjouis-toi !\nOh ! venez au Père,\nJésus est vainqueur ;\nQue toute la terre\nChante en son honneur !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "De Jésus, la joie,\nRemplit notre cœur ;\nQu’importe qu’on voie\nTout notre bonheur,\nSelon sa promesse,\nJésus changera\nDeuil en allégresse,\nQuand Il reviendra."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-007",
+    "number": "7",
+    "title": "Dans mon bonheur immense",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Dans mon bonheur immense,\nJe veux avec ferveur\nCélébrer ta clémence,\nÔ mon Sauveur !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Pour moi, sur le Calvaire,\nTon sang fut répandu,\nEt l’amour de ton Père\nM’est apparu."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Ton sanglant sacrifice,\nExpiant mes forfaits,\nMe valut ta justice,\nTa douce paix."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Ce divin héritage,\nJe le prends par la foi,\nEt mon cœur sans partage\nSe donne à toi."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "À toi dans l’abondance\nOu dans la pauvreté,\nÀ toi dans la souffrance\nOu la santé."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 6",
+        "text": "À toi sur cette terre,\nOù j’attends ton retour,\nEt bientôt, près du Père,\nÀ toi toujours."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-008",
+    "number": "8",
+    "title": "Le nom de Jésus",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Le nom de Jésus est si doux !\nDe Dieu désarmant le courroux,\nIl nous appelle au rendez-vous,\nPrécieux nom de Jésus !"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Jésus ! Béni soit ton nom !\nJésus ! Oh ! merveilleux don !\nJésus ! Suprême rançon,\nSois adoré pour toujours."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "J’aime ce nom dans le chagrin,\nIl me soutient sur le chemin,\nSa musique est un son divin,\nPrécieux nom de Jésus !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "J’aime le nom de mon Sauveur,\nCar Lui seul connaît tout mon cœur,\nLui seul me rend plus que vainqueur :\nPrécieux nom de Jésus !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Et si parfois j’ai succombé,\nSi dans le mal je suis tombé,\nSon nom puissant m’a relevé :\nPrécieux nom de Jésus !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Et lorsqu’avec Lui je serai,\nEt lorsqu’enfin je Le verrai,\nAlors sans fin je redirai :\nPrécieux nom de Jésus !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-009",
+    "number": "9",
+    "title": "Christ est ressuscité !",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Christ est ressuscité,\nQu’en des chants joyeux,\nSon triomphe en tous lieux\nSoit exalté !"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "À toi la gloire et l’honneur, ô Sauveur, ô puissant Rédempteur !\nDu sépulcre tu sortis vainqueur,\nPrince de vie et Prince de paix.\n— Gloire à Toi, — (ter) – gloire à jamais !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Christ est ressuscité,\nCherche en Lui toujours,\nÔ peuple racheté,\nForce et secours !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Christ est ressuscité,\nPar Lui nous vivrons\nEt dans l’éternité\nNous régnerons."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-010",
+    "number": "10",
+    "title": "Du Rocher de Jacob",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Du Rocher de Jacob toute l’œuvre est parfaite ;\nCe que sa bouche a dit, sa main l’accomplira.\nAlléluia, alléluia ! (bis)\n— Car il est notre Dieu, — (ter) – notre haute retraite."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "C’est pour l’éternité que le Seigneur nous aime :\nSa grâce en notre cœur jamais ne cessera.\nAlléluia, alléluia ! (bis)\n— Car il est notre espoir, — (ter) – notre bonheur suprême."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "De tous nos ennemis Il sait quel est le nombre.\nSon bras combat pour nous et nous délivrera.\nAlléluia, alléluia ! (bis)\n— Les méchants, devant Lui, — (ter) – s’enfuiront comme une ombre."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Nos corps mortels aussi connaîtront sa victoire,\nNous savons que bientôt il les transformera.\nAlléluia ! Alléluia ! (bis)\n— Pour nous, ses rachetés, — (ter) – la mort se change en gloire."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Louons donc l’Éternel, notre Dieu, notre Père.\nLe Seigneur est pour nous : contre nous qui sera ?\nAlléluia ! Alléluia ! (bis)\n— Triomphons en Jésus — (ter) – et vivons pour Lui plaire."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-011",
+    "number": "11",
+    "title": "Adorable mystère",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Adorable mystère,\nLe Fils du Roi des rois,\nDescendit sur la terre,\nMourut sur une croix."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Honneur, honneur et gloire\nAu Sauveur, au Seigneur !\nHonneur, joie et victoire,\nHonneur, gloire au Sauveur !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Adorable mystère,\nC’est pour moi qu’il mourut !\nIl a pris ma misère,\nIl m’offre le salut !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Adorable mystère,\nVous tous qui connaissez\nSon pouvoir salutaire,\nAdorez, bénissez !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-012",
+    "number": "12",
+    "title": "Trois fois saint Jéhovah !",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Trois fois saint Jéhovah ! (bis)\nNotre âme en ta présence,\nDans une humble assurance\nS’écrie : Alléluia ! (bis)\nTa gloire est immortelle,\nTa grâce est éternelle !\nÔ Père, ô Fils Sauveur ! (ter)\nÔ grand Consolateur !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Nous cherchons, ô Seigneur ! (bis)\nLe regard de ta face ;\nQue du trône de grâce\nIl luise en notre cœur, (bis)\nAllume dans notre âme\nLa pure et vive flamme\n— De l’amour que pour Toi,\nDoit nourrir notre foi. — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Amen ! ô notre Dieu ! (bis)\nQue ta bonté fidèle\nÀ ce cœur qui t’appelle\nRéponde du saint lieu, (bis)\nEt qu’en ta paix parfaite,\nTon Église répète :\nTrois fois saint Jéhovah ! (ter)\nAmen ! Alléluia !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-013",
+    "number": "13",
+    "title": "Oh ! Loué soit ton nom",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Oh ! Loué soit ton nom Sauveur plein de tendresse,\nQui me gagnas enfin par ton immense amour.\nTu guéris ma douleur, me remplis d’allégresse\nEt ton regard béni me suit jour après jour."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "En ta communion, dans une humble assurance,\nJe trouve le repos et la paix pour mon cœur ;\nTa grâce précieuse et ta douce présence\nSont désormais pour moi la source du bonheur."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Et bientôt tu viendras, en ta grande puissance,\nMe prendre auprès de toi dans l’éternel repos !\nAlors, avec la foi, cessera l’espérance,\nMais dans mon cœur, l’amour régnera seul là-haut."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-014",
+    "number": "14",
+    "title": "Toi, le Fils éternel",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Toi, le Fils éternel, toi, bien-aimé du Père,\nDélices de son cœur au suprême séjour,\nAvant que le temps fût, tu pensais à la terre,\nOù tu voulais descendre et t’abaisser un jour."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Tous tes plaisirs étaient avec les fils des hommes,\nEt tu vins dans un corps par Dieu même formé ;\nHumble enfant, tu naquis plus bas que nous ne sommes,\nÔ mystère profond, des anges acclamé !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Tu venais nous sauver de l’état misérable,\nOù le péché d’Adam nous avait tous plongés ;\nPour nous tu mis ta vie, ô Seigneur adorable !\nTon sang fut répandu pour ôter nos péchés."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Et maintenant, ô Christ ! nous chantons ta victoire ;\nTon Dieu t’a couronné de puissance et d’honneur ;\nTu viendras nous chercher, Jésus, pour voir ta gloire,\nPour être près de toi dans l’éternel bonheur."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Agneau glorifié, Sauveur plein de tendresse,\nÔ toi qui nous aimas d’un amour infini,\nRéunis en ton nom, nos cœurs pleins d’allégresse,\nDisent avec bonheur : ô Jésus, sois béni !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-015",
+    "number": "15",
+    "title": "Oui, ton amour est un amour sublime",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Oui, ton amour est un amour sublime ;\nIl est plus haut que la plus haute cime\nEt que l’azur insondable des cieux.\nComment pourrais-je ô Dieu ! vers cet abîme\nLever les yeux !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Pourtant, Seigneur, si je ne puis comprendre,\nAh ! que du moins ma voix se fasse entendre,\nEt que mon cœur par l’amour soulevé,\nChante aujourd’hui l’amour puissant et tendre\nQui m’a sauvé !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Les séraphins, devant cette clémence\nQue rien ne borne et que rien ne commence,\nCourbent leur front par leurs ailes voilé…\nEt c’est pour moi que cet amour immense\nS’est révélé !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Oh ! quel amour ! Il m’entoure, il m’inonde.\nC’est une mer calme, pure, profonde,\nQui se déroule aux regards de ma foi.\nDoux océan, que murmure ton onde ?…\n« Pour toi, pour toi ! »"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Oui, c’est pour moi, je le crois et j’adore,\nÔ Christ Sauveur ! Qu’il retentisse encore\nCe mot divin, ce mot de ton amour !\nRedis-le-moi jusqu’à la douce aurore\nDe ton retour !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 6",
+        "text": "Et quand luira cette aurore bénie,\nQuand, à Jésus plus tendrement unie,\nMon âme enfin, mon âme le verra,\nD’elle vers lui ma louange infinie\nS’élèvera."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-016",
+    "number": "16",
+    "title": "Devant mon âme confondue",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Devant mon âme confondue\nS’étend un océan d’amour !\nEt d’En Haut la paix descendue,\nInonde mon cœur en ce jour."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Sur la croix, Christ a porté\nToute mon iniquité ;\nÀ lui je m’abandonne enfin,\nPour être à ce Sauveur divin."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Je cherchais, luttais avec larmes,\nJe voulais vaincre, mais en vain ;\nQuand lassé, je rendis les armes,\nLa paix brilla sur mon chemin."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Sur moi posant sa main bénie,\nIl me lava complètement,\nEt mon âme trouva la vie :\nSa justice est mon vêtement."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Le Prince de paix passe encore,\nEn cet instant, pour me bénir,\nEt dans mon âme a lui l’aurore\nD’un beau jour, qui ne peut finir."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-017",
+    "number": "17",
+    "title": "À Celui qui nous a lavés",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "À Celui qui nous a lavés,\nQui nous a tant aimés,\nPar son sang nous a rachetés,\nSoit gloire, gloire, gloire,\nLouange à jamais !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Chantons le cantique nouveau\nÀ l’honneur de l’Agneau,\nQui sortit vainqueur du tombeau,\nOui, gloire, gloire, gloire,\nLouange à jamais !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Adorons le Triomphateur,\nJésus notre Sauveur,\nSur tous ses ennemis vainqueur,\nOui, gloire, gloire, gloire,\nLouange à jamais !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Du ciel bientôt Il reviendra,\nEt tout œil le verra,\nLe monde entier l’adorera,\nOui, gloire, gloire, gloire,\nLouange à jamais !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-018",
+    "number": "18",
+    "title": "Vers toi monte notre hommage",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Vers toi monte notre hommage,\nFils de Dieu, puissant Sauveur,\nQui demeure d’âge en âge\nLe refuge du pécheur."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "— Loué soit ton amour, loués soient à jamais\nTon nom, ta gloire et tes bienfaits ! — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "De toi vient la délivrance :\nTu payas notre rançon.\nC’est en toi qu’est l’espérance,\nLa paix et la guérison."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Oh ! qu’heureux sous la bannière\nEst le peuple racheté\nQui marche dans la lumière,\nVers la céleste cité."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Par ta divine Parole\nTu l’enseignes, tu l’instruis,\nEt, par l’Esprit qui console,\nSûrement tu le conduis."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Bientôt – glorieuse attente ! –\nTu combleras tous nos vœux :\nSur la nue étincelante,\nTu viendras à nous des cieux."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-019",
+    "number": "19",
+    "title": "Mon Sauveur souffrit",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Mon Sauveur souffrit sur la croix,\nGloire à l’Agneau de Dieu !\nOh ! viens le louer avec moi ;\nGloire à l’Agneau de Dieu !"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "L’Agneau ! l’Agneau ! l’Agneau de Dieu !\nJ’aime l’écho de son saint nom ;\nCe nom brillera sur mon front."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Je veux dire à chaque pécheur,\nGloire à l’Agneau de Dieu !\nQu’enfin j’ai trouvé mon Sauveur.\nGloire à l’Agneau de Dieu !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Oui, je veux chanter plein de foi,\nGloire à l’Agneau de Dieu !\nQue mon Sauveur est mort pour moi.\nGloire à l’Agneau de Dieu !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Du monde je fais l’abandon ;\nGloire à l’Agneau de Dieu !\nDe mes péchés j’ai le pardon !\nGloire à l’Agneau de Dieu !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Parmi les sauvés j’ai mon rang,\nGloire à l’Agneau de Dieu !\nMon cœur est lavé dans son sang.\nGloire à l’Agneau de Dieu !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-020",
+    "number": "20",
+    "title": "Oh ! quel bonheur de le connaître",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Oh ! quel bonheur de le connaître,\nL’Ami qui ne saurait changer.\nDe l’avoir ici-bas pour Maître,\nPour défenseur et pour berger !"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Chantons, chantons d’un cœur joyeux\nLe grand amour du Rédempteur,\nQui vint à nous du haut des cieux,\nEt nous sauva du destructeur !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Dans la misère et l’ignorance\nNous nous débattons sans espoir,\nLa mort au cœur, l’âme en souffrance,\nQuand à nos yeux il se fit voir."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Il nous apporta la lumière,\nLa victoire et la liberté ;\nL’ennemi mordit la poussière,\nPour toujours Satan fut vaincu."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Vers l’avenir marchons sans crainte\nEt sans souci du lendemain,\nPas à pas, nos pieds dans l’empreinte\nDe ses pieds sur notre chemin."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-021",
+    "number": "21",
+    "title": "Nous t’adorons, Toi que notre cœur aime",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Nous t’adorons, Toi que notre cœur aime,\nÔ Rabboni !\nNous avons soif de ta sainteté même,\nMaître béni !\nVerse en nos cœurs, ô Christ, ta charité !\nEt mets sur nous ta sublime beauté."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Parfait Modèle, incomparable Maître,\nBénis-nous tous !\nComme tu fus, nous voulons toujours être,\nHumbles et doux !\nVerse en nos cœurs, ô Christ, ta charité !\nEt mets sur nous ta sublime beauté."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Oh ! donne-nous ton amour inlassable\nPour les perdus !\nCet amour vrai qui cherche le coupable,\nLoin de Jésus.\nVerse en nos cœurs, ô Christ, ta charité !\nEt mets sur nous ta sublime beauté."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Qu’en nous voyant, oublieux de nous-mêmes,\nTous pour chacun,\nLe monde ému dise : « Oh ! combien ils s’aiment !\nIls sont tous un ! »\nVerse en nos cœurs, ô Christ, ta charité !\nEt mets sur nous ta sublime beauté."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Ouvre le ciel, réponds à la prière\nQue nous t’offrons !\nImprime enfin ton divin caractère\nSur tous nos fronts !\nRien ne surpasse, ô Christ, ta charité,\nRien, ici-bas, n’égale ta beauté !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-022",
+    "number": "22",
+    "title": "Je l’ai trouvé",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Je l’ai trouvé, je l’ai trouvé,\nLe bonheur ineffable !\nJe suis sauvé, je suis sauvé,\nÔ joie inexprimable !\nTous mes péchés sont effacés ;\nLe sang de Christ me lave.\nLes jours des larmes sont passés :\nJe ne suis plus esclave !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Oh ! quel bonheur ! oh ! quel bonheur\nD’avoir Jésus pour maître !\nÔ mon Sauveur, mon seul Sauveur !\nÀ toi seul je veux être !\nTu vins briser, puissant Vainqueur,\nDu mal la tyrannie,\nAffranchissant mon pauvre cœur\nEt me donnant la vie !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Dans ton amour, tu m’as cherché,\nErrant bien loin du Père !\nTu m’as sauvé de mon péché,\nTu fis de moi ton frère :\nEt maintenant, et pour jamais,\nSous ton joug je me plie.\nJe ne puis vivre désormais,\nJésus, que de ta vie !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Ah ! Laissez-moi chanter mon Roi ;\nOui, qu’à genoux, je chante !\nJésus n’est-il pas tout pour moi ?\nGloire à sa croix sanglante !\nSans se lasser, jour après jour,\nIl m’aime, il m’aime encore…\nComment répondre à tant d’amour ?\nJe crois, j’aime et j’adore."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-023",
+    "number": "23",
+    "title": "Il faut grand Dieu",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Il faut, grand Dieu ! que de mon cœur\nLa sainte ardeur te glorifie ;\nQu’à toi des mains et de la voix,\nÔ Rois des rois ! Je psalmodie.\nJ’irai t’adorer, ô mon Dieu !\nEn ton saint lieu,\nD’un nouveau zèle !\nJe chanterai ta vérité\nEt ta bonté\nToujours fidèle."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Si mon cœur dans l’adversité\nEt agité, Ta main l’appuie ;\nCar c’est ton bras qui me soutient\nEt qui maintient\nMa courte vie.\nQuand je suis le plus abattu,\nC’est ta vertu\nQui me relève ;\nCe qu’il t’a plu de commencer,\nSans se lasser\nTa main l’achève."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-024",
+    "number": "24",
+    "title": "Par tous les saints glorifié",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Par tous les saints glorifié,\nJésus inspire leurs louanges,\nPlus belles que le chant des anges,\nGloire à l’Agneau, (bis)\nGloire à l’Agneau sacrifié !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "C’est par Lui qu’est justifié\nTout pécheur qui demande grâce.\nPrêtres et rois devant sa face,\nChantons l’Agneau, (bis)\nChantons l’Agneau sacrifié !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Par le Père magnifié,\nTout l’univers lui rend hommage.\nL’Agneau régnera d’âge en âge.\nGloire à l’Agneau, (bis)\nGloire à l’Agneau sacrifié !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Par son Esprit vivifié,\nJe veux jusqu’à ma dernière heure,\nChanter l’amour qui seul demeure :\nGloire à l’Agneau, (bis)\nGloire à l’Agneau sacrifié !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Pour nous Il fut crucifié ;\nSon sang a racheté notre âme ;\nC’est pourquoi notre amour l’acclame :\nGloire à l’Agneau, (bis)\nGloire à l’Agneau sacrifié !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-026",
+    "number": "26",
+    "title": "Les rayons de l’amour divin",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Les rayons de l’amour divin\nOnt brillé sur ma route,\nDès lors l’ennemi cherche en vain\nÀ mettre en moi le doute,\nDe toutes mes obscurités,\nIl ne reste plus trace,\nJ’ai vu les célestes clartés,\nLe Seigneur m’a fait grâce."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Oui, ton amour, amour divin,\nÔ mon Sauveur, s’est révélé\nIl est pour moi, ton racheté,\nTon amour, ton amour divin !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Alléluia ! mon faible cœur\nPeut aujourd’hui comprendre\nQue l’amour de mon Rédempteur\nEn lui veut se répandre.\nIl a bien longtemps méconnu\nCette grâce suprême,\nMais maintenant il est vaincu\nEt se donne lui-même."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Qui dira de l’amour divin\nLa grandeur insondable ?\nIl est le baume souverain,\nLe seul bienfait durable.\nJésus, pour ce don précieux,\nQue toujours je t’adore !\nQue mes accents jusques aux cieux\nRetentissent encore."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-027",
+    "number": "27",
+    "title": "Être à tes pieds comme Marie",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Être à tes pieds comme Marie,\nLaissant les heures s’écouler\nDans un silence qui s’oublie,\nJésus, pour te laisser parler."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Être à tes pieds dans la tristesse,\nTrouvant, pour toutes mes douleurs,\nTa sympathie et ta tendresse,\nTa bonté qui tarit mes pleurs."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Sur tes pieds saints, à ta louange,\nRépandre, ô Sauveur méprisé,\nLe parfum pur et sans mélange\nD’un vase d’albâtre brisé."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Culte béni d’un cœur qui t’aime,\nEncens dont le ciel est rempli,\nGardé pour le moment suprême\nDe ton sacrifice accompli…"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Ah ! qu’à tes pieds, Seigneur, je reste,\nEt, qu’ici-bas, ma faible voix\nExalte, unie au chœur céleste,\nLe Fils de Dieu mort sur la croix !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-028",
+    "number": "28",
+    "title": "Oh ! que toute la terre entonne",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Oh ! que toute la terre entonne\nUn hymne à ton honneur !\nQue l’univers entier résonne\nDe ta gloire, ô Sauveur !"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "À Toi, louange, honneur et gloire,\nÀ Ton Nom, ô Jésus !\nTa croix remporte la victoire\nEt sauve les perdus."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Ton Nom, c’est l’amour et la vie,\nLa grâce et le pardon ;\nEt l’âme écoute et se confie\nÀ Toi dans l’abandon."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Ce Nom divin, c’est comme un baume,\nUn parfum qui guérit ;\nUn doux zéphyr de Ton royaume,\nChargé de ton Esprit."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Ce Nom fait trembler les abîmes,\nFait fuir tous les démons ;\nIls lâchent leurs pauvres victimes,\nIls ouvrent leurs prisons."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Ô Christ, que tout genou fléchisse\nÀ ton Nom glorieux ;\nPour t’adorer, que tout s’unisse,\nSur terre et dans les cieux."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-029",
+    "number": "29",
+    "title": "Rédempteur adorable",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Rédempteur adorable,\nSur la croix attaché,\nTraité comme un coupable,\nBrisé pour mon péché,\nTon angoisse suprême,\nTa douleur, ton tourment\nMe disent : Vois, je t’aime,\nJ’ai pris ton châtiment."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Abandonné du Père,\nDans mon âme troublé,\nBuvant la coupe amère\nPour ton iniquité,\nDe l’éternelle flamme,\nMon amour te sauva,\nJe mourus pour ton âme,\nPécheur à Golgotha !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Le sang de mes blessures,\nMa couronne de roi,\nToutes ces meurtrissures,\nComprends-le, c’est pour toi !\nJ’ai subi ta souffrance,\nJ’ai porté ta langueur,\nContemple en assurance\nTon grand Libérateur !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Ton amour me réclame,\nMe voici, cher Sauveur !\nPrends mon corps et mon âme\nPour prix de ta douleur.\nOui, mon âme ravie,\nDésormais ne veut plus\nQue vivre de ta vie,\nÀ ta gloire, ô Jésus !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-030",
+    "number": "30",
+    "title": "Ma richesse, ma gloire",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Ma richesse, ma gloire\nEt ma félicité,\nÔ Jésus ! c’est de croire\nQue tu m’as racheté.\nRempli de confiance\nEn toi, divin Sauveur,\nJe vis dans l’espérance\nEt je marche sans peur."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Rien n’ôte les souillures,\nRien ne guérit le cœur,\nSinon les meurtrissures\nEt le sang du Sauveur.\nOui, Jésus seul nous lave\nDe toute iniquité,\nEt procure à l’esclave\nL’heureuse liberté."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Oh ! que toute la terre\nApporte à ce Sauveur\nSes péchés, sa misère,\nIl fait grâce au pécheur.\nSon amour insondable\nLui fit quitter le ciel,\nPour donner au coupable\nUn salut éternel."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-032",
+    "number": "32",
+    "title": "M’aimant... quand la route est obscure",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "M’aimant… quand la route est obscure,\nJésus s’approche et me rassure ;\nIl me conduit par sa main sûre,\nDans son amour."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "M’aimant… d’un amour insondable,\nJésus de la gloire ineffable\nM’apporte joie intarissable,\nPar son amour."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "M’aimant… pendant les jours d’orage,\nQuand mon ciel n’est qu’un noir nuage,\nJésus me sauve du naufrage,\nDans son amour."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "M’aimant… dans ce monde où tout passe,\nOù tout, comme un rêve s’efface,\nDans son cœur Jésus me fait place,\nDans son amour."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "M’aimant… quand loin de ma patrie,\nEn ce pays païen je Le prie,\nSous son aile Il cache ma vie,\nDans son amour."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 6",
+        "text": "M’aimant… dans la gloire suprême,\nDe la crèche à la croix, Il m’aime ;\nHier, aujourd’hui, toujours le même,\nDans son amour."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 7",
+        "text": "M’aimant… oh ! Jusqu’à Ta venue,\nQuand Tu descendras sur la nue,\nNous chantons l’hymne, l’âme émue,\nDe Ton amour."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-034",
+    "number": "34",
+    "title": "Ah ! si ton sang",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Ah ! si ton sang, si ta mort, si ta vie,\nNe me disaient ta clémence infinie,\nOù trouverai-je, au sein de ma misère,\nForce et lumière ?"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Où trouverais-je une telle tendresse ?\nÀ quel ami confier ma tristesse ?\nC’est en toi seul que j’ai mon espérance,\nDans ma souffrance."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Je te bénis de ta grâce éternelle,\nToi qui m’élus, toi, mon Sauveur fidèle,\nQui veux conduire à la paix glorieuse\nMon âme heureuse !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-035",
+    "number": "35",
+    "title": "Au pied de ta croix prosterné",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Au pied de ta croix prosterné,\nD’un amour sans partage,\nSauveur qui pour moi t’es donné\nJe viens te rendre hommage.\nJe n’ai rien qui ne soit à toi !\nÀ ton gré dispose de moi,\nCar je suis ton ouvrage."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Avant que je vise le jour,\nMon âme te fut chère ;\nTu me prévins par ton amour,\nEn m’appelant ton frère.\nAvant que ta main m’eût formé,\nTu t’engageas, ô bien-aimé !\nÀ porter ma misère."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Jette un tendre regard sur moi\nEt m’accorde une grâce,\nC’est qu’inséparable de toi,\nÀ jamais je t’embrasse.\nChoisis donc mon cœur dès ce jour\nPour ta demeure et ton séjour ;\nAh ! viens y prendre place."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-036",
+    "number": "36",
+    "title": "Ô Christ ! quelle immense douleur",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Ô Christ ! quelle immense douleur,\nQuelle angoisse t’accable !\nQuel poids de honte et de malheur\nSur ta tête adorable !\nToutes mes fautes sont sur toi ;\nTu les portes pour moi !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Ô Christ ! que n’as-tu pas souffert\nPour expier mon crime !\nPour mon âme tu t’es offert,\nInnocente victime !\nEt les coups dont tu fus meurtri\nÀ jamais m’ont guéri."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "C’est pour toi, frère, qu’il mourut\nSur cette croix maudite.\nC’est ton âme qu’il secourut\nEt c’est toi qu’il invite !\nIl t’offre avec lui dans le ciel\nUn bonheur éternel."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Ses bras sont ouverts aujourd’hui,\nSa voix t’appelle encore.\nTon âme est perdue, et c’est lui,\nÔ pécheur, qui t’implore.\nRéponds, réponds à son amour,\nViens à lui dès ce jour !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-037",
+    "number": "37",
+    "title": "Dans les cieux et sur la terre",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Dans les cieux et sur la terre,\nIl n’est aucun nom plus doux,\nAucun que mon cœur préfère\nAu nom de Christ mort pour nous."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Quel beau nom ! quel beau nom porte l’Oint de l’Éternel !\nQuel beau nom ! quel beau nom, que celui d’Emmanuel !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Quelque grand que soit un homme,\nQu’il soit prince ou qu’il soit roi,\nDe quelque nom qu’on le nomme,\nJésus est plus grand pour moi."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Les séraphins, les archanges,\nPortent des noms glorieux,\nMais le plus beau nom des anges\nPourrait-il me rendre heureux ?"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Dans les maux, Jésus soulage,\nIl guérit l’esprit froissé,\nIl ranime le courage\nDu cœur le plus oppressé."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "De quelle joie il inonde\nLe cœur du pauvre pécheur !\nNon, il n’est rien dans le monde\nDe pareil à ce bonheur."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-038",
+    "number": "38",
+    "title": "Jésus, Agneau de Dieu",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Jésus, Agneau de Dieu ! du sang de l’alliance\nRépandu sur la croix pour de pauvres pécheurs,\nJusqu’à la fin des temps durera ta puissance,\nEt tous les rachetés seront plus que vainqueurs."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Le brigand converti trouva dans ce refuge\nUne pleine espérance à ses derniers moments ;\nCoupable comme lui, tremblant devant mon juge,\nC’est là que j’ai cherché la fin de mes tourments."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Dans la sainte cité par mon Dieu préparée,\nJe chanterai l’amour et le nom glorieux\nDu Berger qui chercha sa brebis égarée,\nEt la prit dans ses bras pour la porter aux cieux."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-039",
+    "number": "39",
+    "title": "Jésus sort de la tombe",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Jésus sort de la tombe ;\nIl vit, il est vainqueur ;\nDéjà la mort succombe\nDevant le Rédempteur.\nMortels, chantons sa gloire,\nCélébrons sa grandeur.\nOù donc est ta victoire,\nSépulcre destructeur ?"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Pourrais-je craindre encore\nLe sommeil du tombeau ?\nNon, la mort est l’aurore\nD’un jour pur et nouveau.\nChrist est la délivrance\nDu malheureux pécheur.\nTriomphante assurance\nPour qui croit au Sauveur !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Que dans la vigilance\nJe maintienne mon cœur\nPar la ferme espérance\nD’un éternel bonheur ;\nEt qu’à ma dernière heure\nJésus soit mon appui ;\nQu’en son amour je meure\nPour revivre avec lui !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-040",
+    "number": "40",
+    "title": "Tu m’as aimé, Seigneur",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Tu m’as aimé, Seigneur ! avant que la lumière\nBrillât sur l’univers que ta voix a formé,\nEt que l’astre du jour, parcourant sa carrière,\nVersât la vie à flots sur la nature entière,\nMon Dieu, tu m’as aimé ! (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Mon Dieu ! tu m’as aimé, quand, sur la croix infâme\nOn vit de Jésus-Christ le corps inanimé ;\nQuand, pour me racheter de l’éternelle flamme\nTon saint Fils a porté les crimes de mon âme,\nMon Dieu, tu m’as aimé ! (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Mon Dieu ! tu m’as aimé, que par l’Esprit de vie,\nLe feu de ton amour en mon cœur allumé,\nOuvrit les nouveaux cieux à mon âme ravie ;\nQuand la paix fut, en moi, de sainteté suivie,\nMon Dieu, tu m’as aimé ! (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Tu m’aimeras toujours ! ni l’enfer, ni le monde,\nDe cet amour jamais n’arrêteront le cours ;\nOù le mal abonda, la grâce surabonde :\nÀ ton amour, ô Dieu, que mon amour réponde.\nToi qui m’aimes toujours ! (bis)"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-041",
+    "number": "41",
+    "title": "Roi couvert de blessures",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Roi couvert de blessures,\nMeurtri pour mon péché,\nRoi tout couvert d’injures,\nÀ la croix attaché,\nDes splendeurs éternelles\nAutrefois couronné,\nC’est d’épines cruelles\nQue je te vois orné."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Ainsi ton sang expie\nMes péchés odieux ;\nPour me donner la vie\nTu meurs en ces bas lieux.\nRebelle et misérable,\nJe m’abats devant toi ;\nRédempteur charitable,\nAh ! prends pitié de moi !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Tourne vers moi ta face,\nFidèle et bon Sauveur !\nOh ! quel trésor de grâce\nJe trouve en ta douleur !\nMourant pour mon offense,\nTu m’acquis, ô Jésus !\nDu cœur la renaissance\nEt la paix des élus."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Oui, pour ton agonie,\nPour ta vive douleur,\nJe veux, toute ma vie,\nTe bénir, bon Sauveur !…\nTa grâce est éternelle,\nEt rien jusqu’à la fin,\nNe pourra, Dieu fidèle,\nMe ravir de ta main."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-042",
+    "number": "42",
+    "title": "Agneau de Dieu, Messager",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Agneau de Dieu,\nMessager de la grâce,\nJe veux entendre ta voix,\nLe langage de la croix :\n– Pour toi je fus livré,\nMéprisé, maltraité,\nBattu, meurtri, blessé,\nPour ton iniquité."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Agneau de Dieu,\nMessager de la grâce,\nJ’ai péché, je viens à toi,\nJe t’invoque, réponds-moi !\n– Pour toi je fus brisé,\nD’épines couronné,\nDe tous abandonné,\nFrappé pour ton péché."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Agneau de Dieu,\nMessager de la grâce,\nOh ! fais passer sur mon cœur\nTout ton sang, divin Sauveur !\n– Mon côté fut percé,\nEt mon sang fut versé ;\nDans ce sang ton passé,\nPécheur, est effacé."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Agneau de Dieu,\nMessager de la grâce,\nJe me confie et je crois ;\nTon pardon, je le reçois !\n– Sur l’enfant racheté\nQui fait ma volonté\nJe mets ma sainteté,\nMa divine beauté."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-043",
+    "number": "43",
+    "title": "Jésus-Christ est ma sagesse",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Jésus-Christ est ma sagesse,\nIl éclaire mon chemin,\nEt je marche, en ma faiblesse,\nConduit par sa sûre main."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Il éclaire mon chemin, (bis)\nEt je marche, en ma faiblesse,\nConduit par sa sûre main."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Jésus-Christ est ma justice ;\nSon sang a coulé pour moi ;\nJe trouve en son sacrifice\nPaix et pardon par la foi."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain 2",
+        "text": "Son sang a coulé pour moi ; (bis)\nJe trouve en son sacrifice\nPaix et pardon par la foi."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Jésus-Christ me sanctifie ;\nAu divin Cep attaché,\nJe reçois de Lui la vie\nQui m’affranchit du péché."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain 3",
+        "text": "À toi, Jésus, attaché, (bis)\nJe reçois de toi la vie\nQui m’affranchit du péché."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Jésus, en payant ma dette,\nÀ grand prix m’a racheté,\nPrès de Lui ma place est prête\nVers lui, pour l’éternité."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain 4",
+        "text": "Jésus, tu m’as racheté (bis)\nEt déjà ma place est prête\nAu ciel, pour l’éternité."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-044",
+    "number": "44",
+    "title": "À toi la gloire",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "À toi la gloire,\nÔ Ressuscité !\nÀ toi la victoire\nPour l’éternité !\nBrillant de lumière,\nL’ange est descendu,\nIl roule la pierre\nDu tombeau vaincu."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "À toi la gloire,\nÔ Ressuscité !\nÀ toi la victoire\nPour l’éternité !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Vois-le paraître :\nC’est Lui, c’est Jésus,\nTon Sauveur, ton Maître !\nOh ! ne doute plus !\nSois dans l’allégresse,\nPeuple du Seigneur,\nEt redis sans cesse\nQue Christ est vainqueur."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Craindrais-je encore ?\nIl vit à jamais,\nCelui que j’adore,\nLe Prince de paix ;\nIl est ma victoire,\nMon puissant soutien,\nMa vie et ma gloire :\nNon, je ne crains rien."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-046",
+    "number": "46",
+    "title": "Viens, mon âme, et contemple",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Viens, mon âme ! et contemple\nUn objet sans exemple :\nLe Dieu Sauveur en croix.\nOn le frappe, ou l’outrage,\nOn lui crache au visage :\nIl expire enfin sur le bois !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Dans ce profond abîme,\nDis-moi, sainte victime !\nPourquoi tu descendis.\nToi, le Saint et le Juste,\nDu bien, modèle auguste,\nQuels crimes as-tu donc commis ?"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "C’est moi que la justice\nCondamnait au supplice,\nMoi qui devais mourir.\nLes tourments, les blessures,\nLes coups, les meurtrissures,\nC’est moi qui devais les souffrir."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Tu te mets à ma place,\nEt ta croix change en grâce\nMa condamnation.\nSur ta tête sacrée,\nD’épines couronnée,\nTu portas ma confusion."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Je te suis redevable,\nMon Sauveur adorable !\nDe tout ce que je suis.\nMon âme et tout mon être\nÀ toi seul doivent être :\nC’est le droit que tu t’es acquis."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-047",
+    "number": "47",
+    "title": "C’est Toi, Jésus, Pain de vie",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "C’est Toi, Jésus, Pain de vie,\nQui me nourris jour par jour,\nManne céleste et bénie ;\nC’est ton merveilleux amour.\nPain de vie, (ter)\nDon du ciel toujours nouveau,\nTu me nourris, Pain d’En-Haut !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "C’est encor toi, Source vive,\nLe secours du pèlerin.\nIl puise, il boit, et ravive\nSon cœur le long du chemin.\nSource vive, (ter)\nDon du ciel toujours nouveau,\nTu jaillis sur moi d’En-Haut !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Âmes toujours altérées,\nQui cherchez de fraîches eaux,\nAux citernes crevassées\nPréférez les clairs ruisseaux !\nÔ rosées, (ter)\nDon du ciel toujours nouveau,\nDescendez sur nous d’En-Haut !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "À ton Amour je me fie,\nQue me faudrait-il de plus ?\nRien, non, rien ne rassasie\nIci-bas, que toi, Jésus.\nPain de vie, (ter)\nDon du ciel toujours nouveau,\nJe te bénis, Pain d’En-Haut !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-048",
+    "number": "48",
+    "title": "Obscur et pauvre au monde",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Obscur et pauvre au monde présenté,\nNous le voyons sans éclat, sans beauté.\nCe Roi des rois, ce Fils du Père,\nVit ici-bas dans la misère,"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Il s’est chargé de toutes nos langueurs\nEt sur sa croix a porté nos douleurs. (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Ce bon Sauveur, comme il est méprisé !\nQu’en y pensant notre cœur soit brisé.\nPour nous il vit dans l’indigence ;\nPour nous il connaît la souffrance."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "De tous les siens il est abandonné,\nFrappé de coups, d’épines couronné.\nDu démon la foule complice\nDemande à grands cris son supplice."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Maudit de Dieu, fléchissant sous la croix,\nEnfin cloué sur cet infâme bois…\nLe peuple, aveuglé par la rage,\nLe raille, l’insulte et l’outrage."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "« Mon Dieu ! Mon Dieu ! pourquoi m’as-tu laissé ? »\nTel est le cri de son cœur angoissé.\nPuis, Seigneur ! il baisse la tête,\nEt ta justice est satisfaite."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 6",
+        "text": "Seigneur Jésus que nous avons percé,\nDans notre cœur par la foi sois placé ;\nCar ta mort, qui nous justifie,\nPar la foi devient notre vie."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-049",
+    "number": "49",
+    "title": "Rien, ô Jésus, que ta grâce",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Rien, ô Jésus ! que ta grâce,\nRien que ton sang précieux,\nQui seul mes péchés efface,\nNe me rend saint, juste, heureux.\nNe me dites autre chose,\nSinon qu’il est mon Sauveur,\nL’auteur, la source et la cause\nDe mon éternel bonheur."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-050",
+    "number": "50",
+    "title": "Jésus t’appelle",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Jésus t’appelle, oh ! viens et vois,\nTon Sauveur cloué sur la croix !\nPour toi le Souverain des cieux,\nVint verser son sang précieux."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "— Jésus sauve — (ter) – aujourd’hui !\n— Tous ceux qui viennent — (ter) – à Lui.\n— Jésus sauve — (ter) – aujourd’hui !\n— Tous ceux qui viennent — (ter) – à Lui."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Jésus t’appelle, il te connaît,\nTu fus rebelle, il le savait !\nIl veut purifier ton cœur\nEt te donner le vrai bonheur."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Jésus t’appelle, oh ! réponds-lui,\nQue ton cœur s’ouvre à cet Ami ;\nPour te sauver, il vint mourir,\nIl veut t’aimer et te bénir."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-051",
+    "number": "51",
+    "title": "Vous qui marchez dans la souillure",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Vous qui marchez dans la souillure,\nSans Rédempteur : (bis)\nArrêtez-vous, la mort est sûre ;\nAprès la mort – plus de Sauveur ! (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Vous qui marchez espérance,\nSans Rédempteur : (bis)\nArrêtez-vous, la mort s’avance ;\nAprès la mort – plus de Sauveur ! (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Vous qui marchez dans la tristesse,\nSans Rédempteur : (bis)\nArrêtez-vous, la mort vous presse ;\nAprès la mort – plus de Sauveur ! (bis)"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-052",
+    "number": "52",
+    "title": "Attire, ô Sauveur, attire",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Attire, ô Sauveur, attire,\nSur ton cœur et dans tes bras,\nLe cœur qui tremble et soupire,\nParce qu’il ne te voit pas.\nPauvre âme, il t’appelle, écoute,\nIl t’appelle, ne crains plus.\nSur ses pas et sur la route,\nChante ce beau nom : Jésus !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Qui pleura sur ceux qui pleurent ?\nC’est Lui, l’homme méprisé.\nQui mourut pour ceux qui meurent ?\nC’est Lui, l’homme au cœur brisé.\nDe son sang et de ses larmes,\nIl arrosa son chemin.\nEt c’est par ces seules armes\nQu’il sauva le genre humain."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-053",
+    "number": "53",
+    "title": "Souviens-toi du Calvaire",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Souviens-toi du Calvaire,\nDe l’angoisse à la croix,\nDu combat solitaire,\nQu’il a livré pour toi."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Cède, cède ton cœur à ton Sauveur. (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Souviens-toi des épines\nBlessant son noble front,\nDes compassions divines\nSupportant chaque affront."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Pense à son agonie,\nPour toi, pauvre pécheur ;\nSa tendresse infinie\nDevrait briser ton cœur."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Crois, oh ! crois à sa grâce,\nNe désespère plus ;\nJésus a pris ta place,\nTous par lui sont reçus."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Enlève ma misère,\nEnlève mon péché…\nToute douleur amère,\nEt tout fardeau caché !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-054",
+    "number": "54",
+    "title": "Entends-tu ? Jésus t’appelle",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Entends-tu ? Jésus t’appelle ;\nViens, ô pécheur ! il t’attend…\nÀ cette voix si fidèle\nTu résistas trop souvent."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Laisse entrer le Roi de gloire ;\nOuvre ton cœur à Jésus !\nLaisse entrer le Roi de gloire,\nHâte-toi, ne tarde plus."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Pour le péché, pour le monde,\nTu trouves place en ton cœur…\nPoint pour le Sauveur du monde,\nRien pour l’Homme de douleur !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Jésus frappe, il frappe encore ;\nOuvre à ton libérateur,\nEt pour toi luira l’aurore\nDu véritable bonheur."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Aujourd’hui, c’est jour de grâce ;\nNe compte pas sur demain.\nPendant que ton Sauveur passe,\nSaisis sa puissante main !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-055",
+    "number": "55",
+    "title": "De Jésus, entends-tu la voix ?",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "De Jésus, entends-tu la voix,\nDivin appel d’amour ?\nÔ mon frère, il s’adresse à toi,\nDivin appel d’amour !\nDoux message de grâce,\nChrist tes péchés efface :\n— Joyeux appel, divin appel,\nDivin appel d’amour ! — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Il t’appelle encor, ô pécheur !\nDivin appel d’amour !\nViens, mon fils, viens à ton Sauveur :\nDivin appel d’amour !\nSon amour te réclame,\nil veut guérir ton âme ;\n— Joyeux appel, divin appel,\nDivin appel d’amour ! — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "À sa voix qui peut résister ?\nDivin appel d’amour !\nIl s’est donné pour nous sauver,\nDivin appel d’amour !\nÔ Jésus notre Maître,\nÀ Toi nous voulons être ;\n— Joyeux appel, divin appel,\nDivin appel d’amour ! — (bis)"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-057",
+    "number": "57",
+    "title": "Viens à la croix, âme perdue",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Viens à la croix, âme perdue,\nBrebis sans berger :\nTu verras une main tendue\nPour te sauver."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Viens à la croix, âme souillée,\nPécheur repentant ;\nLà tu seras purifiée\nEn un instant."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Viens à la croix, âme chargée,\nDe pesants fardeaux ;\nLà tu trouveras, soulagée,\nLe vrai repos."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Viens à la croix, âme affaiblie,\nChrétien chancelant ;\nLà se trouvent force, énergie,\nSecours puissant."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Viens à la croix, âme assiégée,\nPar le Tentateur ;\nLà ta victoire est assurée,\nDans le Seigneur."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 6",
+        "text": "Dans tes soucis, tes deuils, tes larmes,\nEntends cette voix\nQui te dit : Viens dans tes alarmes,\nViens à la croix !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-058",
+    "number": "58",
+    "title": "Où va cette foule empressée ?",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Où va cette foule empressée,\nQui d’ouïr n’est jamais lassée ?\nQuel est cet homme, dites-moi,\nQui cause aujourd’hui tant d’émoi ?\n— Entendez, Entendez ce cri !\nJésus de Nazareth est ici ! — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Est-ce un Dieu visitant la terre,\nQui fait mouvoir la ville entière ?\nQuel est cet étranger puissant,\nÀ l’aspect si compatissant ?\n— La foule répond par ce cri :\nJésus de Nazareth est ici ! — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Il guérit de sa maladie,\nTout pauvre pécheur qui Le prie ;\nSon bonheur est de soulager\nNos maux dont il vient se charger.\n— De l’aveugle entendez ce cri :\nJésus de Nazareth m’a guéri ! — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Recevez la santé de l’âme,\nC’est votre salut qu’Il réclame,\nVous, par le monde, méprisés,\nVenez, ô pauvres cœurs brisés !\n— Écoutez, écoutez ce cri :\nJésus de Nazareth est ici ! — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Mais si vous refusez d’entendre\nL’appel de sa voix douce et tendre,\nBientôt, bientôt Il s’en ira,\nEt vos pleurs nul ne séchera.\n— Trop tard ! trop tard ! sera le cri !\nJésus de Nazareth est parti ! — (bis)"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-059",
+    "number": "59",
+    "title": "Bien loin de toi, mon Père",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Bien loin de toi, mon Père,\nJ’ai dissipé mes biens ;\nDans ma douleur amère,\nJe reviens, je reviens."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Vois, mon âme est souffrante,\nEt mon corps épuisé ;\nSaisis ma main tremblante,\nGuéris mon cœur brisé !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "La honte et la misère\nOnt sillonné mon front ;\nJ’ai péché, tendre Père,\nJ’implore ton pardon !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Non je ne suis pas digne\nD’être appelé ton fils ;\nDe tes grâces, indigne,\nJ’ai méconnu le prix."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Traite-moi, je te prie,\nComme ton serviteur ;\nMon passé m’humilie,\nGrâce pour moi, pécheur !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 6",
+        "text": "… Mais que vois-je à cette heure ?\nPère, ô Père, c’est toi !\nDu seuil de ta demeure\nTu t’avances vers moi !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 7",
+        "text": "Ô bonheur ! tu ne donnes\nLe baiser paternel,\nÔ bonheur ! tu pardonnes :\nEt tu m’ouvres le ciel !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-060",
+    "number": "60",
+    "title": "Ô vous qui n’avez pas la paix",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Ô vous qui n’avez pas la paix,\nVenez, Jésus la donne\nPure, profonde et pour jamais ;\nVenez, Jésus pardonne."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Quand toi seul remplis un cœur\nIl déborde de bonheur,\nEt l’effroi ne l’atteint plus,\nJésus, Jésus, Jésus !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Vous qui tombez à chaque pas,\nVenez, Jésus délivre ;\nCelui qui se jette en ses bras\nPeut à toujours le suivre."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain 2",
+        "text": "Quand Jésus remplit un cœur\nIl déborde de bonheur,\nCar il ne chancelle plus,\nJésus, Jésus, Jésus !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Vous qui doutez du lendemain,\nVenez, Jésus rassure ;\nPas à pas, la main dans sa main,\nLa route devient sûre."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain 3",
+        "text": "Quand toi seul remplis un cœur\nIl déborde de bonheur,\nLa crainte ne l’atteint plus,\nJésus, Jésus, Jésus !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Vous tous qui souffrez isolés,\nVenez, Jésus vous aime.\nPour le troupeau des désolés\nIl s’est offert lui-même."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain 4",
+        "text": "Quand tu viens remplir un cœur\nIl déborde de bonheur,\nSeul, oh non ! il ne l’est plus,\nJésus, Jésus, Jésus !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Vous qui tremblez sous la terreur\nQue la mort vous inspire,\nVenez, votre libérateur\nA détruit son empire."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain 5",
+        "text": "Avec lui nous revivrons,\nAvec lui nous régnerons\nEt la mort ne sera plus,\nJésus, Jésus, Jésus !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-061",
+    "number": "61",
+    "title": "Le Maître est là qui t’appelle",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Le Maître est là qui t’appelle ;\nLève-toi donc, ô pécheur !\nRéponds à sa voix fidèle ;\nC’est ton Dieu, c’est ton Sauveur."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Viens à lui, viens à lui,\nViens à Jésus aujourd’hui !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Ah ! pourquoi le faire attendre ?\nDepuis trop longtemps déjà\nTu refuses de l’entendre ;\nNe tarde plus : il est là."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Il est là, t’offrant sa grâce,\nSon pardon, sa sainteté,\nSa paix qui jamais ne passe,\nSon ciel, sa félicité."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Sa main vers toi s’est tendue,\nSon cœur s’ouvre avec amour ;\nHâte-toi, brebis perdue,\nViens sans délai, sans détour."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Le Maître est là qui t’appelle,\nMais bientôt il passera.\nRéponds à sa voix fidèle,\nAvant qu’il ne soit plus là."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-062",
+    "number": "62",
+    "title": "Où trouver une retraite",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Où trouver une retraite,\nOù trouver un sûr abri,\nQuand, du sein de la tempête\nDieu me parle au Sinaï ?\n– Vois la mort que j’ai soufferte\nPour devenir ton Sauveur !\nEntre par la plaie ouverte,\nEt cache-toi dans mon cœur !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Quelle cité de refuge\nS’offre pour l’homme perdu,\nQuand, fuyant devant son Juge,\nIl tremble et pleure, éperdu ?\n– Vers moi, sans repos ni trêve,\nAccours, c’est ton seul espoir !\nMon cœur qu’a percé le glaive,\nS’ouvre pour te recevoir."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Quand il faudra rendre compte,\nÔ Dieu ! qui t’affrontera ?\nOù cacherai-je ma honte,\nQuand ton œil me sondera ?\n– Si tu veux fuir ma colère,\nCache-toi dans mon amour !\nApproche-toi du Calvaire,\nEt ne crains plus le grand jour."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Mais mes fautes, plus nombreuses\nQue le sable au bord des mers,\nRendent mes nuits trop affreuses\nEt mes regrets trop amers !\n– Pauvre âme, sois rassurée !\nMon sang, à flots, épanché,\nCouvre, comme une marée,\nLe sable de ton péché."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "À son banquet misérable\nLe monde m’appelle en vain.\nOh ! fais-moi place à ta table\nEt donne-moi de ton pain.\n– Prends ! Je suis le pain de vie.\nPrends ta place à ce festin\nOù Dieu même te convie,\nEt qui n’aura point de fin."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-063",
+    "number": "63",
+    "title": "Écoute de Dieu la Parole",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Écoute de Dieu la Parole,\nN’empêche pas tes yeux de voir !\nNul autre que Dieu ne console.\nSois sauvé ! Pourquoi pas ce soir ?"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Demain, le soleil qui se lève\nPourrait te trouver sans espoir ;\nAvant que le jour ne s’achève,\nSois sauvé ! Pourquoi pas ce soir ?"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Dieu t’attend pour te faire grâce.\nPourquoi ne pas le recevoir !\nOh ! ne détourne plus ta face ;\nSois sauvé ! Pourquoi pas ce soir ?"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Le monde vit dans la souffrance,\nSans joie et sans céleste espoir ;\nViens à Christ, plein de confiance ;\nSois sauvé ! Pourquoi pas ce soir ?"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Jésus ne repousse personne :\nAh ! viens à lui, c’est ton devoir.\nViens, avant que ton heure sonne ;\nSois sauvé ! Pourquoi pas ce soir ?"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-064",
+    "number": "64",
+    "title": "Pourquoi donc attendre",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Pourquoi donc attendre, mon frère ?\nTon Sauveur t’appelle aujourd’hui.\nLève-toi, sors de ta misère,\nIl t’aime, Il t’aime, viens à Lui."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Pourquoi ? (bis)\nNe viens-tu pas aujourd’hui ?\nPourquoi ? (bis)\nNe veux-tu donc pas de Lui ?"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "L’heure de ton salut s’envole ;\nMaintenant tu pourrais encor\nSaisir Jésus qui seul console.\nL’avoir, ce serait ton trésor."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Ne sens-tu pas au fond de l’âme\nLa puissance de l’Esprit Saint ?\nNe veux-tu pas que de sa flamme\nJésus te vivifie enfin ?"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Pourquoi refuses-tu, mon frère,\nQuand la mort s’approche de toi ?\nTandis que brille la lumière,\nViens à Jésus, viens à la croix."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-065",
+    "number": "65",
+    "title": "Toi dont l’âme est tourmentée",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Toi dont l’âme est tourmentée\nAux approches de la mort,\nToi dont la nef ballottée\nNe sait où trouver le port,\nRegarde à travers tes larmes,\nCe phare, qui tant de fois\nA brillé dans tes alarmes :\nC’est la croix ! (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Ô toi qu’assaille le doute\nToi que le monde a séduit,\nToi qui marches sur la route\nDans la nuit et vers la nuit,\nMême en doutant, prie, adore\nCelui qui meurt sur le bois ;\nRegarde, oh ! regarde encore\nVers la croix ! (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Sur la croix où Christ expire,\nLa mort succombe avec lui :\nC’en est fait de son empire,\nLe jour de la vie a lui !\nPéchés, doutes et souffrances\nDemeurent cloués au bois :\nÔ sublime délivrance\nDe la croix ! (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "À tes pieds, ô croix bénie,\nSigne auguste et méprisé\nDe triomphe et d’agonie,\nJ’apporte mon cœur brisé.\nDésormais, sois ma bannière !\nJe veux vivre sous tes lois\nEt mourir sous ta lumière,\nSainte croix ! (bis)"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-066",
+    "number": "66",
+    "title": "Gémissant sous l’esclavage",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Gémissant sous l’esclavage,\nDans la sombre nuit,\nAmis, reprenez courage :\nDéjà l’aube luit."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Oh ! joyeuse espérance !\nVoici la délivrance !\nNous connaissons la puissance\nDe notre grand Libérateur,\nEt nous vous disons : Confiance !\nVenez, donnez-Lui votre cœur !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Que de larmes, que de chutes\nDans la sombre nuit !\nVoici la fin de vos luttes :\nDéjà l’aube luit."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Prenant en dégoût la vie,\nCœurs découragés !\nQue pourrait votre énergie,\nPauvres naufragés ?"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Sans cesse à nouveau vaincue\nDans la sombre nuit,\nVotre pauvre âme abattue\nNe croit plus en Lui…"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Lui, qui fit tomber nos chaînes\nEt nous affranchit,\nVoit aussi vos luttes vaines\nDans la sombre nuit…"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-067",
+    "number": "67",
+    "title": "Viens, viens à Jésus",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Viens, viens à Jésus !\nIl est l’Ami fidèle,\nIl pardonne au rebelle,\nOh ! viens à Jésus !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Viens, viens à Jésus !\nIl est l’Amour suprême,\nViens à celui qui t’aime,\nOh ! viens à Jésus !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Viens, viens à Jésus !\nIl veut sauver ton âme.\nQue ton cœur le réclame,\nOh ! viens à Jésus !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Viens, viens à Jésus !\nLui-même te convie,\nLui seul donne la vie.\nOh ! viens à Jésus !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Viens, viens à Jésus !\nSa promesse est fidèle ;\nFuis la mort éternelle,\nOh ! viens à Jésus !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-068",
+    "number": "68",
+    "title": "Voici Jésus, notre Sauveur",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Voici Jésus, notre Sauveur,\nQui nous ouvre une porte.\nSuis-moi, dit-il à tout pécheur,\nDe sa voix tendre et forte."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Seigneur Jésus, j’espère en toi,\nLa porte est ouverte – pour moi… (ter) – est ouverte pour moi !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "La porte est ouverte à tous ceux\nQui cherchent paix et joie,\nElle introduit les malheureux\nSur la céleste voie."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "La sainte croix du Rédempteur\nVient éclairer la route :\nSous cette croix plus de terreur,\nD’angoisse ni de doute."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Répondons au divin appel\nAvec reconnaissance,\nEt vers le séjour éternel\nMarchons en assurance."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-069",
+    "number": "69",
+    "title": "Oh ! croyez que Dieu vous donne",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Oh ! croyez que Dieu vous donne\nTout ce qu’il promet,\nUn Sauveur qui vous pardonne,\nUn Sauveur parfait,\nUn Sauveur plein de puissance\nSur la terre et dans les cieux,\nUn Sauveur dont la présence\nSeule rend heureux."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Ce Sauveur vous fera vivre\nComme il a vécu ;\nVous pourrez partout le suivre\nSans être vaincu.\nJusqu’au bout dans la mêlée\nSon bras vous protégera,\nEt dans la sombre vallée\nIl vous conduira."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Oh ! Jésus, dis-leur toi-même\nQue ta forte main\nFait passer celui qui t’aime\nPar un sûr chemin,\nQue tu veux de toute chute\nPréserver ton faible enfant,\nPour qu’il sorte de la lutte\nPur et triomphant."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Oui, Seigneur, malgré l’orage\nEt malgré la nuit,\nNous voulons prendre courage,\nForts de ton appui.\nEt joyeux, pleins d’assurance,\nNous avancer vers le ciel,\nEn saluant à l’avance\nLe jour éternel."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-070",
+    "number": "70",
+    "title": "Cœurs fatigués et lassés",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Cœurs fatigués et lassés du péché,\nAssez souffert !\nAssez cherché !\nJe puis donner la paix et le repos,\nMe charger de vos fardeaux."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Venez à Lui !… (bis)\n— Venez à Jésus, — (bis) – aujourd’hui !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Vous tous, pécheurs condamnés par la loi,\nVenez à moi !\nVenez à moi !\nVous recevrez en vos cœurs dès ce jour\nLe pardon du Dieu d’amour."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Vous qui souffrez, par le mal asservis,\nSoyez par moi,\nTous affranchis,\nOh ! venez tous, travaillés et chargés,\nEt vous serez soulagés."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-071",
+    "number": "71",
+    "title": "Reviens, reviens",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Reviens ! (bis)\nTu dissipas tes biens\nSur la terre étrangère,\nLoin des yeux de ton père ;"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Ô pauvre enfant perdu,\nReviens ! ô reviens !\nViens ! (ter) – ô reviens, reviens !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Reviens ! (bis)\nLoin de tous les faux biens,\nVois briller la lumière\nDans ta sombre misère."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Reviens ! (bis)\nDu péché fuis les biens ;\nQue ton âme souffrante\nSoit aussi repentante."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Reviens ! (bis)\nCar pour toi sont des biens\nQu’aucun bien ne dépasse,\nLe salut et la grâce."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-072",
+    "number": "72",
+    "title": "Possèdes-tu, pauvre pécheur",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Possèdes-tu, pauvre pécheur,\nLa vive et joyeuse espérance ?\nAs-tu trouvé, plein d’assurance,\nUn appui ferme pour ton cœur ?\nPour moi, j’ai – mon Sauveur ! (ter)\nPour moi, j’ai mon Sauveur ;\nEn lui j’ai mis ma confiance."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Quand ton esprit est abattu,\nQuand ta vaine gaîté s’envole,\nQuelle voix alors te console ?\nEt pour ami qui donc as-tu ?\nPour moi, j’ai – mon Sauveur ! (ter)\nPour moi, j’ai mon Sauveur !\nOh ! qu’elle est douce sa parole !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "De ton présent, de ton passé,\nQuand tu sens la triste folie,\nQuand tu prends en dégoût la vie,\nQui soutient ton cœur oppressé ?\nPour moi, j’ai – mon Sauveur ! (ter)\nPour moi, j’ai mon Sauveur :\nSa grâce au repos me convie."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Et quand la nuit de l’avenir\nSur toi déjà jette son voile,\nQuand l’horizon pour toi se voile,\nD’où le jour te peut-il venir ?\nPour moi, j’ai – mon Sauveur ; (ter)\nPour moi, j’ai mon Sauveur,\nDu matin la brillante étoile !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Oh ! si tu voulais dans les bras\nDe Jésus aussi prendre place !\nSi tu voulais saisir sa grâce !\nViens à lui, frère, et tu vivras !\nOh ! gloire à – mon Sauveur ! (ter)\nOh ! gloire à mon Sauveur !\nHeureux qui contemple sa face !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-073",
+    "number": "73",
+    "title": "À Golgotha, l’Agneau",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "À Golgotha, l’Agneau sans tache\nNous offre l’accès au saint lieu ;\nÀ l’adversaire il nous arrache :\nVoilà l’Agneau de Dieu."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Sa voix d’amour pleine de charmes,\nRépond même au plus faible vœu.\nPécheur contrit, sèche tes larmes !\nViens à l’Agneau de Dieu."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Faible et lassé dans la détresse,\nDe mon péché faisant l’aveu,\nEn Jésus je trouve allégresse !\nVoilà l’Agneau de Dieu."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Son sang versé, source féconde,\nProclame la grâce en tout lieu ;\nIl ôte le péché du monde…\nVoilà l’Agneau de Dieu."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-074",
+    "number": "74",
+    "title": "Arrête, ô pécheur, arrête !",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Arrête, ô pécheur, arrête !\nIl est sombre le chemin\nOù tu vas, baissant la tête,\nN’osant penser à ta fin."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Reviens au Dieu qui pardonne,\nQui relève le pécheur.\nIl ne repousse personne ;\nViens, c’est un libérateur."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Trop longtemps, dans la misère,\nDans la honte et le remords,\nTu t’es débattu, mon frère ;\nLaisse là ces vains efforts !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Ah ! pour toi quelle autre vie,\nSi ton péché n’était plus !\nDe la chaîne qui te lie\nQue les anneaux soient rompus !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Tu pourras, dans la lumière,\nMarcher libre avec ton Dieu,\nEt le bon regard du Père\nTe guidera du saint lieu."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Puis, au terme du voyage,\nLà-haut, dans l’éternité,\nTu recevras l’héritage\nQue Dieu donne au racheté."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 6",
+        "text": "Arrête, ô pécheur, arrête !\nTon Dieu t’appelle aujourd’hui ;\nÀ te sauver il s’apprête.\nNe tarde pas, viens à lui."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-075",
+    "number": "75",
+    "title": "Comme un phare",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Comme un phare sur la plage,\nPerçant l’ombre de la nuit,\nL’amour de Dieu, dans l’orage,\nCherche l’homme et le conduit."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Ô Sauveur ! que ta lumière\nResplendisse sur les flots,\nEt, vers le ciel, qu’elle éclaire\nEt sauve les matelots."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Nulle étoile n’étincelle\nPour vous guider, ô nochers !\nQui gardera la nacelle\nDes écueils et des rochers ?"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Dans la nuit qui m’environne,\nDe ton amour, ô Jésus !\nQue par moi l’éclat rayonne\nAux yeux des marins perdus."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-076",
+    "number": "76",
+    "title": "Le péché qui t’accable",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Le péché qui t’accable\nDevant l’éternité,\nTout ton passé coupable,\nLe sais-tu pardonné ?\nEst-il encor dans ton cœur un péché ?\nEt sur un point te sens-tu condamné ?\n— Tout ce passé coupable,\nJe te l’ai pardonné. — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Vois-tu, dans la nuit sombre,\nSe dresser devant toi\nTes fautes en grand nombre,\nTon mépris de ma loi ?\nCrains-tu de paraître ainsi… devant moi ?\nAs-tu peur du saint regard… de ton Roi ?\n— Ces péchés en grand nombre,\nJe les ai pris sur Moi. — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Ta secrète prière\nEt ton cri de douleur\nÉmeut le cœur du Père\nEt celui du Sauveur.\nSa croix, sa croix, vrai salut… du pécheur,\nEfface tout dans son sang… rédempteur.\n— Chante au pied du Calvaire\nTon grand Libérateur ! — (bis)"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-077",
+    "number": "77",
+    "title": "Reviens à ton Père",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Reviens à ton Père,\nEnfant égaré !\nDis-Lui ta misère,\nDis-Lui : « j’ai péché ».\nToujours Il pardonne\nÀ qui se repent.\nPour toi l’heure sonne,\nC’est toi qu’il attend."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Reviens à ton Père,\nSes biens sont pour toi.\nEntends sa prière,\nReviens sans effroi !\nSa main s’est tendue\nVers toi maintenant ;\nSa voix bien connue\nDit : « Viens, mon enfant ! »"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Reviens à ton Père,\nIci tu péris.\nSon eau désaltère :\nReviens à tout prix !\nOh ! crois à sa grâce ;\nSa paix est pour toi.\nChez Lui, prends ta place,\nDeviens fils du Roi !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Reviens à ton Père ;\nReviens, c’est le port ;\nReviens, et préfère\nLa vie à la mort.\nVois-tu, son cœur saigne\nDevant ton malheur.\nViens donc, qu’Il t’étreigne\nEnfin sur son cœur !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-078",
+    "number": "78",
+    "title": "Il va finir le beau jour",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Il va finir, le beau jour de la grâce ;\nNe tardez plus, accourez au Sauveur.\nAujourd’hui même, avant que le temps passe,\nSans hésiter, donnez-Lui votre cœur."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Pour vous sauver, Il s’est donné Lui-même,\nMourant pour vous sur un infâme bois ;\nCroyez, pécheurs, à cette œuvre suprême ;\nConfiez-vous à Jésus mis en croix."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Pour vous, perdus, sans Dieu, sans espérance,\nIl a souffert la mort d’un criminel ;\nMais son trépas est votre délivrance ;\nIl vous acquiert le bonheur éternel."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Hâtez-vous donc quand sa voix vous appelle ;\nVenez à Lui ; ah ! ne renvoyez pas.\nIl offre à tous, pardon, vie éternelle,\nPaix et bonheur déjà dès ici-bas."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-079",
+    "number": "79",
+    "title": "Il est un roc séculaire",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Il est un roc séculaire,\nQue Dieu, pour mon cœur lassé,\nComme un abri tutélaire\nAu sein des flots a placé."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Mon rocher, ma forteresse,\nMon asile protecteur,\nMon recours dans la détresse,\nC’est Jésus, le Rédempteur !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "À mes pieds l’océan gronde,\nLe vent siffle autour de moi ;\nSur Christ, mon rocher, je fonde\nMon espérance et ma foi."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "En vain l’ouragan fait rage\nEt nulle clarté ne luit ;\nPaisible au sein de l’orage,\nJ’attends l’aube après la nuit."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Jouet de l’onde agitée,\nCet abri l’as-tu trouvé ?\nViens, pauvre âme tourmentée,\nAu rocher qui m’a sauvé."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-080",
+    "number": "80",
+    "title": "Ô toi qui souffres solitaire",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Ô toi qui souffres solitaire,\nDieu te cherche dans cet instant,\nToi qui gémis dans ta misère,\nDieu te cherche et son cœur t’attend."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Dieu te cherche, (bis)\nDieu te cherche pour te guérir.\nDieu te cherche, (bis)\nDieu te cherche, veux-tu venir ?"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Et si ton âme est altérée,\nDieu te cherche pour l’abreuver ;\nSi du péché tu l’as souillée,\nDieu te cherche pour la sauver."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Si ton cœur désire la vie,\nDieu te cherche, Il est éternel ;\nSi tu veux la gloire infinie,\nDieu te cherche, Il t’ouvre le ciel."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Ouvre donc ton cœur à la grâce,\nDieu te cherche, viens donc à Lui.\nOh ! n’attends pas que ce jour passe,\nDieu te cherche, viens aujourd’hui !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-081",
+    "number": "81",
+    "title": "Aujourd’hui Jésus t’appelle",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Aujourd’hui Jésus t’appelle,\nNe tarde plus, ô pécheur ;\nPourquoi rester si rebelle\nAux appels de ton Sauveur ?\n{Viens à Lui, (bis)\nCar Jésus sauve aujourd’hui. — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Maintenant Il parle en grâce,\nSon cœur déborde d’amour.\nOh ! crois avant qu’Il ne passe :\nViens à Jésus en ce jour !\n{Viens à Lui, (bis)\nCar Jésus sauve aujourd’hui. — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Veux-tu donc toujours entendre,\nEt rester dans ton péché ?\nNe le fais donc plus attendre,\nÀ la mort sois arraché !\n{Viens à Lui, (bis)\nCar Jésus sauve aujourd’hui. — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Ô pécheur ! Jésus t’appelle ;\nHâte-toi, saisis sa main.\nÉcoute sa voix fidèle,\nNe remets pas à demain.\n{Viens à Lui, (bis)\nCar Jésus sauve aujourd’hui. — (bis)"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-082",
+    "number": "82",
+    "title": "Regarde, âme angoissée",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Regarde, âme angoissée, au mourant du Calvaire ;\nRegarde à Christ sur la croix élevé.\nC’est là qu’est ton Sauveur, contemple-le, mon frère ;\nUn seul regard, et sois sauvé !\nRegarde et crois !\nLa vie et le pardon descendant du Calvaire ;\nOh ! regarde, regarde à la croix."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Pourquoi fut-il frappé par les foudres divines,\nPourquoi fut-il sur le bois attaché,\nPourquoi son front sacré fut-il meurtri d’épines,\nSinon pour toi, pour ton péché ?\nRegarde et crois !\nPour lui la mort, pour toi les promesses divines ;\nOh ! regarde, regarde à la croix."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Tu ne peux effacer par ton sang, par tes larmes,\nTon long oubli de la divine loi ;\nPour vivre et triompher, il n’est pas d’autres armes\nQue l’humble regard de la foi.\nRegarde et crois !\nJésus, divin soleil, dissipera tes larmes ;\nOh ! regarde, regarde à la croix."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-083",
+    "number": "83",
+    "title": "On frappe, on frappe !",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "On frappe ! on frappe ! entends-tu ?\nPassant ! qui donc cherches-tu ?\nPourquoi, voyageur étrange,\nÀ ma porte es-tu venu ?\nN’es-tu pas quelque saint ange\nSur la terre descendu ?"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "C’est moi, c’est moi, ton Sauveur !\nJe veux entrer dans ton cœur.\nPourquoi me laisser attendre ?\nOuvre, c’est un bienfaiteur.\nQui chez toi s’offre à répandre\nTous les trésors du bonheur."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Vraiment ! vraiment ! c’est sa voix ;\nC’est lui ! c’est lui ! je le vois.\nOh ! ta grâce est la plus forte,\nMon Sauveur, je te reçois !\nJe ne puis fermer la porte,\nQuand tu me montres ta croix."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-084",
+    "number": "84",
+    "title": "Nous voguons vers un beau rivage",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Nous voguons vers un beau rivage\nQue Jésus nous prépara ;\nNous ne craignons aucun naufrage,\nSa grâce nous conduira."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Viens avec nous, la voile est prête ;\nFrère, viens ; que rien ne t’arrête.\n— Plus d’ouragan, de tempête,\nAu séjour du Dieu d’amour. — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Pour notre céleste patrie\nVoici l’heure du départ ;\nÀ venir Jésus te convie ;\nDemain il serait trop tard."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Sur cette rive hospitalière\nDieu réunit ses enfants ;\nAprès les luttes de la terre,\nNous irons grossir leurs rangs."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Devant nous, de la cité sainte\nBientôt va s’ouvrir le port ;\nDe nos cœurs bannissant la crainte,\nChantons dans un saint transport :"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-085",
+    "number": "85",
+    "title": "Viens à Jésus, il t’appelle",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Viens à Jésus, il t’appelle ;\nIl t’appelle aujourd’hui.\nTrop longtemps tu fus rebelle :\nAujourd’hui viens à Lui."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Jésus t’aime, Jésus t’aime,\nJésus t’aime aujourd’hui.\nMalgré ta misère extrême,\nAujourd’hui viens à lui !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Il pardonne, il pardonne,\nIl pardonne aujourd’hui.\nReçois le salut qu’il donne :\nAujourd’hui viens à lui !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Il efface, il efface\nTes péchés aujourd’hui.\nCe jour est un jour de grâce ;\nAujourd’hui viens à lui !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-086",
+    "number": "86",
+    "title": "Venez au Sauveur",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Venez au Sauveur qui vous aime,\nVenez, il a brisé vos fers ;\nIl veut vous recevoir lui-même ;\nSes bras vous sont ouverts."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Oh ! quel beau jour, Sauveur fidèle,\nQuand, nous appuyant sur ton bras,\nDans la demeure paternelle\nNous porterons nos pas."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Venez pécheurs, il vous appelle ;\nLe bonheur est dans son amour.\nAh ! donnez-lui ce cœur rebelle ;\nDonnez-le sans retour."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Le temps s’enfuit, l’heure s’écoule ;\nQui sait si nous vivrons demain ?\nJésus est ici dans la foule ;\nAh ! saisissez sa main !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-087",
+    "number": "87",
+    "title": "C’est encor temps !",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "C’est encor temps ! À la gloire éternelle,\nVers ses parvis l’Agneau de Dieu t’appelle.\nC’est Jésus, réponds-lui !\nOh viens ! entre aujourd’hui !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Vois, le soleil à l’horizon s’abaisse ;\nLe jour qui fuit seul dans la nuit te laisse ;\nViens à Christ, réponds-lui !\nOh viens ! entre aujourd’hui !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Pour le festin la salle est déjà prête,\nLes conviés se rendent à la fête ;\nViens aussi, réponds-lui !\nOh viens ! entre aujourd’hui !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Il se remplit, le palais de la grâce ;\nHâte-toi donc, il y reste encor place ;\nViens à Christ, réponds-lui !\nOh viens ! entre aujourd’hui !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "C’est encor temps, car la porte est ouverte ;\nPar le Sauveur l’entrée en est offerte.\nViens aussi, réponds-lui !\nOh viens ! entre aujourd’hui !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 6",
+        "text": "Toujours plus haut sonne l’appel suprême ;\nNe tarde plus, viens au Sauveur qui t’aime ;\nC’est Jésus, réponds-lui !\nOh viens ! entre aujourd’hui !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 7",
+        "text": "Avant la nuit, devant la porte close\nPeut retentir ce cri, terrible chose !\nÀ jamais loin de lui !\nC’est trop tard aujourd’hui !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-088",
+    "number": "88",
+    "title": "Loin du Sauveur pourquoi mon frère",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Loin du Sauveur, pourquoi, mon frère,\nResterais-tu dans le péché ?\nAs-tu trouvé sur cette terre\nLe bonheur si longtemps cherché ?"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Ah ! sans tarder reviens, mon frère,\nAu Sauveur qui t’a racheté ;\nIl a pitié de ta misère,\nIl t’aime pour l’éternité."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Assez longtemps, dans l’esclavage\nSans succès tu t’es débattu.\nVaincu toujours, perdant courage,\nContre Satan que pouvais-tu ?"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Jamais le Seigneur ne repousse\nL’infortuné qui vient à Lui.\nN’entends-tu pas sa voix si douce,\nQui te dit : Viens, viens, aujourd’hui !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-089",
+    "number": "89",
+    "title": "Demain peut-être",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "« Demain, peut-être,\nJe te croirai,\nEt pour mon Maître,\nJe te prendrai. »\nAinsi, quand Dieu l’invite,\nL’âme répond : « Attends ! »\nPécheur entre de suite,\nViens, il est temps !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Demain, peut-être,\nPlus de pardon !\nQuoi ? méconnaître\nUn si beau don !\nDieu t’offre, dans sa grâce,\nLe bonheur des élus ;\nAvant que l’heure passe,\nViens à Jésus !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Demain, peut-être,\nDu châtiment\nTu vas connaître\nl’affreux tourment.\nJésus t’appelle, il t’aime ;\nIl est le seul chemin !\nViens, c’est l’instant suprême !\nPourquoi demain ?"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-090",
+    "number": "90",
+    "title": "Viens, âme perdue",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Viens, âme perdue,\nViens à ton Sauveur !\nVois sa main tendue,\nSaisis-la sans peur.\nC’est Lui qui t’invite ;\nRéponds à sa voix :\nSi ton cœur hésite,\nRegarde à la croix !\nOui, la victoire,\nTu l’auras,\nEt pour sa gloire\nTu vivras.\nJésus t’appelle :\nEn avant !\nIl est fidèle\nEt puissant."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Viens ! son sang expie\nTon iniquité,\nEt donne la vie\nPour l’éternité.\nIl meurt à ta place,\nIl souffrit pour toi,\nAccepte sa grâce\nEt dis avec foi :\nOui, la victoire,\nJe l’aurai,\nEt pour sa gloire\nJe vivrai\nJésus m’appelle :\nEn avant !\nIl est fidèle\nEt puissant."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "À Toi je veux être,\nÀ Toi pour toujours !\nJésus sois mon Maître,\nMa paix, mon secours.\nMa seule espérance,\nMon unique bien ;\nSois ma délivrance,\nMon ferme soutien !\nOui, la victoire,\nNous l’aurons,\nEt pour sa gloire\nNous vivrons.\nUne couronne\nNous attend ;\nJésus la donne :\nEn avant !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-091",
+    "number": "91",
+    "title": "Tous mes péchés",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Tous mes péchés, (bis)\nSon sang les a lavés !\nTous mes péchés, (bis)\nSon sang les a lavés !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Tous mes soucis, (bis)\nMon Sauveur les a pris !\nTous mes soucis, (bis)\nMon Sauveur les a pris !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "C’est à la croix, (bis)\nQu’Il en ôta le poids ;\nC’est à la croix, (bis)\nQu’Il en ôta le poids ;"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "L’éternité ! (bis)\nOù vas-tu la passer ?\nL’éternité ! (bis)\nOù vas-tu la passer ?"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Jésus t’attend, (bis)\nOh ! Viens en ce moment !\nJésus t’attend, (bis)\nOh ! Viens en ce moment !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-092",
+    "number": "92",
+    "title": "Sans un Dieu Sauveur",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Sans un Dieu Sauveur pour Père,\nQue ferez-vous ? (bis)\nQuand viendra l’heure dernière,\nQue ferez-vous ? (bis)\nÀ cette heure solennelle\nOù le Dieu puissant rappelle\nDevant lui l’âme rebelle,\nQue ferez-vous ? (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Si vous êtes sans refuge,\nQue ferez-vous ? (bis)\nDevant le souverain Juge,\nQue ferez-vous ? (bis)\nÔ pécheurs sans repentance !\nQui prendra votre défense ?\nSans Christ et sans espérance,\nQue ferez-vous ? (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Pour moi, je saurai que faire ;\nJe suis sauvé. (bis)\nJe connais Dieu comme un père ;\nJe suis sauvé. (bis)\nEn Christ ma paix est parfaite,\nSon sang a payé ma dette,\nEt dans ses bras je me jette ;\nJe suis sauvé. (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Venez donc, âmes perdues,\nVenez à lui ! (bis)\nSes deux mains vous sont tendues ;\nVenez à lui ! (bis)\nJésus délivre et pardonne,\nIl ne repousse personne ;\nRecevez ce qu’il vous donne,\nVenez à lui ! (bis)"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-093",
+    "number": "93",
+    "title": "Vous tous dont l’âme est envahie",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Vous tous dont l’âme est envahie\nPar le dégoût de la vie,\nToujours trompés, toujours déçus,\n— Venez, — (ter) – à Jésus !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Voyageurs lassés de la route\nEt tourmentés par le doute,\nVous qui déjà ne luttez plus,\n— Venez, — (ter) – à Jésus !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Vous qui pleurez sans espérance,\nVous qui souffrez en silence,\nLevez les yeux, ne pleurez plus,\n— Venez, — (ter) – à Jésus !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-094",
+    "number": "94",
+    "title": "Par ce chemin solitaire",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Par ce chemin solitaire,\nVoyageurs, où courez-vous ?\n— Vers une nouvelle terre,\nQue Dieu prépara pour nous.\nPar-delà plaines et cimes,\nVers ces demeures sublimes,\n— Vers ces demeures sublimes,\nAmis, venez avec nous ! — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Dans cette terre nouvelle,\nVoyageurs, qu’espérez-vous ?\n— Une couronne immortelle\nQue Christ mérita pour nous.\nLà, toujours en sa présence,\nPlus de larmes, de souffrance,\n— Plus de larmes, de souffrances ;\nAmis, venez avec nous ! — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Bien faible est votre cortège :\nQuels dangers affrontez-vous ?\n– Le Tout-Puissant nous protège\nEt son ange est avec nous.\nL’Éternel est notre égide ;\nNous avons Jésus pour guide,\n— Nous avons Jésus pour guide ;\nAmis, venez avec nous ! — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Trouverons-nous de la place ?\nCe bonheur est-il pour nous ?\n– Venez ! en ce jour de grâce,\nLe ciel est ouvert pour tous.\nÀ la source de la vie\nDieu lui-même vous convie,\n— Dieu lui-même vous convie ;\nAmis, venez avec nous ! — (bis)"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-095",
+    "number": "95",
+    "title": "Dix mille milliers",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Dix mille milliers sont entrés,\nConviés par sa grâce,\nAux festins pour eux préparés…\nMais il reste encor place."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Oh ! viens, mon frère, allons aussi,\nCar il reste encor place.\nEntrons : la porte en est ici,\nLe Maître nous fait grâce."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Puisqu’aux plus pauvres comme aux rois,\nDieu fait place à sa table,\nIl t’accueillera, si tu crois,\nToi qui te sens coupable."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Là, plus d’esclaves, plus jamais\nNi de pleurs, ni de chaînes !\nLes invités du Roi de paix\nN’éprouvent plus de peines."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-096",
+    "number": "96",
+    "title": "Mortels, voulez-vous savoir",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Mortels, voulez-vous savoir\nQuel est mon unique espoir,\nMa sagesse et ma science,\nMon trésor, ma récompense ? (bis)"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "C’est Jésus crucifié.\n— C’est Jésus — (ter) – crucifié."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Quelle est l’ancre de ma foi ?\nDe mon cœur, quelle est la loi ?\nQuel est mon seul sacrifice,\nMa sainteté, ma justice ? (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "De mon esprit languissant,\nQui fait cesser le tourment ?\nDans la peine et la souffrance,\nQui soutient ma confiance ? (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Quel est celui dont la mort\nMe prépare un nouveau sort ?\nQuel est cet ami fidèle\nQui sans cesse à lui m’appelle ? (bis)"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-097",
+    "number": "97",
+    "title": "Écoutez la Bonne Nouvelle",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Écoutez la Bonne Nouvelle,\nVous qui n’espérez plus :\nDieu donne la vie éternelle\nPar le sang de Jésus.\nAmour divin, amour sublime !\nPour nous le Roi des rois\nQuitta les cieux, sainte victime,\nEt mourut sur la croix."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "La coupe amère de souffrance,\nQue but le Rédempteur,\nEst la coupe de délivrance\nPour le pauvre pécheur.\nAmour divin, amour sublime !\nPour nous le Roi des rois\nQuitta les cieux, sainte victime,\nEt mourut sur la croix."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Pourquoi donc, pécheur, craindre encore ?\nVers Christ lève les yeux !\nSur nous il fait briller l’aurore\nDu matin glorieux.\nAmour divin, amour sublime !\nPour nous le Roi des rois\nQuitta les cieux, sainte victime,\nEt mourut sur la croix."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-098",
+    "number": "98",
+    "title": "Nous voulons marcher vers le ciel",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Nous voulons marcher vers le ciel :\nVoulez-vous venir ? (bis)\nJouir d’un salut éternel ?\nVoulez-vous venir ? (bis)\nDes milliers de pécheurs déjà sont arrivés :\nTous leurs maux, leurs travaux sont passés, oubliés.\nMais tous, oui, tous sont conviés ;\nVoulez-vous venir ? (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Là nous serons toujours heureux :\nVoulez-vous venir ? (bis)\nLà plus de larmes dans les yeux :\nVoulez-vous venir ? (bis)\nUne couronne d’or brillera sur nos fronts ;\nRachetés de Jésus, nous le célébrerons ;\nEn lui nous nous réjouirons.\nVoulez-vous venir ? (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Nous vous en dirons le chemin :\nVoulez-vous venir ? (bis)\nNe renvoyez pas à demain :\nVous devez venir ! (bis)\nVos péchés sont nombreux : oh ! tombez genoux !\nImplorez le pardon du Dieu saint et jaloux !\nEn Christ ce pardon est à vous :\nVous pouvez venir ! (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Oh ! si quelqu’un disait ce soir :\n« Oui, je veux venir ! (bis)\nÀ l’instant même, et plein d’espoir,\nOh ! je veux venir ! (bis)\nVers la mort et l’enfer je ne marcherais plus :\nJe veux suivre plutôt le chemin des élus.\nJe veux le ciel ! Je veux Jésus !\nOui, je veux venir ! » (bis)"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-099",
+    "number": "99",
+    "title": "Comme un doux murmure",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Comme un doux murmure,\nLa voix de Jésus\nAppelle et conjure,\nTous les perdus."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "« Donne-moi ton cœur :\nJe mourus pour toi.\nViens ! viens ! à ton Sauveur :\nViens ! viens à moi ! »"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Par sa voix si tendre,\nLaisse-toi gagner ;\nTa peine il veut prendre\nEt s’en charger."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Il est ton Refuge,\nPourquoi t’affliger ?\nIl n’est plus ton juge,\nMais ton Berger."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "– Ton fardeau dépose,\nJ’en porte le poids :\nSans crainte, repose\nPrès de ma Croix."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-100",
+    "number": "100",
+    "title": "Si vous saviez quel Sauveur je possède",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Si vous saviez quel Sauveur je possède !\nIl est l’Ami le plus tendre de tous.\nPour moi devant le Père il intercède :\nOh ! je voudrais qu’il fût aussi pour vous !"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Mon Sauveur vous aime ;\nAh ! cherchez en lui\nVotre Ami suprême,\nVotre seul appui !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Si vous saviez la paix douce et profonde\nQue le Sauveur dans mon âme apporta !\nPour cette paix, que peut donner le monde ?…\nElle jaillit pour vous de Golgotha."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Si vous saviez quelle douce espérance\nLe Dieu de paix fait rayonner des cieux !\nCombien sa voix sait calmer la souffrance\nEt son regard rendre le cœur joyeux !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Quand vous saurez combien Jésus vous aime,\nQuand vous saurez combien son joug est doux,\nNe gardez pas ce trésor pour vous-même,\nMais avec moi dites autour de vous :"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-101",
+    "number": "101",
+    "title": "À la croix, où mourut",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "À la croix, où mourut mon Sauveur,\nJe suis venu, brisé de douleur ;\nLà son sang purifia mon cœur.\nÀ son nom la gloire ! (ter)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Quelle merveille ! Il vint me sauver ;\nQuand de sa croix je me fus chargé,\nEn moi Jésus vint pour demeurer.\nÀ son nom la gloire ! (ter)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Ô fontaine effaçant le péché,\nDonnant la vie au cœur desséché !\nLà, Jésus me retient attaché.\nÀ son nom la gloire ! (ter)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Pauvre âme, viens aux pieds du Sauveur,\nÀ la source ouverte à tout pécheur ;\nViens t’y plonger, trouver le bonheur.\nÀ son nom la gloire ! (ter)"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-102",
+    "number": "102",
+    "title": "Viens au Père qui t’appelle",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Viens au Père qui t’appelle,\nOh ! reviens à la maison !\nVoici l’heure est solennelle,\nOù Dieu t’offre son pardon."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Aujourd’hui, viens à lui !\nAh ! pourquoi tarderais-tu ?\nAujourd’hui, viens à lui !\nViens, reçois son grand salut !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Trop longtemps, dans la misère,\nTu vécus sans vrai bonheur !\nSe peut-il que tu préfères\nFuir encor loin du Sauveur ?"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Ah ! ton âme est angoissée,\nEn vain tu cherchas la paix ;\nPar sa croix qui fut dressée,\nChrist la donne et pour jamais."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "À Jésus dis ta souffrance,\nParle-lui de ton péché,\nMets en lui ton espérance,\nCar en lui Dieu t’a cherché."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-103",
+    "number": "103",
+    "title": "Pécheurs ! vous venez d’entendre",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Pécheurs ! vous venez d’entendre,\nCe beau message de paix ;\nOuvrez vos cœurs pour comprendre\nCe que le Sauveur a fait."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Venez à Lui, venez à Lui,\nPourquoi donc tant hésiter ?\nApprochez-vous tous aujourd’hui,\nOh venez sans plus tarder !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Pour nous tous il souffrit la croix,\nLa honte et l’ignominie ;\nSerait-ce en vain que sur ce bois\nIl endura l’agonie ?"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Oh ! que nul ne désespère.\nAucun péché n’est si grand,\nNulle peine si amère,\nQu’il n’efface par son sang."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Dieu pardonne encore aujourd’hui\nAu plus coupable pécheur.\nQui vient à Jésus trouve en Lui\nPardon, paix, repos, bonheur."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-104",
+    "number": "104",
+    "title": "Bientôt le Seigneur va venir",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Bientôt le Seigneur va venir !\nEs-tu prêt ?\nBientôt le ciel, Il veut t’ouvrir !\nEs-tu prêt ?"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Es-tu prêt ? (bis)\nEs-tu prêt pour l’éternité ?\nEs-tu prêt ? (bis)\nLe Sauveur t’a-t-il racheté ?"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Bientôt l’appel retentira !\nEs-tu prêt ?\nBientôt la mort te surprendra !\nEs-tu prêt ?"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Bientôt Jésus va te juger !\nEs-tu prêt ?\nOh ! devra-t-il te condamner ?\nEs-tu prêt ?"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Bientôt dans le ciel enlevés !\nEs-tu prêt ?\nTous les élus seront sauvés !\nEs-tu prêt ?"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-105",
+    "number": "105",
+    "title": "Pécheur, je voudrais te guérir",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Pécheur, je voudrais te guérir ;\nJ’ai vu tes larmes, ta souffrance,\nMais pour avoir la délivrance,\nIl faut apprendre à m’obéir.\nVoici, je me tiens à la porte,\nJe suis ton Maître et ton Sauveur ;\nC’est le bonheur que je t’apporte :\nNe veux-tu pas m’ouvrir ton cœur ?"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Sais-tu que je suis né pour toi,\nQue pour toi j’ai donné ma vie.\nTon cœur est-il l’hôtellerie\nSans place même pour ton Roi ?\nSouvent année après année,\nChez toi j’ai frappé, mais en vain.\nVoici le soir de la journée,\nNe veux-tu pas m’ouvrir enfin ?"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "N’auras-tu pas besoin de moi,\nBientôt, dans la nuit éternelle ?\nDès aujourd’hui, viens sous mon aile,\nJe serai tout, oui, tout pour toi.\nLe temps rapidement t’emporte ;\nPourquoi renvoyer à demain ?\nTrop tard, un jour devant ma porte\nTu frapperas peut-être, en vain…"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Si tu n’as pas besoin de moi,\nÉcoute, obéis sans comprendre.\nJusques à quand devrais-je attendre ?\nTon Seigneur a besoin de toi.\nVoici, je me tiens à la porte,\nJe suis ton Maître et ton Sauveur ;\nC’est le bonheur que je t’apporte\nNe veux-tu pas m’ouvrir ton cœur ?"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-106",
+    "number": "106",
+    "title": "Le Prince de la vie",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Le prince de la vie\nGuérit seul nos infirmités ;\nSon sang nous purifie (bis)\nDe toutes nos iniquités."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Oh ! Quel bonheur pour le pécheur !\nSans argent et sans aucun don,\nJésus, Jésus accorde un plein pardon."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Affligé, misérable,\nJe fis connaître mon tourment\nÀ l’Ami secourable (bis)\nQui me sauva du jugement."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "À quiconque s’approche,\nAu plus indigne des pécheurs,\nSans faire aucun reproche, (bis)\nIl offre le repos du cœur."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Viens donc sans défiance !\nTu goûteras sa douce paix\nEt la ferme assurance (bis)\nD’un bonheur parfait pour jamais."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-107",
+    "number": "107",
+    "title": "Une bonne nouvelle",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Une bonne nouvelle\nDescend des cieux :\nPécheur, Jésus t’appelle,\nLève les yeux.\nChargé de ta misère,\nDe tes péchés confus,\nViens à Jésus, mon frère,\nViens à Jésus !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Le Fils de Dieu lui-même\nTe racheta ;\nVois son amour suprême\nEn Golgotha !\nAu sang qui purifie\nLes cœurs souillés, perdus,\nQue ton cœur se confie ;\nViens à Jésus !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Celui que Jésus lave\nDe son péché,\nAu dur joug de l’esclave\nEst arraché.\nDans son âme affranchie\nLe mal ne règne plus,\nL’Esprit le sanctifie.\nViens à Jésus !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Viens, que rien ne t’arrête,\nViens à l’instant ;\nTa délivrance est prête :\nJésus t’attend.\nSi tu crois – ô victoire ! –\nTes péchés ne sont plus,\nEt tu peux chanter : Gloire,\nGloire à Jésus !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-108",
+    "number": "108",
+    "title": "Es-tu lassé, rempli de tristesse",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Es-tu lassé, rempli de tristesse ?…\nDis tout à Jésus ! (bis)\nSon cœur est ouvert à ta voix sans cesse.\nOh ! dis tout à Jésus !"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Dis tout à Jésus !\nOh ! dis-Lui tout !\nCombien son accueil est doux.\nIl peut comprendre,\nIl aime à t’entendre :\nDis-Lui simplement tout !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Il voit tes yeux rougis par les larmes :\nDis tout à Jésus ! (bis)\nIl connaît ton cœur, Il sait tes alarmes.\nOh ! dis tout à Jésus !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Si ton passé surgit comme une ombre :\nDis tout à Jésus ! (bis)\nIl peut effacer tes péchés sans nombre.\nOh ! dis tout à Jésus !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Et pour demain ce que tu redoutes :\nDis tout à Jésus ! (bis)\nIl est près de toi le long de la route.\nOh ! dis tout à Jésus !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-109",
+    "number": "109",
+    "title": "Rien ne peut sauver mon âme",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Rien ne peut sauver mon âme,\nRien que le sang de Jésus !\nPour elle je ne réclame,\nRien que le sang de Jésus !"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Précieux sang de l’Agneau,\nQui me donne un cœur nouveau ;\nRien d’autre, je ne veux plus :\nRien que le sang de Jésus !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Pour mon pardon je ne vois,\nRien que le sang de Jésus !\nPour mon salut je ne crois,\nRien que le sang de Jésus !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Je ne veux pour ma justice\nRien que le sang de Jésus !\nQui me rendra Dieu propice ?\nRien que le sang de Jésus !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Mon Dieu, je ne te présente,\nRien que le sang de Jésus !\nRien ici ne me contente,\nRien que le sang de Jésus !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Je n’ai pour toute espérance,\nRien que le sang de Jésus !\nPour appui, pour confiance,\nRien que le sang de Jésus !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-110",
+    "number": "110",
+    "title": "Voudrais-tu goûter le parfait bonheur ?",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Voudrais-tu goûter le parfait bonheur ?\nÔ toi que le monde enlace,\nViens, réponds à la voix du Rédempteur,\nReçois humblement sa grâce !"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "À la grâce,\nPar la croix,\nViens, mon frère,\nViens et crois !\nLe sang de Jésus efface\nTous tes péchés à la fois !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Laisse la folie et la vanité !\nC’est une ivresse qui passe ;\nMais bois à longs traits la félicité\nÀ la source de sa grâce !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Puis vole au secours de ces malheureux\nQu’une horrible mort menace ;\nDis-leur que Jésus a souffert pour eux\nEt qu’il offre à tous sa grâce !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-111",
+    "number": "111",
+    "title": "Publiez bien haut !",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Publiez bien haut la grande nouvelle :\nLe ciel est ouvert à tout être humain.\nLa route est tracée, un guide fidèle\nVous conduira par la main."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Le salut pour tous, le salut par grâce,\nÀ tous est offert, à tous est donné,\nOh ! venez pécheurs, venez le temps passe :\nEt vous serez pardonnés."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Publiez bien haut la grande nouvelle :\nLe sang de Jésus a tout effacé.\nOù que vous soyez, c’est vous qu’Il appelle,\nVous qui l’avez offensé."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Publiez bien haut la grande nouvelle :\nAu loin comme au près faites-la courir,\nPartout où se trouve une âme rebelle,\nUn pécheur à secourir."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-112",
+    "number": "112",
+    "title": "Jésus frappe à votre porte",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Jésus frappe à votre porte :\nOuvrez aujourd’hui ! (bis)\nC’est le ciel qu’il vous apporte !\nOuvrez aujourd’hui ! (bis)\nChez vous il veut prendre place ;\nOuvrez avant qu’il se lasse !\nLe temps presse, le temps passe :\nOuvrez aujourd’hui ! (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Ouvrez ! c’est lui qui pardonne :\nOuvrez aujourd’hui ! (bis)\nAcceptez ce qu’il vous donne ;\nOuvrez aujourd’hui ! (bis)\nSes promesses sont certaines ;\nSa main va briser vos chaînes ;\nBientôt finiront vos peines :\nOuvrez aujourd’hui ! (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Seul il ôte les souillures :\nOuvrez aujourd’hui ! (bis)\nSeul il bande les blessures :\nOuvrez aujourd’hui ! (bis)\nSi Satan vient vous surprendre,\nSeul il pourra vous défendre\nEt sous son aile vous prendre :\nOuvrez aujourd’hui ! (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Écoutez l’appel si tendre !\nOuvrez aujourd’hui ! (bis)\nC’est assez le faire attendre :\nOuvrez aujourd’hui ! (bis)\nCar le Sauveur vous implore :\nComment résister encore !\nOh ! que votre âme l’adore !\nOuvrez aujourd’hui ! (bis)"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-113",
+    "number": "113",
+    "title": "Oh ! viens à moi",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Oh ! viens à moi, ton Sauveur et ton Frère,\nJe donnerai, pèlerin, à ton cœur,\nTous mes trésors au lieu de ta misère\nEt mon repos au sein de ton labeur !\nOh ! viens à Moi ! (ter)\nMon repos est pour toi. (ter)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "La paix pour toi, et plus d’inquiétude !\nTous tes péchés, oh ! viens les déposer\nDevant la Croix, remède à toute chute,\nViens sur mon cœur enfin te reposer !\nOh ! viens à Moi ! (ter)\nMa paix, elle est pour toi. (ter)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Accours vers Moi, si tu te sens coupable,\nSi du péché, tu crains le châtiment,\nNe sais-tu pas, vérité redoutable,\nQu’après la mort suivra le jugement ?\nOh ! viens à Moi ! (ter)\nMon pardon est pour toi. (ter)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Elle est pour toi, ma joie impérissable !\nIl est pour toi, mon merveilleux amour !\nElle est à toi, la source intarissable\nDe tous mes biens, si tu viens en ce jour !\nOh ! viens à Moi ! (ter)\nTous mes biens sont pour toi. (ter)"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-114",
+    "number": "114",
+    "title": "Ô pécheur hésitant !",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Ô pécheur hésitant,\nExhorté dès longtemps,\nVoudrais-tu repousser la grâce ?\nCet instant solennel\nOù retentit l’appel,\nVoudrais-tu qu’à jamais il passe ?"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "À peu près convaincu, (ter)\nMais à jamais perdu !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Pourquoi tant regretter,\nSans jamais confesser\nLe péché qui ronge ton âme ?\nHélas pourquoi souffrir,\nEt ne jamais ouvrir\nTon cœur à Christ, qui le réclame ?"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain 2",
+        "text": "À peu près convaincu, (ter)\nMais à jamais perdu !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Pourrais-tu t’excuser ?\nVoudrais-tu refuser\nLa paix et la vie éternelle ?\nJésus, dans son amour,\nTe poursuit nuit et jour\nPour sauver ton âme rebelle."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain 3",
+        "text": "À peu près convaincu, (ter)\nMais à jamais perdu !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Viens donc à ton Sauveur,\nReçois le nouveau cœur\nQu’à tous ses élus Jésus donne.\nPar le sang de la croix,\nAujourd’hui, si tu crois,\nAujourd’hui ton Dieu te pardonne."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain 4",
+        "text": "À jamais convaincu, (ter)\nGloire, gloire à Jésus !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-115",
+    "number": "115",
+    "title": "Où cherchez-vous le bonheur ?",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Où cherchez-vous le bonheur ?\nDans ce monde où tout passe ?\nAvez-vous en votre cœur\nPour Jésus une place ?\nÀ votre porte il se tient ;\nSans se lasser il revient...\nPour Jésus, votre Sauveur,\nN’avez-vous point de place ?"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "N’avez-vous point de place ? (bis)\nPour Jésus, votre Sauveur,\nN’avez-vous point de place ?"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "S’il a souffert, c’est pour vous,\nOh ! merveilleuse grâce !\nLorsqu’il luttait à genoux,\nDieu lui voilant sa face !\nAh ! de la sublime croix,\nN’entendez-vous pas la voix\nQui vous dit : Pauvre pécheur,\nN’as-tu donc point de place ?"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain 2",
+        "text": "N’avez-vous point de place ? (bis)\nAh ! pour l’homme de douleur\nN’avez-vous point de place ?"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Si le monde a votre cœur,\nCroyez-vous donc qu’il fasse\nJusqu’au bout votre bonheur ?\nVous savez que tout passe.\nOh ! pendant qu’il en est temps,\nÉcoutez les doux accents\nDe la voix du grand Vainqueur,\nEt faites-lui donc place !"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain 3",
+        "text": "N’avez-vous point de place ? (bis)\nPour Jésus, le grand vainqueur,\nN’avez-vous point de place ?"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-116",
+    "number": "116",
+    "title": "Pauvre enfant, au bord de l’abîme",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Pauvre enfant, au bord de l’abîme !\nPécheur égaré dans la nuit !\nToi qui voudrais cacher ton crime,\nRegarde à ce flambeau qui luit.\nSi tu voulais venir ce soir (bis)\nÀ ce bon Sauveur qui t’appelle !\nSi tu voulais venir ce soir ! (bis)\nViens ! reçois la vie éternelle !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Comme autrefois, la pécheresse\nVint pleurer aux pieds du Seigneur,\nRépands tes larmes, ta détresse\nDevant ce Maître humble de cœur.\nSi tu voulais venir ce soir (bis)\nÀ ce bon Sauveur qui t’appelle !\nSi tu voulais venir ce soir ! (bis)\nViens ! reçois la vie éternelle !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Cœur angoissé, qui sens ta chaîne\nSe resserrer de jour en jour :\nEn Christ la victoire est certaine ;\nOh ! viens implorer son secours.\nSi tu voulais venir ce soir (bis)\nÀ ce bon Sauveur qui t’appelle !\nSi tu voulais venir ce soir ! (bis)\nViens ! reçois la vie éternelle !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Souvent, hélas ! l’appel de grâce\nEn vain a retenti pour toi.\nAvant que Jésus ne se lasse,\nOh ! viens à Lui, viens avec foi !\nPourquoi ne pas venir ce soir (bis)\nÀ ce bon Sauveur qui t’appelle !\nPourquoi ne pas venir ce soir ! (bis)\nViens ! reçois la vie éternelle !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-117",
+    "number": "117",
+    "title": "Ô mon Dieu dans ma souffrance",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Ô mon Dieu, dans ma souffrance,\nMa misère et mon péché,\ntu me parles d’espérance\nEn Jésus qui m’a cherché.\nOui, je crois que tu pardonnes\nÀ celui qui vient à Toi,\nJe reçois ce que tu donnes\nEt l’accepte par la foi."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Je ne suis pas digne d’être\nTon enfant, ton racheté,\nCar j’ai fait d’un autre maître\nTrop longtemps la volonté.\nMais j’ai vu sur le Calvaire\nResplendir ton grand amour.\nDans tes bras, mon Dieu, mon Père,\nJe me jette sans retour."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Tu le vois, je suis encore\nIncapable pour le bien.\nDieu puissant, Dieu que j’adore,\nSois mon aide et mon soutien.\nLoin de Toi, ce n’est pas vivre,\nEt j’ai soif du vrai bonheur ;\nC’est Jésus que je veux suivre ;\nFais de moi ton serviteur."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-118",
+    "number": "118",
+    "title": "Pécheurs, voyez l’Agneau",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Pécheurs, voyez l’Agneau du Père\nSur le bois,\nSur le bois de la croix.\nPour nous, il rend l’âme au Calvaire,\nSur le bois,\nSur le bois de la croix.\nJ’entends son cri d’agonie :\nEli ! Lama Sabachthani !…\nTa mort, Jésus, sera ma vie.\n— Oui, je crois\nÀ Jésus mort en croix ! — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Ton sang, Jésus, seul purifie ;\nDu pécheur\nTu peux laver le cœur.\nTa voix d’amour m’offre la vie ;\nDu pécheur\nTu peux laver le cœur.\nDe Golgotha ta voix crie :\nEli ! Lama Sabachthani !…\nÔ Christ ! j’entends ta voix chérie :\n— Bon Sauveur,\nJe te donne mon cœur. — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Agneau de Dieu, près de ton Père,\nSouviens-toi\nD’un pécheur tel que moi !\nÔ Christ, souviens-toi du Calvaire ;\nSouviens-toi\nD’un pécheur tel que moi !\nPour moi fut ton agonie :\nEli ! Lama Sabachthani !…\nÀ toi sera toute ma vie,\n— Divin Roi !\nÔ Christ, je suis à toi ! — (bis)"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-119",
+    "number": "119",
+    "title": "Tel que je suis, pécheur rebelle",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Tel que je suis, pécheur rebelle,\nAu nom du sang versé pour moi,\nAu nom de ta voix qui m’appelle,\nJésus, je viens à toi."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Tel que je suis, dans ma souillure,\nNe cherchant nul remède en moi,\nTon sang lave mon âme impure,\nJésus, je viens à toi."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Tel que je suis, je me réclame\nDe ta promesse par la foi ;\nRéponds-moi, délivre mon âme ;\nJésus, je viens à toi."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Tel que je suis avec mes luttes,\nMes craintes, ma timide foi,\nAvec mes doutes et mes chutes,\nJésus, je viens à toi."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Tel que je suis, Dieu me convie ;\nÔ mon Sauveur ! accepte-moi ;\nÀ toi dans la mort, dans la vie,\nJésus, je suis à toi !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-120",
+    "number": "120",
+    "title": "Jésus, par ton sang précieux",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Jésus, par ton sang précieux,\nEnlève mon iniquité,\nRegarde-moi du haut des cieux,\nDis-moi que tu m’as pardonné…\nJ’ai longtemps erré, cœur rebelle,\nMais j’entends ta voix qui m’appelle,\nAu pied de la croix maintenant,\nTout confus, brisé, je me rends."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Blanc, plus blanc que neige, (bis)\nLavé dans le sang de l’Agneau,\nJe serai plus blanc que la neige."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Oh ! le fardeau de mon péché\nDieu très saint, est trop grand pour moi,\nJe veux en être délivré,\nÀ cette heure, oh ! révèle-toi !\nJésus, viens, sois ma délivrance,\nSeul tu peux calmer ma souffrance !\nAu pied de la croix maintenant,\nTout confus, brisé, je me rends."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain 2",
+        "text": "Blanc, plus blanc que neige (bis)\nLavé dans le sang de l’Agneau,\nJe serai plus blanc que la neige."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Oh ! Jésus, ton sang précieux\nA lavé mon iniquité,\nOui, tu m’as répondu des cieux,\nTon amour m’a tout pardonné.\nJe te contemple et je puis croire\nQu’en toi j’ai complète victoire…\nAu pied de la croix maintenant,\nJe me relève, triomphant !"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain 3",
+        "text": "Blanc, plus blanc que neige (bis)\nLavé dans le sang de l’Agneau,\nMon cœur est plus blanc que la neige !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-121",
+    "number": "121",
+    "title": "J’ai trouvé, j’ai trouvé",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "J’ai trouvé, j’ai trouvé le Dieu que je réclame !\nLa Croix m’a dit son nom, et ce nom est amour !\nCar Celui qui mourut de ce supplice infâme\nEst descendu vers nous du céleste séjour."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Il est le Fils de Dieu, qui fait de moi son frère,\nLe Dieu qui s’est montré, le Dieu qui s’est donné ;\nEt mon cœur a compris cet étonnant mystère\nQui semble une folie à mon esprit borné."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Je connaissais de Dieu la force et la sagesse\nLorsque je contemplais la nature et ses lois ;\nJe connais sa bonté, j’éprouve sa tendresse,\nQuand mes regards émus s’arrêtent sur la Croix."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Car ce Dieu, je le vois qui souffre et qui s’immole\nPour un être déchu contre lui récolté ;\nÔ merveilleux amour, dont aucune parole\nDe la terre ou du ciel ne dit l’immensité !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Devant ce sacrifice, aussi grand que Dieu même,\nJe ne peux pas douter, je m’incline et je crois !\nIl ne fallait rien moins à ma misère extrême,\nQue l’amour infini de Jésus sur la croix."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-122",
+    "number": "122",
+    "title": "Source féconde",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Source féconde,\nSalut du monde,\nLe sang de Christ est répandu.\nCe divin frère,\nSur le Calvaire,\nEst mort pour l’homme perdu."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Oui, je puis croire,\nOui, je veux croire\nQue Jésus-Christ est mort pour moi !\nSa mort sanglante\nEt triomphante\nMe rend libre par la foi."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "En Jésus joie !\nIl est la voie\nQui nous mène toujours au but.\nJésus pardonne,\nIl n’est personne\nQu’Il repousse du Salut."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Âme flétrie !\nJésus convie\nLes méchants, les plus dissolus ;\nSa grâce immense\nDonne assurance\nAu cœur qui croit en Jésus."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Jour mémorable\nPour le coupable !\nSur la croix, au vil malfaiteur,\nJésus pardonne !\nJésus lui donne\nLe ciel, l’éternel bonheur !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Du Christ la fête\nEst toujours prête,\nLe festin de noce est pour tous !\nEntrez sans crainte,\nDe la voix sainte\nÉcoutez l’appel si doux !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-123",
+    "number": "123",
+    "title": "Ô jour heureux",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Ô jour heureux, jour de bonheur,\nLumière, paix, joie ineffable !\nAu Fils de Dieu, saint, adorable,\nÀ Jésus, j’ai donné mon cœur."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Quel beau jour ! (bis)\nOù d’un Sauveur, j’ai su l’amour.\nOui, dans ma nouvelle patrie,\nJésus m’attend et pour moi prie,\nQuel beau jour ! (bis)\nOù d’un Sauveur j’ai su l’amour !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Oh ! comprenez mon heureux sort :\nC’est en Jésus que Dieu pardonne ;\nLa vie éternelle il la donne ;\nPourquoi donc te craindrais-je, ô mort ?"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Au ciel des chants ont retenti :\nAlléluia ! disent les anges,\nEntonnons de saintes louanges,\nCar un pécheur s’est converti."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "C’en est fait, tout est accompli,\nLe Fils de Dieu m’appelle frère ;\nSon sang coula sur le Calvaire ;\nIl est à moi, je suis à lui."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-124",
+    "number": "124",
+    "title": "Tel que je suis, sans rien à moi",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Tel que je suis, sans rien à moi,\nSinon ton sang versé pour moi\nEt ta voix qui m’appelle à toi,\nAgneau de Dieu, je viens, je viens !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Tel que je suis, bien vacillant,\nEn proie au doute à chaque instant,\nLutte au-dehors, crainte au-dedans,\nAgneau de Dieu, je viens, je viens !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Tel que je suis. Ton cœur est prêt\nÀ prendre le mien tel qu’il est,\nPour tout changer, Sauveur parfait !\nAgneau de Dieu, je viens, je viens !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Tel que je suis. Ton grand amour\nA tout pardonné sans retour.\nJe veux être à toi dès ce jour ;\nAgneau de Dieu, je viens, je viens !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-125",
+    "number": "125",
+    "title": "J’ai longtemps erré",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "J’ai longtemps erré sans guide,\nAltéré de vrai bonheur.\nMais, hélas ! mon cœur avide\nNe trouvait que la douleur.\nOù sera la main puissante\nQui pourra, par son effort,\nM’arrêter sur cette pente\nOù déjà je vois la mort ?"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Un Sauveur, Jésus lui-même,\nEut pitié de mon effroi.\nIl me dit : « Pécheur, je t’aime,\nJ’ai versé mon sang pour toi. »\nÔ Jésus, ta main puissante\nM’a sauvé de mon tombeau,\nEt tu combles mon attente\nPar le don d’un cœur nouveau."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "J’ai saisi cette assurance,\nCe pardon qu’il m’apportait.\nJ’ai livré sans résistance\nTout mon cœur : Il le voulait.\nÔ Jésus, ta main puissante\nM’a sauvé de mon tombeau,\nEt tu combles mon attente\nPar le don d’un cœur nouveau."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Dans mon cœur impur, infirme,\nJe reçus le Saint-Esprit,\nEt ce sceau divin m’affirme\nQue je suis à Jésus-Christ.\nÔ Jésus, ta main puissante\nM’a sauvé de mon tombeau,\nEt tu combles mon attente\nPar le don d’un cœur nouveau."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Maintenant, de joie en joie\nMon Sauveur me fait marcher,\nCar la paix que Christ m’envoie,\nNul ne peut me l’arracher.\nÀ ce Jésus qui me donne\nEt sa paix et son amour,\nÀ Jésus je m’abandonne\nDésormais et sans retour."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-126",
+    "number": "126",
+    "title": "Roc séculaire",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Roc séculaire,\nFrappé pour moi\nSur le Calvaire,\nJe viens à toi.\nTu sais mes chutes,\nÔ mon Sauveur !\nTu vois mes luttes\nEt ma douleur."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Roc séculaire,\nFrappé pour moi\nSur le Calvaire,\nJe viens à toi."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Oh ! purifie,\nLave, Seigneur,\nEt sanctifie\nMon pauvre cœur.\nMa main tremblante\nNe t’offre rien ;\nTa croix sanglante\nEst mon seul bien."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Dans la détresse\nSois mon Berger,\nMa forteresse\nDans le danger.\nEt qu’à toute heure,\nQue chaque jour\nMon cœur demeure\nEn ton amour."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-127",
+    "number": "127",
+    "title": "Joie au ciel",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Joie au ciel !\nÉcoutez, écoutez ces cantiques :\nLe prodigue est de retour !\nIl revient, il revient !\nOuvrez-vous, saints portiques !\nIl revient, affamé de pardon et d’amour.\nDebout sur la route,\nSon père l’attend :\n« C’est lui, plus de doute,\nVoici mon enfant ! »\nPlein de tendresse,\nIl court, il presse\nDans ses bras le fils repentant.\nJoie au ciel !\nÉcoutez, écoutez ces cantiques :\nLe prodigue est de retour !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Joie au ciel !\nÉcoutez, écoutez sa prière,\nCar il pleure et se repent :\n« J’ai péché, j’ai péché contre toi, tendre Père,\nEt je n’ose espérer d’être encor ton enfant. »\nLe Père s’écrie :\n« Mon fils est sauvé !\nIl vient à la vie !\nIl est retrouvé ! »\nLe fils écoute,\nEt son cœur doute\nQu’un si beau jour se soit levé.\nJoie au ciel !\nÉcoutez, écoutez ces cantiques :\nLe prodigue est de retour !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Joie au ciel !\n« Apportez des vêtements de fête\nPour le voyageur lassé.\nQu’au banquet de l’amour ma demeure s’apprête\nEt dans nos chants joyeux oublions le passé !\nOui, que tout s’efface,\nQu’il ne reste plus\nMémoire ni trace\nDes jours disparus.\nAu fils que j’aime,\nAujourd’hui même,\nMon cœur et mes biens sont rendus. »\nJoie au ciel !\nÉcoutez, écoutez ces cantiques :\nLe prodigue est de retour !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-128",
+    "number": "128",
+    "title": "Seigneur, ta grâce m’appelle",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Seigneur, ta grâce m’appelle,\nPar mon nom tu me connais,\nEt mon cœur longtemps rebelle,\nSe donne à Toi pour jamais."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "C’est pour Toi que je veux vivre,\nCar Toi seul es mon Berger,\nC’est Toi seul que je veux suivre,\nEt non plus un étranger."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "N’as-tu pas donné ta vie\nPour me sauver, bon Pasteur ?\nGloire à ta grâce infinie !\nGloire à Toi, mon Rédempteur !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Ainsi, mon âme, courage !\nJésus marche devant toi,\nEt, jusqu’au bout du voyage,\nSon amour veille sur moi."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Ne crains pas qu’il abandonne\nSa brebis dans le chemin ;\nIl est fidèle, et personne\nNe l’ôtera de sa main."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-129",
+    "number": "129",
+    "title": "Bienheureux, pardonné",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Bienheureux, pardonné, je bénis et j’adore…\nC’est ton sang, ô Jésus, qui lave mon péché.\nJ’ai foi dans ton amour et je veux croire encore,\nQue pour moi, tu mourus, sur la croix attaché."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Oh ! chantons dans ce beau jour,\nDu Christ le grand amour,\nChantons – le grand amour. (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Tu m’as guéri, Jésus, de toutes mes blessures ;\nTu me donnes la paix, le pardon, le bonheur.\nJe le sais, mon Sauveur, c’est à tes meurtrissures,\nQue je dois tous ces biens qui remplissent mon cœur."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Seigneur, je suis à toi ; je veux chanter ta grâce,\nCar tu m’as délivré, car tu me rends heureux.\nJe me sais racheté, je contemple ta face,\nElle brille sur moi, m’illumine des cieux."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-130",
+    "number": "130",
+    "title": "Je suis sauvé, Dieu m’a fait grâce",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Je suis sauvé ! Dieu m’a fait grâce.\nJésus pour moi s’est donné.\nEt sur la croix, prenant ma place,\nPour toujours m’a pardonné.\nVoilà pourquoi je chante !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Je suis sauvé ! l’Agneau sans tache,\nDe tout péché m’affranchit,\nÀ la mort son amour m’arrache,\nDans son sang, il me blanchit.\nVoilà pourquoi je chante !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Je suis sauvé ! j’ai la victoire,\nMon trésor est dans les cieux,\nBientôt je serai dans la gloire,\nJe le verrai de mes yeux.\nVoilà pourquoi je chante !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Je suis sauvé, tout mon cœur chante,\nUn hymne saint au Seigneur,\nD’amour mon âme est palpitante,\nGloire à Jésus, mon Sauveur.\nVoilà pourquoi je chante !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Es-tu sauvé ? Jésus lui-même\nDans son sang t’a-t-il lavé ?\nSa douce voix te dit : « Je t’aime,\nOh ! viens et crois, sois sauvé ! »\nVoilà pourquoi je chante !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-131",
+    "number": "131",
+    "title": "Miséricorde insondable",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Miséricorde insondable !\nDieu peut-il tout pardonner ?\nAbsoudre un si grand coupable,\nEt mes péchés oublier ?"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Jésus, je viens ! Je viens à Toi !\nTel que je suis, je viens à Toi !\nJésus, je viens ! Je viens à Toi !\nTel que je suis, prends-moi."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Longtemps j’ai, loin de sa face,\nProvoqué son saint courroux,\nFermé mon cœur à sa grâce,\nBlessé le sien devant tous."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Ô Jésus ! à toi, je cède,\nJe veux être libéré ;\nDe tout péché qui m’obsède\nÊtre à jamais délivré."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Alléluia ! plus de doute,\nMon fardeau m’est enlevé ;\nPour le ciel je suis en route,\nHeureux pour l’éternité."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-132",
+    "number": "132",
+    "title": "Torrents d’amour",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Torrents d’amour et de grâce,\nAmour du Sauveur en croix !\nÀ ce grand fleuve qui passe,\nJe m’abandonne et je crois."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Je crois à ton sacrifice,\nÔ Jésus, Agneau de Dieu,\nEt couvert par ta justice,\nJ’entrerai dans le saint lieu."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Ah ! que partout se répande\nCe fleuve à la grande voix ;\nQue tout l’univers entende\nL’appel qui vient de la croix !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Que toute âme condamnée\nPour qui tu versas ton sang,\nSoit au Père ramenée\nPar ton amour tout-puissant."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-133",
+    "number": "133",
+    "title": "Seigneur Jésus, je viens à Toi",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Seigneur Jésus ! je viens à Toi !\nDe tous mes péchés lave-moi."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Ton sang ! ton sang peut seul tout effacer. (bis)\nTon sang le fait pour moi, (bis) – pour moi,\nTu le dis ; je le crois !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Seigneur, tu vois tous mes péchés,\nLes plus secrets, les plus cachés."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Oui, je veux posséder ta paix,\nJe veux être à Toi pour jamais."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Seigneur Jésus ! tu m’as sauvé,\nEt par ton sang tu m’as lavé."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-134",
+    "number": "134",
+    "title": "Aujourd’hui Tu m’appelles",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Aujourd’hui Tu m’appelles,\nTu veux laver mon cœur ;\nEt mes pensées rebelles,\nTu veux changer Seigneur.\nLoin de Ta bergerie\nJ’errais dans le péché :\nPour me sauver la vie,\nJésus, tu m’as cherché."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Aujourd’hui Ta grâce ouvre\nLa porte du salut :\nTous ceux que Ton sang couvre\nSont parmi Tes élus.\nEt le Père, avec joie,\nPardonne au pauvre enfant,\nQui, délaissant sa voie,\nVient à Lui, repentant."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Oui, le Père m’appelle,\nLe Saint-Esprit descend,\nLe ciel aujourd’hui scelle\nLe bonheur qui m’attend.\nAu portail de la grâce,\nNul ne s’informera\nSi j’ai droit à ma place :\nJésus me recevra !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "La maison de mon Père,\nJe ne puis m’en passer ;\nIl l’ouvre à ma prière,\nSans jamais se lasser.\nJésus, c’est Lui la porte,\nMe connaît par mon nom :\nSi tout passe, qu’importe !\nJ’ai place en sa maison !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-135",
+    "number": "135",
+    "title": "Veux-tu briser du péché",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Veux-tu briser du péché le pouvoir ?\nLa force est en Christ ! (bis)\nSi dans ton cœur tu veux le recevoir :\nLa force est dans le sang de Christ !"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "— Je suis fort, fort ! oui, plus que vainqueur,\nPar le sang de Jésus, — (bis) – mon Sauveur !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Veux-tu braver et la mort et l’enfer ?\nLa force est en Christ ! (bis)\nJésus, d’un mot fait tomber tous tes fers :\nLa force est dans le sang de Christ !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Veux-tu marcher toujours pur, triomphant ?\nLa force est en Christ ! (bis)\nPour te garder, Jésus est tout-puissant :\nLa force est dans le sang de Christ !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Veux-tu du Ciel t’approcher chaque jour ?\nLa force est en Christ ! (bis)\nAvec Jésus, demeurer pour toujours ?\nLa force est dans le sang de Christ !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-136",
+    "number": "136",
+    "title": "Il m’a sauvé",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Il m’a sauvé, il m’a sauvé, (ter)\nEt dans son sang il m’a lavé !\nLe Fils de Dieu vit ma misère,\nIl quitta, pour me secourir,\nSon trône au ciel, et vint mourir\nSur la croix du Calvaire !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Il m’a sauvé, il m’a sauvé, (ter)\nEt dans son sang il m’a lavé !\nJésus, le bien-aimé du Père,\nPour moi le pécheur révolté,\nS’immole, ô divine bonté,\nSur la croix du Calvaire !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Il m’a sauvé, il m’a sauvé, (ter)\nEt dans son sang il m’a lavé !\nOui, le monde a vu ce mystère.\nLe Juste par Dieu condamné\nEt le coupable pardonné\nSur la croix du Calvaire !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Il m’a sauvé, il m’a sauvé, (ter)\nEt dans son sang il m’a lavé !\nÀ toi, Jésus, ma vie entière,\nÀ toi tout l’amour de mon cœur !\nEn mourant tu fus mon vainqueur\nSur la croix du Calvaire !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-138",
+    "number": "138",
+    "title": "Pour triompher dans les combats",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Pour triompher dans les combats,\nQuelle est notre force ici-bas ?\nQuelle est la divine lumière,\nQui nous dirige et nous éclaire\nDans la sombre nuit de l’erreur ?\nC’est la parole du Seigneur."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Quel est le glaive à deux tranchants\nDont les coups sont assez puissants\nPour briser l’arme la plus dure,\nEt, malgré la plus forte armure,\nPour pénétrer jusques au cœur ?\nC’est la parole du Seigneur."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Quel est le vent impétueux\nQui mugit et descend des cieux,\nEt dont la voix grave et sévère,\nSemblable à celle du tonnerre,\nFait trembler l’âme du pécheur ?\nC’est la parole du Seigneur."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Quel est ce chant suave et doux\nQui, d’en-haut venant jusqu’à nous,\nParle de grâce et de clémence,\nRéveille en nos cœurs l’espérance\nEt calme partout la douleur ?\nC’est la parole du Seigneur."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Sainte parole, habite en moi ;\nÉclaire et ranime ma foi !\nDans les combats, sois ma défense,\nDans les dangers, ma délivrance,\nEt que par toi je sois vainqueur,\nSainte parole du Seigneur !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-139",
+    "number": "139",
+    "title": "Romps-nous le pain de vie",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Romps-nous le pain de vie.\nQue ta bonté,\nSeigneur, nous rassasie\nDe vérité !\nAmour qui nous fait vivre,\nRévèle-toi !\nParle dans le saint Livre\nÀ notre foi !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Ô toi dont la clémence\nCréa du pain\nPour une foule immense\nMourant de faim.\nVois, ton peuple se presse\nAutour de toi…\nSecours notre détresse\nEt notre foi !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "C’est toi le Pain de vie,\nVerbe puissant !\nC’est de ta chair meurtrie,\nC’est de ton sang\nQue notre âme doit vivre…\nAh ! donne-toi\nPar l’Esprit et le Livre\nÀ notre foi !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Tu bénis tes apôtres,\nPuis, à leur tour,\nIls portèrent à d’autres\nTon grand amour…\nÔ Parole féconde,\nQue notre foi\nT’offre à ce pauvre monde\nQui meurt sans toi !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-140",
+    "number": "140",
+    "title": "À tes pieds, ô divin Maître !",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "À tes pieds, ô divin Maître !\nJe me place avec bonheur,\nEt t’adorant, je veux être\nTon disciple, ô mon Sauveur !\n— Parle ! j’ai soif de t’entendre ;\nParle ! je n’ai qu’un désir :\nQue ta voix puissante et tendre ;\nÀ mon cœur se fasse ouïr. — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Faites place, ô voix humaines\nÀ la voix de mon Sauveur !\nPensers vains et choses vaines,\nÉloignez-vous de mon cœur !\n— Tous les bruits, faites silence !\nToi, mon Maître, parle-moi !\nRecueillie en ta présence,\nMon âme n’entend que toi. — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Parle-moi, témoin fidèle !\nDécouvre-moi le trésor\nDe ta sagesse éternelle ;\nParle, ô Maître ! parle encor.\n— Ta parole, c’est la vie,\nC’est la lumière et la paix.\nÀ ton école bénie\nJe veux rester à jamais. — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Parle ! et pour que je comprenne\nTon enseignement divin,\nDans ta grâce souveraine,\nInstruis-moi par l’Esprit Saint.\n— Parle ! et pour que j’obéisse\nÀ tes ordres aussitôt,\nForme-moi pour ton service,\nPour te suivre, saint Agneau ! — (bis)"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-141",
+    "number": "141",
+    "title": "Oh ! que ton joug est facile",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Oh ! que ton joug est facile !\nOh ! combien j’aime ta loi !\nDieu saint, Dieu de l’Évangile !\nElle est toujours devant moi.\nDe mes pas c’est la lumière,\nC’est le repos de mon cœur ;\nMais pour la voir tout entière,\nOuvre mes yeux, bon Sauveur !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Non, ta loi n’est point pénible\nPour quiconque est né de toi ;\nToute victoire est possible\nÀ qui combat avec foi.\nSeigneur ! dans ta forteresse\nAucun mal ne m’atteindra ;\nSi je tremble, en ma faiblesse,\nTa droite me soutiendra."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "D’un triste et rude esclavage\nAffranchi par Jésus-Christ,\nJ’ai part à ton héritage,\nAux secours de ton Esprit.\nAu lieu d’un maître sévère,\nPrêt à juger, à punir,\nJe sers le plus tendre Père,\nToujours prêt à me bénir."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Dieu qui guides, qui consoles !\nJ’ai connu que le bonheur\nEst de garder tes paroles,\nEt je les serre en mon cœur.\nFais-moi marcher dans ta voie\nEt me plaire en tes statuts.\nSi je cherche en toi ma joie,\nJe ne serai pas confus."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-142",
+    "number": "142",
+    "title": "Mon âme en silence",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Mon âme en silence\nSe tient devant toi,\nOh ! rends ta présence\nSensible à ma foi."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Je ne veux connaître\nAucune autre voix\nQue la tienne, ô Maître,\nToi seul, parle-moi !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Parole bénie\nDe mon Rédempteur,\nParole de vie,\nPénètre en mon cœur."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "C’est toi la lumière\nQui brille en la nuit,\nL’eau qui désaltère,\nLe pain qui nourrit."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Seigneur, je t’écoute,\nSeigneur, parle-moi !\nSans crainte, ni doute,\nJe m’attends à toi."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 6",
+        "text": "Oui, daigne m’instruire\nEt dis tout, Seigneur,\nCe que tu dois dire\nÀ ton serviteur."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 7",
+        "text": "Qu’en moi, ta voix fasse\nAbonder toujours\nLes fruits de la grâce,\nles fruits de l’amour."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-143",
+    "number": "143",
+    "title": "Comme une terre altérée",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Comme une terre altérée\nSoupire après l’eau du ciel,\nNous appelons la rosée :\nDe ta grâce, Emmanuel !"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Fraîches rosées,\nDescendez sur nous tous !\nÔ divines ondées,\nVenez, arrosez-nous !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Descends, ô pluie abondante,\nCoule à flots dans notre cœur,\nDonne à l’âme languissante\nUne nouvelle fraîcheur."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Ne laisse en nous rien d’aride\nQui ne soit fertilisé ;\nQue le cœur le plus avide\nSoit pleinement arrosé."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Oui, que les déserts fleurissent\nSous tes bienfaisantes eaux ;\nQue les lieux secs reverdissent\nEt portent des fruits nouveaux."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Viens, ô salutaire pluie,\nEsprit de grâce et de paix,\nRépands en nous une vie\nQui ne tarisse jamais."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-144",
+    "number": "144",
+    "title": "Ô Dieu de Vérité",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Ô Dieu de vérité, pour qui seul je soupire,\nUnis mon cœur à toi par de forts et doux nœuds.\nJe me lasse d’ouïr, je me lasse de lire,\n— Mais non pas de te dire :\nC’est toi seul que je veux. — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Parle seul à mon cœur, et qu’aucune prudence,\nQu’aucun autre docteur ne m’explique tes lois ;\nQue toute créature en ta sainte présence,\n— S’impose le silence\nEt laisse agir ta voix. — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Tiens-toi près de mon âme, et, dans ma solitude,\nViens remplir de ta paix le vide de mon cœur.\nDissipe mes ennuis et toute inquiétude,\n— Et que ma seule étude,\nSoit de t’aimer, Seigneur ! — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Tu me réponds, mon Dieu ; mais encor des nuages\nMe voilent tes splendeurs, céleste Vérité !\nQue ne puis-je bientôt, sur de plus purs rivages,\n— Par-delà tous les âges,\nContempler ta beauté ! — (bis)"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-146",
+    "number": "146",
+    "title": "Que la grâce de notre Seigneur",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Que la grâce de notre Seigneur Jésus Christ,\nEt l’amour de Dieu le Père,\nEt la communion du Saint-Esprit\nSoient avec nous tous, avec nous tous ! Amen !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-147a",
+    "number": "147a",
+    "title": "Jésus, ta sainte présence",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Jésus, ta sainte présence\nEst la source du bonheur.\nDans la joie et la souffrance\nElle est le repos du cœur."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Fais briller sur moi ta face,\nÔ Jésus, Agneau de Dieu !\nÀ tes pieds, c’est là ma place,\nPrès de toi mon ciel est bleu."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Sur celui qui te contemple\nDescend un rayon divin,\nTu fais de son cœur ton temple,\nTon doigt pointe son chemin."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Ah ! que mon âme ravie\nTe rencontre, ô mon Sauveur !\nCar ton regard c’est la vie,\nC’est la richesse du cœur !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Il faut aussi ta présence\nPour ton service, ô Jésus !\nCar elle est une puissance\nPour relever les perdus !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Quand dans l’étendue immense,\nÔ Jésus, tu paraîtras,\nC’est encor par ta présence\nQue tu nous attireras !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-147b",
+    "number": "147b",
+    "title": "Seigneur, ce que je réclame",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Seigneur, ce que je réclame,\nC’est ce riche don d’amour !\nQue cette céleste flamme\nEn moi brûle nuit et jour !\nCet amour si fort, si tendre,\nAmour qui supporte tout,\nQui ne veut pas se défendre,\nPrêt à souffrir jusqu’au bout."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Pour les autres, il s’oublie,\nIl ne peut être envieux,\nTout éloge l’humilie,\nJamais il n’est orgueilleux.\nCet amour peut vaincre et fondre\nLes cœurs méchants, durs, glacés ;\nIls ne peuvent rien répondre,\nL’amour les a terrassés."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Devant la vaste souffrance\nQui s’étend de jour en jour,\nIl faut un remède immense,\nIl faut un immense amour.\nQue jusqu’à la mort, fidèle,\nPriant, luttant en tout lieu,\nMa vie entière révèle\nL’amour sublime de Dieu."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-148",
+    "number": "148",
+    "title": "Jésus est au milieu de nous",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Jésus est au milieu de nous,\nSon regard s’abaisse sur nous,\nSa douce voix, l’entendez-vous ?\nJe veux vous bénir tous ! (bis)\nSa douce voix, l’entendez-vous ?\nJe veux vous bénir tous !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Jésus est au milieu de nous,\nSon regard s’abaisse sur nous,\nSa douce voix, l’entendez-vous ?\nJe veux vous sauver tous ! (bis)\nSa douce voix, l’entendez-vous ?\nJe veux vous sauver tous !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Jésus est au milieu de nous,\nSon regard s’abaisse sur nous,\nSa douce voix, l’entendez-vous ?\nOh ! je vous aime tous ! (bis)\nSa douce voix, l’entendez-vous ?\nOh ! je vous aime tous !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-149a",
+    "number": "149a",
+    "title": "Toi qui disposes",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Toi qui disposes\nDe toutes choses\nEt nous les donnes chaque jour,\nReçois, ô Père !\nNotre prière\nDe reconnaissance et d’amour."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Le don suprême\nQue ta main sème\nC’est notre pardon, c’est ta paix ;\nEt ta clémence,\nTrésor immense,\nEst le plus grand de tes bienfaits."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Que, par ta grâce,\nL’instant qui passe\nServe à nous rapprocher de toi !\nEt qu’à chaque heure,\nVers ta demeure\nNos cœurs s’élèvent par la foi !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-149b",
+    "number": "149b",
+    "title": "Grâce infinie",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Grâce infinie !\nChrist est ma vie,\nMa justice et ma sainteté ;\nQue la mort vienne\nEt me surprenne,\nTout sera félicité."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Sauveur fidèle,\nDivin modèle,\nSeul digne de guider mes pas.\nTa voix m’attire,\nEt je n’aspire\nQu’à t’imiter ici-bas."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "L’objet suprême\nQue mon cœur aime,\nC’est Toi, le Bien-aimé de Dieu.\nPour voir ta face,\nQuand donc sera-ce\nQue j’irai dans ton saint lieu ?"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Heureuse voie,\nGrande est ma joie :\nSous ton regard, Sauveur clément.\nMon âme éprouve\nQu’en Toi se trouve\nSon parfait contentement."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-150",
+    "number": "150",
+    "title": "Ô mon Sauveur, ouvre mon cœur",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Ô mon Sauveur !\nOuvre mon cœur\nÀ ta douce lumière ;\nSeigneur, mon Dieu,\nDe ton saint lieu,\nÉcoute ma prière."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Dieu tout-puissant !\nDieu bienfaisant !\nJ’ai besoin de ta grâce ;\nÉclaire-moi,\nSoutiens ma foi,\nJe viens chercher ta face."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Ta vérité,\nTa charité,\nBrillent dans ta Parole ;\nSeule, elle instruit,\nSoutient, conduit\nNotre âme et la console."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Que ton Esprit,\nTémoin de Christ,\nRègne seul dans notre âme ;\nQue ton amour,\nEt nuit et jour,\nL’embrase de sa flamme."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-151",
+    "number": "151",
+    "title": "Demeure par ta grâce",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Demeure par ta grâce\nAvec nous, Dieu Sauveur !\nQuoique l’ennemi fasse,\nVeille sur notre cœur."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Que ta sainte Parole,\nChaque jour, ici-bas\nSoit la seule boussole\nQui dirige nos pas."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Éternelle lumière,\nQue ta vive splendeur\nNous guide, nous éclaire\nEt nous garde d’erreur."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Étends sur nous ton aile\nEt demeure à jamais\nAvec nous, Dieu fidèle !\nRépands sur nous ta paix."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-152",
+    "number": "152",
+    "title": "Seigneur, tu donnes ta grâce",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Seigneur, tu donnes ta grâce\nAu cœur qui s’attend à toi ;\nAh ! que sa douce efficace\nSe répande aussi sur moi !\nOui, sur moi ! (bis)\nSe répande aussi sur moi."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Père tendre et secourable,\nJ’ai souvent enfreint ta loi ;\nQuoique impur et misérable,\nOh ! pardonne et bénis-moi !\nBénis-moi ! (bis)\nOh ! pardonne et bénis-moi !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Ô Sauveur toujours propice,\nFais que je m’attache à toi !\nJ’ai faim, j’ai soif de justice ;\nJe t’appelle, réponds-moi !\nRéponds-moi ! (bis)\nJe t’appelle, réponds-moi !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Par ton amour, ô bon Père,\nPar le sang versé pour moi,\nPar l’Esprit qui seul opère,\nDieu trois fois saint, sauve-moi !\nSauve-moi ! (bis)\nDieu trois fois saint, sauve-moi !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-153",
+    "number": "153",
+    "title": "Priez toujours, priez sans cesse",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Priez toujours, priez sans cesse !\nPriez, le Seigneur entendra !\nIl est fidèle à sa promesse,\nPriez, priez, Il répondra."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Priez, si vos cœurs se déchirent,\nLa main qui blesse guérira !\nIl entend tous ceux qui soupirent :\nIl a souffert, Il guérira !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Priez dans la fournaise ardente,\nQuand Satan gronde autour de vous !\nJésus sait calmer la tourmente,\nPriez, triomphez à genoux !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Priez, priez lorsque le doute\nObscurcira votre horizon !\nPriez ! Jésus connaît la route,\nIl ouvrira votre prison."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Priez ! pour rendre témoignage.\nPriez ! pour confesser Jésus,\nDieu bénira votre langage,\nPour sauver les pécheurs perdus."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 6",
+        "text": "Priez, quand votre âme hésitante\nNe sait où choisir son chemin.\nMême à travers la mer bruyante\nJésus vous tiendra par la main."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 7",
+        "text": "Priez ! si votre ciel est sombre,\nSi vous tremblez devant la mort !\nJésus vous couvrant de son ombre,\nVous ouvrira les portes d’or."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-154",
+    "number": "154",
+    "title": "Le cri de mon âme",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Le cri de mon âme\nS’élève vers Toi.\nElle te réclame,\nJésus pour son roi.\nTon joug est facile,\nTon fardeau léger ;\nSur mon cœur docile,\nRègne, ô bon berger !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Jésus, sois mon guide,\nDirige mes pas,\nEt sois mon égide\nDans tous mes combats.\nDans la nuit profonde\nTiens-moi par la main ;\nLumière du monde,\nLuis sur mon chemin !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Source de l’eau vive,\nPain venu des cieux,\nQue par toi je vive\nPaisible et joyeux !\nQuand luira l’aurore\nDu jour éternel,\nQue je vive encore\nPour toi, dans le ciel !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-155",
+    "number": "155",
+    "title": "Tes jardins, ô Père",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Tes jardins, ô Père,\nFais les refleurir ;\nEt la terre entière,\nFais-la reverdir."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Que dans les campagnes\nChrist soit exalté ;\nQue sur les montagnes\nSon nom soit chanté !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Qu’enfin l’on entende\nComme un bruit du vent ;\nQue sur nous descende\nL’Esprit tout-puissant !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Frère, Dieu l’ordonne :\nSors de ton sommeil ;\nDéjà pour toi sonne\nL’heure du réveil !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "C’est l’heure suprême ;\nOh ! sois le premier\nÀ t’offrir toi-même,\nÀ Dieu tout entier !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-156",
+    "number": "156",
+    "title": "Le service pour le Maître",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Le service pour le Maître,\nLe service le plus doux,\nC’est bien l’heure où je puis être\nÀ ses pieds à deux genoux."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Les beautés de sa Parole,\nS’illuminent à mes yeux ;\nEt cette divine école\nEst un avant-goût des cieux."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Dans ces moments de silence\nIl verse en moi son Esprit,\nIl m’apprend l’obéissance,\nIl me console et m’instruit."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Je le prie à chaque aurore\nDe prendre ma volonté,\nEt de richement encore\nBénir mon activité."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Là, j’apporte mes louanges\nÀ l’Agneau qui m’a sauvé ;\nEt j’adore avec les anges\nCelui qui m’a racheté !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-157",
+    "number": "157",
+    "title": "La voix de Christ nous appelle",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "La voix de Christ nous appelle ;\nIl est temps de s’éveiller :\n« La moisson est vaste est belle !\nQui veut pour moi travailler ? »\nC’est ton Sauveur, ô mon frère,\nDont l’appel s’adresse à toi.\nRéponds-lui, d’un cœur sincère :\n« Me voici, Maître, prends-moi ! »"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Sans franchir les mers bruyantes,\nTu peux annoncer Jésus.\nQue d’âmes insouciantes,\nDe cœurs souffrants et perdus !\nAutour de nous l’œuvre est grande,\nMais petite est notre foi.\nÀ Jésus qui nous commande\nRépondons ! « Maître, aide-moi ! »"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Si d’un sublime langage\nTu n’as pas reçu le don,\nTu peux rendre témoignage\nQu’en Jésus est le pardon ;\nÀ ton frère tu peux dire\nCe que Christ a fait pour toi.\nPour que lui-même t’inspire,\nDis-lui : « Maître, enseigne-moi ! »"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Mais que nul ne nous entende\nDire encor : « Je ne puis rien ! »\nLorsque Jésus nous commande\nDe faire et d’aimer le bien.\nPoursuivons l’œuvre bénie\nAvec zèle, amour et foi ;\nPuis notre tâche finie,\nNous dirons : « Maître, prends-moi ! »"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-158",
+    "number": "158",
+    "title": "Ô mon Sauveur, à Toi seul je veux être",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Ô mon Sauveur ! à toi seul je veux être,\nViens pour toujours habiter dans mon cœur ;\nBrise l’idole, et de ce cœur sois maître ;\nRends-moi plus blanc que la neige, Seigneur !"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Oui, par ton sang lave mon cœur,\nRends-moi plus blanc que la neige, ô Seigneur !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "En moi, Jésus, ne laisse aucune place\nOù le péché se glisse en interdit.\nAgneau de Dieu, que ton sang pur efface\nCe qui me vient de son pouvoir maudit."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Par ton Esprit, de ton trône de gloire\nTu viens en moi, misérable pécheur,\nPour remporter la complète victoire\nEt nettoyer entièrement mon cœur."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Tu vois, Seigneur, j’attends, plein d’espérance,\nPrès de la croix où ton sang fut versé ;\nLà, j’ai reçu la nouvelle naissance,\nLà, mon soupir fut toujours exaucé."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Alléluia ! ton image divine\nEn moi, Seigneur, apparaît par la foi.\nBéni sois-tu ! de ma sainte origine\nJ’ai pour toujours tous les titres en toi !"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain 2",
+        "text": "Et par ton sang, mon pauvre cœur\nDevient plus blanc que la neige, ô Seigneur !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-159",
+    "number": "159",
+    "title": "Prends ma vie",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Prends ma vie, elle doit être\nÀ toi seul, ô divin Maître.\nQue sur le flot de mes jours,\nTon regard brille toujours !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Que mes mains à ton service\nS’offrent pour le sacrifice,\nQu’à te suivre pas à pas\nMes pieds ne faiblissent pas !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Prends ma voix et qu’elle chante\nTa grâce auguste et touchante ;\nPar mes lèvres que ton Nom\nParle aux pécheurs de pardon !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Que mon esprit s’illumine\nDe ta sagesse divine ;\nPrends mon argent et mon or\nEt toi seul, sois mon trésor."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Que ma volonté devienne\nLa servante de la tienne ;\nFais ton trône de mon cœur :\nIl t’appartient, bon Sauveur."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 6",
+        "text": "Qu’ainsi mon amour répande,\nÀ tes pieds son humble offrande :\nPrends-mois, dès mes premiers jours !\nTout à toi seul, pour toujours !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-160",
+    "number": "160",
+    "title": "Précieux Jésus, je t’aime !",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Précieux Jésus, je t’aime,\nRemplis-moi de ton amour ;\nJe te donne mon cœur même,\nAccepte-le sans retour."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "— Seigneur Jésus, ô mon Sauveur,\nSois le trésor de mon cœur ! — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Prends pour toi, Sauveur aimable,\nTout mon cœur, mes volontés ;\nQue ton Esprit adorable\nRemplisse mes facultés."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "J’avance ma main sans crainte\nPour saisir ton vêtement ;\nDe toi sort la vertu sainte\nQui guérit entièrement."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "L’amour qui remplit mon âme\nM’est si doux, ô mon Sauveur !\nViens en moi, je te réclame,\nAccomplis tout dans mon cœur."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Oh ! sainte et nouvelle aurore\nQui déjà vient luire en moi ;\nJoyeux, je répète encore ;\nMon Sauveur ! je suis à toi."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-161",
+    "number": "161",
+    "title": "Écoutez l’appel du Berger",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Écoutez l’appel du Berger !\nIl sait ses brebis en danger ;\nIl les appelle avec amour,\nEspérant toujours leur retour."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Cherchons-les ! Cherchons-les !\nSavons-nous le prix d’une âme ?\nCherchons-les ! Cherchons-les !\nLe Bon Berger les réclame."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Mourant de froid, de soif, de faim,\nLes brebis appellent en vain.\nJésus nous veut pour les sauver.\nQui va l’aider à les trouver ?"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Ne peut-il pas compter sur nous ?\nNe voulons-nous pas aller tous\nDire à tous ceux qui sont perdus\nQue nous les voulons pour Jésus ?"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-162",
+    "number": "162",
+    "title": "Ah ! que je ne sois pas",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Ah ! que je ne sois pas comme un rameau stérile,\nQui, séparé du tronc, doit périr desséché ;\nMais que je sois, ô Dieu ! comme un sarment fertile\nQu’aucun vent d’aquilon n’a du cep arraché."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Demeure en moi, Jésus, et qu’en toi je demeure,\nTrouvant dans ton amour le plus fort des liens,\nPortant beaucoup de fruits, chaque jour, à chaque heure,\nEt renonçant à tout, pour jouir des vrais biens."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Celui qui croit en toi, ta bouche le déclare,\nAccomplira, Seigneur, les œuvres que tu fis.\nJe crois… et d’où vient donc que mon âme s’égare\nSi loin du droit sentier que toujours tu suivis ?"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Hélas ! c’est que souvent je tourne vers le monde\nDes yeux qui ne devraient s’arrêter que sur toi !\nNe me retranche pas… non, Seigneur, mais émonde,\nPour que j’apprenne mieux à pratiquer ta loi."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Toutefois, que jamais mon cœur ne se confie\nEn mes pas chancelants, pour arriver au but !\nTu donnas pour les tiens, divin Jésus ! ta vie,\nEt c’est mon seul espoir de paix et de salut !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-163",
+    "number": "163",
+    "title": "Un regard sur ta croix sanglante",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Un regard sur ta croix sanglante,\nJésus, fait déborder mon cœur\nD’amour et de douleur poignante,\nD’amour et d’éternel bonheur."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Tu seras seul toute ma gloire,\nCar tout ce dont je me vantais\nM’empêcherait encore de croire\nQu’en ta mort seule j’ai la paix."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Te donnerais-je quelques larmes,\nQuelques soupirs et quelque amour ?\nDevant ta croix je rends les armes\nPrends-moi tout entier dès ce jour."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "À tes pieds, mon Sauveur, je jette\nCe que mon cœur aime le plus ;\nOui, prends mon idole secrète ;\nTu seras mon trésor, Jésus !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-164",
+    "number": "164",
+    "title": "Divin Sauveur, toi qui vins sur la terre",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Divin Sauveur, toi qui vins sur la terre\nPour y mourir sur un infâme bois,\nLe cœur ému, j’approche du Calvaire ;\nQue ton Esprit m’enseigne à contempler ta croix."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Ta grâce infinie\nVaut mieux que la vie ;\nMon cœur s’attache à toi,\nPour te suivre avec foi !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Là, je puis voir la grandeur de l’abîme\nOù, par amour, Jésus est descendu,\nEt les tourments de la sainte Victime\nMe disent qu’à jamais, sans Christ, j’étais perdu."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Mon seul refuge est dans sa meurtrissure ;\nLà, j’ai trouvé le pardon et la paix,\nEt, sous le sang qui lava ma souillure,\nJe puis de tout péché rester libre à jamais."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Autrefois seul, tombant de chute en chute,\nJ’étais vaincu par le grand tentateur ;\nMais aujourd’hui, mon Sauveur pour moi lutte,\nEt son bras tout-puissant me rend plus que vainqueur."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Jusqu’à la fin, Jésus, ma confiance\nSera toujours dans le sang de ta croix ;\nScelle en mon cœur cette ferme assurance,\nEt que toujours aussi j’obéisse à ta voix !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-165",
+    "number": "165",
+    "title": "Je le connais, celui qui donne",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Je le connais, celui qui donne\nLa paix et le bonheur ;\nCelui qui guérit, qui pardonne :\nC’est Jésus le Sauveur."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Pour nous, en sanglant sacrifice,\nIl s’offrit par amour ;\nSon sang nous donne avec justice,\nPlace au divin séjour."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Je veux l’aimer, je veux le suivre\nHumblement par la foi ;\nC’est pour lui seul que je dois vivre,\nPuisqu’il mourut pour moi."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-166",
+    "number": "166",
+    "title": "Qu’il fait bon à ton service",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Qu’il fait bon à ton service\nJésus mon Sauveur !\nQu’il m’est doux le sacrifice\nQue t’offre mon cœur !"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Prends, ô Jésus, prends ma vie,\nElle est toute à Toi !\nEt dans ta grâce infinie,\nDu mal garde-moi !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Mon désir, mon vœu suprême,\nC’est la sainteté !…\nRien je ne veux et je n’aime,\nQue ta volonté !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Comme l’ange au vol rapide,\nJe veux te servir !\nLes yeux fixés sur mon guide,\nToujours obéir !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Travail, douleur et souffrance,\nNon, je ne crains rien !\nToi, Jésus, mon Espérance,\nVoilà mon seul bien !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Ensemble donc vers la gloire,\nMarchons en avant !\nChantant l’hymne de victoire,\nToujours triomphant !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-167",
+    "number": "167",
+    "title": "C’est mon joyeux service",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "C’est mon joyeux service\nD’offrir à Jésus-Christ,\nEn vivant sacrifice,\nMon corps et mon esprit."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Accepte mon offrande,\nBien-aimé Fils de Dieu !\nEt que sur moi descende\nLa flamme du saint lieu !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "J’abandonne ma vie,\nSans regret, ni frayeur,\nÀ ta grâce infinie,\nÔ mon Libérateur !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Qu’un feu nouveau s’allume\nPar ton amour en moi,\nEt dans mon cœur consume\nCe qui n’est pas à toi !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Viens, Jésus ! sois mon maître ;\nPar ton sang racheté,\nÀ toi seul je veux être\nEt pour l’éternité."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-168",
+    "number": "168",
+    "title": "Ma vie enfin je te donne",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Ma vie enfin je te donne,\nÔ Jésus, Agneau de Dieu !\nPrends-la, je te l’abandonne,\nÀ cette heure et dans ce lieu.\nJe t’apporte mes souillures,\nMon péché, mon mauvais cœur.\nDans le sang de tes blessures,\nBlanchis-moi, divin Sauveur !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Tu connais mes luttes vaines\nPour triompher de mon cœur ;\nTu sais le poids de mes chaînes\nEt ma secrète douleur.\nQue ta puissance infinie\nM’affranchisse du péché,\nEt que par l’Esprit de vie\nDu mal je sois détaché !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Sans réserve, je me livre,\nJe ne garde rien pour moi.\nMon désir est de te suivre,\nD’être à tes ordres, mon Roi !\nJoyeux dans l’obéissance\nQue tu donnes, que je veux,\nSans plus tarder, je m’élance\nD’un coup d’aile vers les cieux !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Scelle à jamais l’alliance\nQue je traite maintenant,\nEt dans ton amour immense\nViens la signer de ton sang.\nSi je regarde à moi-même\nUn instant : je suis perdu !\nMais tu sauras, ton cœur m’aime,\nMe tenir debout, Jésus !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-169",
+    "number": "169",
+    "title": "Jésus, je te suivrai partout",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Jésus, je te suivrai partout, (bis)\nSoit dans la tristesse,\nSoit dans l’allégresse,\nJésus, je te suivrai partout !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Jésus, je te suivrai toujours ; (bis)\nSi l’épreuve abonde,\nTa paix est profonde,\nJésus, je te suivrai toujours !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Je te suivrai dès aujourd’hui. (bis)\nMon âme affranchie,\nVivra de ta vie,\nJe te suivrai dès aujourd’hui !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Je te suivrai jusques au bout ! (bis)\nSi pour moi tu plaides,\nSeigneur, si tu m’aides,\nJe te suivrai jusques au bout."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-170",
+    "number": "170",
+    "title": "À toi, mon Dieu, je m’abandonne",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "À toi, mon Dieu, je m’abandonne,\nOh ! fais de moi ce que tu veux :\nDe l’argile que je te donne,\nFais un diamant précieux !"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Prends, Seigneur, prends toute ma vie,\nÀ toi seul, je veux obéir.\nPar l’Esprit qui me sanctifie,\nSur ton autel, je viens m’offrir !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Tu connais ma grande faiblesse,\nMon impuissance à te servir,\nS’il le faut que ta main me blesse,\nTon amour saura me guérir !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Oh ! ne m’épargne ni la flamme,\nNi le ciseau, divin Sculpteur !\nQue ton Esprit forme mon âme\nÀ l’image de son Sauveur !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-171",
+    "number": "171",
+    "title": "Seigneur, sanctifie",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Seigneur ! sanctifie\nNos jours, nos moments ;\nFais que notre vie\nT’honore en tout temps.\nQue de ta présence\nAu milieu de nous,\nL’heureuse influence\nNous pénètre tous."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Nous voulons sans cesse\nMarcher par la foi\nEt, dans la détresse,\nRegarder à toi.\nHeureux qui repose\nSur ton bras puissant !\nOn a toute chose\nEn te possédant."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-172a",
+    "number": "172a",
+    "title": "Entre tes mains j’abandonne",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Entre tes mains j’abandonne\nTout ce que j’appelle mien.\nOh ! ne permets à personne,\nSeigneur, d’en reprendre rien !\nOui, prends tout, Seigneur ! (bis)\nEntre tes mains j’abandonne\nTout avec bonheur."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Je n’ai pas peur de te suivre\nSur le chemin de la croix.\nC’est pour toi que je veux vivre,\nJe connais, j’aime ta voix.\nOui, prends tout, Seigneur ! (bis)\nSans rien garder, je te livre\nTout avec bonheur."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Tu connais mieux que moi-même\nTous les besoins de mon cœur ;\nEt, pour mon bonheur suprême,\nTu veux me rendre vainqueur.\nOui, prends tout, Seigneur ! (bis)\nJe ne vis plus pour moi-même,\nMais pour mon Sauveur."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Prends mon corps et prends mon âme ;\nQue tout en moi soit à toi !\nQue par ta divine flamme\nTout mal soit détruit en moi !\nOui, prends tout, Seigneur ! (bis)\nPrends mon corps et prends mon âme ;\nRègne sur mon cœur !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-172b",
+    "number": "172b",
+    "title": "Au pied de la croix sanglante",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Au pied de la croix sanglante,\nOù tu t’es donné pour moi,\nMon âme émue et tremblante,\nÔ Jésus, se livre à toi."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Le parfait bonheur, (bis)\nC’est de mettre\nTout mon être\nÀ tes pieds, Seigneur !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Me voici pour ton service,\nJe ne garde rien pour moi,\nSur l’autel du sacrifice,\nJe me place par la foi."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "À la gloire, aux biens du monde\nJe renonce pour jamais,\nQue le Saint-Esprit m’inonde,\nDe ta joie et de ta paix."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Si ma faiblesse est bien grande.\nTa force est plus grande encor,\nÔ Jésus, qu’elle me rende\nFidèle jusqu’à la mort."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Ô félicité suprême,\nTa grâce est mon bouclier,\nEt je t’appartiens, je t’aime,\nToi qui m’aimas le premier."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-173",
+    "number": "173",
+    "title": "Je m’approche de Toi",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Je m’approche de Toi, (bis)\n— Source de vie,\nSource de vie,\nMon Sauveur, bénis-moi ! — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Fais silence en mon cœur, (bis)\n— Viens et me parle,\nViens et me parle,\nÔ mon divin Sauveur ! — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Rends-moi conforme à Toi, (bis)\n— Divin Modèle,\nDivin Modèle,\nMets ton image en moi ! — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Rends-moi bouillant, Seigneur ! (bis)\n— Pour ton Service,\nPour ton Service,\nQue je parte en vainqueur ! — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Et quand tu reviendras, (bis)\n— Dans tes milices,\nDans tes milices,\nTu me retrouveras ! — (bis)"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-174",
+    "number": "174",
+    "title": "Seul refuge de mon âme",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Seul refuge de mon âme,\nJe veux m’appuyer sur toi ;\nLa paix que mon cœur réclame\nEst à tes pieds, divin Roi !"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Jésus, Sauveur, que je t’aime,\nÔ Toi qui mourus pour moi,\nEt qui veux dans le ciel même,\nQu’un jour je règne avec toi !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Sur ta croix, Victime sainte,\nMon péché fut expié ;\nPlus d’angoisse, plus de crainte :\nTon sang m’a purifié."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Il n’est aucune autre chose\nQui puisse apaiser mon cœur ;\nEn Toi seul je me repose,\nEn Toi, mon puissant Sauveur."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "À Toi, Jésus, j’abandonne\nMon cœur, mon âme et mes jours.\nQu’en moi ton amour rayonne !\nJe veux te servir toujours."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-175",
+    "number": "175",
+    "title": "L’amour de Jésus-Christ",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "L’amour de Jésus-Christ nous presse :\nIl s’est livré pour son troupeau ;\nÀ suivre les pas de l’Agneau,\nL’un l’autre animons-nous sans cesse."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Au nom du Rédempteur, chers frères !\nDonnons-nous tous ici la main,\nPour ne marcher jusqu’à la fin\nQue sous ses regards tutélaires."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Vois tes enfants, Dieu notre Père,\nQui se consacrent à ton Fils.\nViens à notre aide et nous remplis\nD’amour, de zèle et de lumière."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Qu’en nous quittant, Sauveur fidèle !\nNous demeurions unis en toi ;\nHabite en nos cœurs par la foi,\nEt que l’Esprit nous renouvelle !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-176",
+    "number": "176",
+    "title": "Oui, Jésus, c’est vers Toi",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Oui, Jésus, c’est vers Toi,\nToujours plus haut !\nQue s’élève ma foi,\nToujours plus haut !\nLibre de tout lien,\nPoursuivant le seul bien,\nMon regard sur le tien,\nToujours plus haut !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Tu calmes la douleur,\nToujours plus haut !\nTu satisfais le cœur,\nToujours plus haut !\nDans les rudes combats,\nLes clameurs d’ici-bas,\nTu diriges mes pas\nToujours plus haut !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Oui, c’est là mon soupir,\nToujours plus haut !\nTu connais mon désir,\nToujours plus haut !\nPerçant l’obscurité,\nMontre-moi ta clarté,\nTa divine beauté,\nToujours plus haut !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Marche, me dit Jésus,\nToujours plus haut !\nOh ! ne t’arrête plus,\nToujours plus haut !\nBientôt je reviendrai\nEt te délivrerai,\nOui, je t’introduirai\nChez Moi, là-haut !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-177",
+    "number": "177",
+    "title": "Ah ! donne à mon âme",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Ah ! donne à mon âme\nPlus de sainteté,\nPlus d’ardente flamme,\nDe sérénité,\nPlus de confiance,\nPour rester debout,\nPlus de patience,\nPour supporter tout !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Fais que je contemple\nSans cesse l’Agneau,\nSon vivant exemple,\nSa croix, son tombeau ;\nSa grâce fidèle,\nSon immense amour,\nSa gloire éternelle,\nSon prochain retour !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Jésus, à mes larmes\nTu veux compatir ;\nDe toutes tes armes\nViens nous revêtir ;\nPar plus de prière,\nDe zèle et de foi,\nQue dans la lumière\nJe marche avec toi !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Donne à ton service\nUn cœur plus joyeux,\nPrompt au sacrifice,\nToujours sous tes yeux ;\nQui chante et qui tremblent,\nHumble en sa ferveur,\nUn cœur qui ressemble\nAu tien, mon Sauveur."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-178",
+    "number": "178",
+    "title": "Que tout genou fléchisse",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Que tout genou fléchisse,\nDevant ta majesté,\n— Et qu’aujourd’hui je puisse\nLâcher ma volonté. — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Oui, devant toi je plie,\nJe me courbe, ô mon Roi,\n— Je pleure et m’humilie,\nEt c’est un don de toi ! — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Que tout ce qui s’élève\nEn moi soit abaissé !\n— Que mon cœur de ton glaive,\nS’il le faut, sois percé ! — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Mourir, mais c’est renaître\nEt vivre désormais.\n— Oh ! courbe tout mon être\nÀ tes pieds pour jamais ! — (bis)"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-179",
+    "number": "179",
+    "title": "Jésus, Jésus mon Sauveur",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Jésus, Jésus mon Sauveur,\nÀ l’ombre de Ta croix,\nJ’ai trouvé le repos du cœur,\nGloire à Toi, Roi des rois !\nUne retraite dans l’orage,\nUn refuge assuré,\nPour moi, pécheur, quel doux partage,\nLà je t’ai contemplé !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Jésus, Jésus mon Sauveur,\nÀ l’ombre de Ta croix,\nDevant ton immense douleur\nJe t’adore et je crois.\nLà, mes ténèbres sont lumière,\nEt mon fardeau n’est plus !\nHumble à tes pieds, dans la poussière,\nTiens-moi toujours, Jésus !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Jésus, Jésus mon Sauveur,\nÀ l’ombre de Ta croix\nExauce le cri de mon cœur,\nEntends ma faible voix :\nDonne-moi ton obéissance,\nTon support, ton amour,\nCéleste Agneau, ton endurance,\nJusqu’à mon dernier jour !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-180",
+    "number": "180",
+    "title": "La voix du Seigneur m’appelle",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "La voix du Seigneur m’appelle :\nPrends ta croix et viens, suis-moi !\nJe réponds : « Sauveur fidèle,\nMe voici, je suis à toi ! »"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Jusqu’au bout je veux te suivre,\nDans les bons, les mauvais jours,\nÀ Toi pour mourir et vivre,\nÀ Toi, Jésus, pour toujours."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Mais le chemin du calvaire\nEst étroit et périlleux,\nC’est un chemin solitaire,\nDifficile et ténébreux."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Il faut quitter ceux qu’on aime,\nSavoir être mal jugé,\nEndurer l’injure même,\nDu monde être méprisé."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Oui, perdre sa propre vie,\nConsentir à n’être rien,\nN’avoir qu’une seule envie :\nAimer Jésus, le seul bien !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Jésus donne grâce et gloire\nPour le suivre pas à pas,\nAvec lui, joie et victoire,\nPaix et bonheur ici-bas !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-181",
+    "number": "181",
+    "title": "J’entends ta douce voix",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "J’entends ta douce voix,\nJésus, je viens à Toi.\nJe viens, ô Sauveur, lave-moi\nDans le sang de ta Croix !"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Jésus, Roi des rois,\nQui mourus pour moi,\nJe veux mourir avec Toi,\nAvec Toi sur la Croix."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "J’entends ta douce voix,\nQui me dit : « Crois en Moi ! »\nJe crois, Seigneur, soutiens ma foi,\nTiens-moi près de ta Croix !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "J’entends ta douce voix,\nElle pénètre en moi\nEt me dit d’aimer comme Toi\nDe l’amour de la Croix !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "J’entends ta douce voix,\nToi qui mourus pour moi,\nSeigneur, que je m’unisse à Toi\nDans ta mort, par la foi !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-182",
+    "number": "182",
+    "title": "Enfin Jésus a triomphé",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Enfin Jésus a triomphé\nDe tant de résistance,\nEt du joug il m’a libéré,\nOh ! gloire à sa puissance !"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Prince de la victoire,\nJésus, Ressuscité,\nÀ Toi seul est la gloire,\nEt pour l’éternité !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Oh ! par quel douloureux chemin\nDe retards et de luttes,\nCelui qui repousse ta main\nS’égare, et que de chutes !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Mon Berger, dans son grand amour,\nM’a remis sur la voie ;\nIl m’a pardonné… quel beau jour !\nEt je chante avec joie :"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Mon seul désir, Dieu Tout-Puissant,\nPour mon âme ravie ;\nC’est qu’elle soit dès maintenant,\nToujours à Christ unie !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-183",
+    "number": "183",
+    "title": "Mon âme est libérée",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Mon âme est libérée\nDu pouvoir de Satan ;\nTon bras l’a délivrée,\nÔ Sauveur tout-puissant !"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Alléluia ! Alléluia !\nGloire à toi, mon Sauveur !\nAlléluia ! Alléluia !\nGloire à mon Rédempteur !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Tu payas de ta vie\nLe prix de ma rançon,\nEt mon âme affranchie\nExalte ton grand nom."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Libre de toute entrave,\nMa gloire et mon bonheur\nC’est d’être ton esclave,\nÔ mon libérateur !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Ma vie et tout mon être\nSont à toi désormais ;\nTu seras seul mon Maître,\nMon Sauveur à jamais."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-184",
+    "number": "184",
+    "title": "Viens, mon âme te réclame",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Viens ! mon âme\nTe réclame,\nCar c’est Toi qui m’as cherché.\nPour te suivre,\nJe te livre\nMon cœur avec son péché."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Viens ! mon âme\nTe réclame,\nMon bonheur est tout en Toi.\nJe t’adore,\nJe t’implore ;\nÔ Jésus, demeure en moi !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Oui, ta grâce\nSeule efface\nToutes mes iniquités,\nTu pardonnes,\nTu me donnes\nLa paix de tes rachetés."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Quand je doute,\nQuand ma route\nPasse auprès du tentateur,\nTa main sûre\nMe rassure\nEt me rend plus que vainqueur."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Ah ! demeure\nÀ chaque heure,\nMon rempart, mon défenseur,\nMa victoire\nEt ma gloire,\nÔ Jésus, mon seul Sauveur !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-185",
+    "number": "185",
+    "title": "Seigneur, à ton regard",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Seigneur, à ton regard de flamme\nRien n’est couvert, rien n’est caché ;\nQu’il pénètre au fond de notre âme,\nEt qu’il juge en nous le péché,\nQu’il juge le péché !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Sonde nos cœurs et nos pensées,\nNos plus intimes souvenirs,\nNos œuvres présentes, passées ;\nSonde nos plus secrets désirs,\nNos plus secrets désirs."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Qu’à la lumière tout paraisse\nPour que tout soit purifié,\nEt qu’en nous ton Esprit ne laisse\nRien qui ne soit sanctifié,\nVraiment sanctifié."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Alors, brûlants d’un nouveau zèle,\nSeigneur, nous pourrons t’obéir.\nOh ! que la vie est grande et belle\nPour ceux qui veulent te servir,\nQui veulent te servir !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-186",
+    "number": "186",
+    "title": "Jésus aujourd’hui m’appelle",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Jésus aujourd’hui m’appelle,\nJ’entends sa voix dans mon cœur.\nOh ! rends-toi donc, cœur rebelle,\nOuvre la porte au Sauveur !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Seigneur, je te l’abandonne,\nCe cœur indigne de toi.\nViens y régner ! Que personne\nNe le soustraie à ta loi !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "De moi librement dispose,\nDe ma santé, de mes biens ;\nÀ tes pieds je les dépose,\nÔ Maître à qui j’appartiens !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "De ma vie, heure par heure,\nQue ta main règle le cours !\nCar désormais je demeure\nÀ tes ordres pour toujours."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-187",
+    "number": "187",
+    "title": "C’est un rempart !",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "C’est un rempart que notre Dieu,\nUne invincible armure,\nNotre délivrance en tout lieu,\nNotre défense sûre.\nL’ennemi contre nous\nRedouble de courroux ;\nVaine colère !\nQue pourrait l’adversaire ?\nL’Éternel détourne ses coups."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Seul, nous bronchons à chaque pas,\nNotre force est faiblesse ;\nMais un héros, dans les combats,\nPour nous lutte sans cesse.\nQuel est ce défenseur ?\nC’est toi, divin Sauveur !\nDieu des armées !\nTes tribus opprimées\nConnaissent leur Libérateur."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Que les démons forgent des fers\nPour accabler l’Église ;\nTa Sion brave les enfers,\nSur ton rocher assise.\nConstant dans son effort,\nEn vain avec la mort\nSatan conspire :\nPour ruiner son empire,\nIl suffit d’un mot du Dieu fort."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Dis-le ce mot victorieux,\nDans toutes nos détresses ;\nRépands sur nous, du haut des cieux,\nTes divines largesses.\nQu’on nous ôte nos biens,\nQu’on serre nos liens,\nQue nous importe !\nTa grâce est la plus forte,\nEt ton royaume est pour les tiens."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-188",
+    "number": "188",
+    "title": "Plus que vainqueur !",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Plus que vainqueur ! telle est notre devise ;\nPlus que vainqueurs, bien que persécutés !\n— Car la victoire à la foi fut acquise\nPar le Sauveur qui nous a rachetés. — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Suivons le Christ jusque sur le Calvaire ;\nAyons toujours sa mort devant nos yeux :\n— Si nous souffrons avec lui sur la terre,\nNous régnerons avec lui dans les cieux. — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Osons braver les injures du monde\nPour confesser le beau nom de Jésus.\n— Que sur Lui seul tout notre espoir se fonde,\nEt notre espoir ne sera pas confus. — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Amis ! croyons au pouvoir invisible\nQue le Sauveur a caché dans sa croix ;\n— Saisissons-la comme une arme invincible,\nPour triompher au nom du Roi des rois. — (bis)"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-189",
+    "number": "189",
+    "title": "La croix reste debout",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "La croix reste debout,\nAlléluia ! Alléluia !\nElle domine tout,\nAlléluia ! Alléluia !\nC’est en vain que la haine\nContre elle se déchaîne :\nLumineuse et sereine\nLa croix reste debout !"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Alléluia ! Alléluia !\nAu plus fort des combats,\nAlléluia ! Alléluia !\nLa croix ne recule pas !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Sur elle en Golgotha,\nAlléluia ! Alléluia !\nLe Fils de Dieu monta.\nAlléluia ! Alléluia !\nAmour incomparable !\nCe Sauveur adorable,\nPour l’homme misérable,\nMourut en Golgotha."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Soldats du Roi des rois,\nAlléluia ! Alléluia !\nPortons partout sa croix !\nAlléluia ! Alléluia !\nCar tous ceux qu’il délivre\nSous la croix doivent vivre,\nSur la croix doivent suivre\nJésus le Roi des rois."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-190",
+    "number": "190",
+    "title": "Il est une sainte guerre",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Il est une sainte guerre,\nIl est un combat divin,\nEntre le ciel et la terre,\nEntre le mal et le bien."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Certaine est notre victoire,\nLuttons sans crainte et sans peur ;\nNous combattons pour la gloire\nDe Jésus, le Rédempteur."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "La justice est notre armure,\nLa foi, notre bouclier ;\nLa vérité, pour ceinture,\nDoit à jamais nous lier."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "C’est une épée invincible\nQu’on voit briller dans nos mains,\nC’est la parole infaillible\nDu Dieu Sauveur des humains."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Sous cette sainte bannière,\nLes cœurs en haut, nous marchons ;\nEt du séjour de lumière\nPas à pas nous approchons."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 6",
+        "text": "Après la lutte suprême,\nLa couronne nous attend ;\nJésus la mettra lui-même\nSur le front du combattant !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-191",
+    "number": "191",
+    "title": "Jusqu’à la mort",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Jusqu’à la mort nous te serons fidèles ;\nJusqu’à la mort tu seras notre Roi ;\nSous ton drapeau, Jésus, tu nous appelles ;\nNous y mourrons en luttant avec foi !"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Jusqu’à la mort ! c’est notre cri de guerre\nLe libre cri d’un peuple racheté ;\nJusqu’à la mort, nous aurons pour bannière\nTa croix sanglante, ô Christ ressuscité !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Pour toi, Jésus, on est heureux de vivre ;\nTous les chemins avec toi semblent doux.\nAgneau de Dieu, qui ne voudrait te suivre\nJusqu’à la mort, toi qui mourus pour nous ?"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Jusqu’à la mort, soumis à ta puissance,\nNous voulons vivre et mourir sous tes lois,\nToi qui pour nous poussas l’obéissance\nJusqu’à la mort, et la mort de la croix."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Mais, ô Sauveur ! tu sais notre faiblesse ;\nNous tomberons sûrement en chemin\nSi tu ne viens accomplir ta promesse,\nJusqu’à la mort nous tenant par la main."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Que ton Esprit nous guide et nous anime !\nEt que, sa flamme embrasant tous nos cœurs,\nNous devenions par toi, sainte victime,\nSur la mort même un peuple de vainqueurs !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-192",
+    "number": "192",
+    "title": "Plus le mal est pressant",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Plus le mal est pressant, plus ma misère est grande,\nPlus l’abîme est profond et béant sous mes pas,\nPlus le péril extrême, un prompt secours demande,\nPlus je me réfugie, ô Jésus, dans tes bras !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Parmi tous les dangers, c’est toi qui me rassures,\nContre tous les assauts, c’est toi mon bouclier !\nC’est toi, si je faiblis, qui guéris mes blessures ;\nPour pouvoir tout, sur toi je n’ai qu’à m’appuyer."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Tu m’as associé, Jésus, à ta victoire,\nMets ta force en mon bras, mets ta flamme en mon cœur !\nOui, viens par mon triomphe, ajouter à ta gloire,\nCombattre par mes mains et me rendre vainqueur."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Tu me donnes toujours selon ma confiance,\nQuand j’ai tout demandé, n’ai-je pas tout reçu ?\nAvec toi tout triomphe est assuré d’avance :\nQuand on est sûr de vaincre, on a déjà vaincu."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-193",
+    "number": "193",
+    "title": "Le signal de la victoire",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Le signal de la victoire\nDéjà brille aux cieux,\nLa couronne de la gloire\nParaît à nos yeux."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Je viens, combattez encore !\nDit Jésus à tous.\nOui, mon Sauveur, je t’implore,\nJe lutte à genoux."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Que l’ennemi, plein de rage,\nRedouble ses coups,\nNous ne perdons point courage :\nChrist est avec nous."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Suivons, amis, la bannière\nDu Sauveur en croix,\nEt que notre armée entière,\nSe range à sa voix."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Rude et longue est la mêlée :\nVoici le secours !\nDans nos mains prenons l’épée\nQui vainquit toujours !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-194",
+    "number": "194",
+    "title": "Sans attendre",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Sans attendre,\nJe veux tendre\nAu bonheur promis ;\nQui s’élance,\nQui s’avance\nObtiendra le prix.\nQuand je prie,\nDieu m’entend ;\nOn m’attaque,\nIl me défend,\nDonc en route,\nPoint de doute,\nLe but est si grand !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Près du trône\nLa couronne\nAttend le vainqueur,\nNulle trêve !\nQu’on se lève !\nA dit le Seigneur.\nD’obéir soyons heureux ;\nPoint de tièdes, de peureux ;\nLe Fidèle\nNous appelle\nÀ régner aux cieux."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "D’un pas ferme,\nJusqu’au terme\nIl faut s’avancer.\nDieu m’observe,\nQu’il préserve\nMon pied de glisser.\nQue ce monde et ses attraits\nNe me séduisent jamais !\nSi sa haine\nSe déchaîne,\nQue je sois en paix !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Dieu de grâce,\nQue ta face\nLuise en mon chemin.\nPère tendre,\nViens me prendre\nPar ta forte main.\nToute puissance est à toi,\nSubviens à ma faible foi ;\nMa victoire,\nC’est ta gloire,\nJésus, Roi des rois."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-195",
+    "number": "195",
+    "title": "Qui me relève dans mes chutes",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Qui me relève dans mes chutes ?\nC’est Jésus-Christ.\nQui combat pour moi dans mes luttes ?\nC’est Jésus-Christ.\nJésus a parlé, je veux croire\nQue je puis lutter pour sa gloire,\nCar mon bouclier, ma victoire,\nC’est Jésus-Christ."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Je vais à mon Père, et ma voie\nC’est Jésus-Christ ;\nJe suis bienheureux, et ma joie\nC’est Jésus-Christ.\nEt si, même dans la souffrance,\nMon cœur me parle d’espérance,\nC’est que j’ai mis ma confiance\nEn Jésus-Christ."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Sauvé, je ne me glorifie\nQu’en Jésus-Christ ;\nPour la terre et le ciel, ma vie\nC’est Jésus-Christ.\nBientôt adieu, choses mortelles !\nLoin de vous je prendrai des ailes,\nVers les demeures éternelles,\nVers Jésus-Christ."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-196",
+    "number": "196",
+    "title": "Notre Chef et Maître",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Notre Chef et Maître, c’est le Roi des rois ;\nPortant ferme sa bannière,\nSans craintes ni doutes, soldats de la Croix,\nAvançons dans la lumière."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "En avant ! En avant !\nPour Jésus-Christ le Roi des rois !\nNous le couronnons\nSous la bannière de la Croix !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Que l’ennemi vienne, comme l’ouragan,\nDéployons notre bannière !\nSous sa garde sainte, jamais de Satan\nNotre âme n’est prisonnière."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Par mer et par terre, qu’à tout être humain\nSoit annoncé l’Évangile !\nLa sainte bannière de l’Agneau Divin\nPlantons dans l’arène hostile !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Et le jour de gloire bientôt paraîtra :\nL’aube, nous la voyons luire,\nOù, sous la bannière de la Croix, vaincra\nDe Christ l’éternel Empire."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-197",
+    "number": "197",
+    "title": "Tes saints, dans la lutte",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Tes saints, dans la lutte,\nEt de tous côtés\nIci-bas en butte\nAux infirmités,\nSont, dans le ciel même,\nPortés sur ton cœur,\nÔ notre suprême\nSacrificateur !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Plein de sympathies,\nDe tendre bonté,\nJamais tu n’oublies\nAucun racheté.\nC’est toi qui nous aides\nDans chaque combat,\nEt pour nous tu plaides,\nDivin Avocat !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Pour toute souillure,\nC’est toi qui te ceins ;\nEt lavant d’eau pure\nLes pieds de tes saints,\nTu dis au fidèle :\n« Sois l’imitateur\nDu parfait Modèle,\nDu vrai Serviteur. »"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-198",
+    "number": "198",
+    "title": "Debout pour la sainte guerre",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Debout pour la sainte guerre !\nLe mal est grand encor ;\nPlus d’un ami, plus d’un frère\nSuit un chemin de mort."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "En avant ! tous en avant !\nEn avant ! Notre Chef est tout-puissant.\nNos armes sont la prière,\nL’amour persévérant."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Debout pour la sainte guerre !\nRanimons notre ardeur.\nAvec la croix pour bannière,\nQui ne serait vainqueur ?"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Debout pour la sainte guerre !\nSoyons unis et forts !\nQu’une charité sincère\nPréside à nos efforts."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Ô Dieu ! pour la sainte guerre\nRevêts-nous tous en Christ\nDes armes de la lumière,\nDes dons de ton Esprit."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-199",
+    "number": "199",
+    "title": "Non, nous ne saurions nous taire",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Non, nous ne saurions nous taire\nDevant tant de cœurs souffrants.\nResterez-vous sans rien faire ?\nSeriez-vous indifférents ?"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Sous la croix, rien n’est pénible.\nEn avant ! Frères, debout !\nPar la foi tout est possible,\nEt la couronne est au bout."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "En tous lieux, pleins d’espérance,\nTraçons un sillon d’amour.\nSemons avec confiance ;\nNous moissonnerons un jour."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Au monde sans repentance\nPrêchons Jésus mort pour tous.\nPourquoi tant d’insouciance ?\nIl en est temps, levons-nous !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Laissons là notre paresse,\nEt l’amour triomphera.\nOui, malgré notre faiblesse,\nLa vérité prévaudra."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-200",
+    "number": "200",
+    "title": "Veille au matin",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Veille au matin, quand un ciel sans nuage\nSemble annoncer un jour calme et serein,\nC’est dans ton cœur que peut gronder l’orage\nQui fait tomber le pèlerin."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Veille au matin, veille le soir,\nVeille et prie toujours."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Veille à midi, quand les bruits de la terre\nFont oublier le céleste séjour ;\nTrouve un instant pour être solitaire\nDans la prière et dans l’amour."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Veille le soir, quand se fait le silence ;\nPense aux bienfaits de ton céleste Ami ;\nCherche avec soin sa divine présence,\nVerse en son cœur tout ton souci."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Veille toujours, en tous lieux, à toute heure,\nCar l’ennemi te guette à chaque instant,\nPour se glisser dans la sainte demeure\nOù doit régner le Tout-Puissant."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-201",
+    "number": "201",
+    "title": "À celui qui sera vainqueur",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "À celui qui sera vainqueur,\nEt qui me glorifie,\nJe donnerai, dit le Seigneur,\nAu ciel l’arbre de vie !"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Victoire, force, honneur et louanges,\nGloire, Gloire, puissance à toi, Jésus !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Un caillou blanc, un nom nouveau\nEt la manne cachée,\nLui seront donnés par l’Agneau,\nSa promesse est scellée !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Revêtu d’un vêtement blanc,\nResplendissant de gloire,\nSera celui qui par le sang\nRemporta la victoire !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Avec Christ, celui qui vaincra\nS’assiéra sur son trône,\nEt de ses mains il recevra\nL’immortelle couronne."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-202",
+    "number": "202",
+    "title": "Vous qui gardez les murs de la sainte cité",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Vous qui gardez les murs de la sainte cité,\nSentinelles de Dieu, qui veillez à ses portes,\nCeignez-vous de vérité,\nDe valeur, de fermeté,\nQue vos yeux soient perçants et que vos voix soient fortes !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Voyez-vous l’ennemi s’approcher doucement\nEt chercher, en secret, à franchir les murailles ?\nDénoncez-le franchement,\nEt lui livrez fermement\nDu Maître des combats, les terribles batailles."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Ah ! soldats, c’est au Chef que vous appartenez ;\nC’est Lui qui vous ceignit du redoutable glaive.\nDans vos trompettes sonnez\nContre tous ces révoltés,\nRésistez vaillamment, sans repos et sans trêve."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Messagers du salut, en ce terrestre lieu,\nPubliez vaillamment le sacré témoignage.\nNe craignant que votre Dieu,\nAccomplissez votre vœu ;\nAffrontez les erreurs et méprisez l’outrage."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Du monde, contre vous, la rage éclatera ;\nSoutenez ses assauts : c’est Jésus qui l’ordonne,\nLe moqueur vous maudira,\nLe méchant vous frappera ;\nMais le Seigneur vous garde et tient votre couronne."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-203",
+    "number": "203",
+    "title": "Sentinelle vigilante",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "« Sentinelle vigilante,\nQu’en est-il donc de la nuit ? »\n« Dis à l’âme somnolente\nQue déjà le matin luit ! »"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "La nuit passe, le matin du grand jour luit !\nSentinelle, soit au poste jour et nuit. (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Les gardes sur la muraille\nNous l’on dit, entendez-vous ?\nAu loin gronde la bataille,\nTout est sombre autour de nous."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Point de repos, de relâche,\nRachetés de l’Éternel.\nTravaillez à votre tâche,\nCar Jésus revient du ciel !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-204a",
+    "number": "204a",
+    "title": "Debout, sainte cohorte",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Debout, sainte cohorte,\nSoldats du Roi des rois !\nTenez d’une main forte\nL’étendard de la croix !\nAu sentier de la gloire\nJésus-Christ nous conduit ;\nDe victoire en victoire\nIl mène qui le suit."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "La trompette résonne ;\nDebout ! vaillants soldats !\nL’immortelle couronne\nEst le prix des combats.\nSi l’ennemi fait rage,\nSoyez fermes et forts ;\nRedoublez de courage\nS’il redouble d’efforts."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Debout pour la bataille,\nPartez, n’hésitez plus !\nSi votre bras défaille,\nRegardez à Jésus !\nDe l’armure invincible,\nSoldats ! revêtez-vous !\nLe triomphe est possible\nPour qui lutte à genoux."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Debout, debout encore !\nLuttez, jusqu’au matin ;\nDéjà brille l’aurore\nÀ l’horizon lointain.\nBientôt jetant nos armes\nAux pieds du Roi des rois !\nLes chants après les larmes,\nLe trône après la croix."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-204b",
+    "number": "204b",
+    "title": "Revêtons notre armure",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Revêtons notre armure\nEt partons en vainqueurs !\nOui, la victoire est sûre,\nEn haut, en haut les cœurs !\nCelui qui nous appelle\nEt nous dit : En avant !\nEst le Sauveur fidèle,\nLe Seigneur tout-puissant."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Revêtons notre armure\nEt luttons en vainqueurs !\nLe secours se mesure\nAux besoins de nos cœurs !\nPlus grande est la faiblesse,\nSeigneur, de tes soldats,\nPlus riche est ta promesse\nEt plus ferme est ton bras."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Revêtons notre armure\nEt souffrons en vainqueurs !\nDe plainte et de murmure\nSachons garder nos cœurs.\nL’épreuve aura son terme,\nLe chrétien reste ferme\nDans la foi, dans l’amour."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Revêtons notre armure\nEt mourons en vainqueurs !\nSi la bataille est dure,\nL’espoir soutient nos cœurs.\nAux rives éternelles,\nIl nous montre le port.\nNous te serons fidèles,\nSeigneur, jusqu’à la mort."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-205",
+    "number": "205",
+    "title": "Travaillons et luttons",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Travaillons et luttons ! Nous sommes au Seigneur,\nSuivons l’étroit sentier qui conduit à la vie !\nJésus marche avec nous, avançons sans frayeur,\nIl nous garde et son bras toujours nous fortifie."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Travaillons et luttons, (bis)\nSoyons prêts et prions,\nBientôt le maître va venir !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Travaillons et luttons ! Que les cœurs affligés,\nLes perdus loin de Dieu retrouvent l’espérance !\nVers la croix dirigeons leurs regards angoissés,\nPressons-les d’accepter Jésus leur délivrance."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Travaillons et luttons ! Il nous appelle tous,\nPoint de lâches, de tièdes, la moisson est grande !\nPour servir notre chef, ne pensons plus à nous,\nEn avant ! vers le but ! le Maître le demande !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Travaillons et luttons ! Sans jamais nous lasser,\nDe notre Rédempteur élevant la bannière,\nFidèles jusqu’au bout, sachons persévérer,\nLe repos nous attend dans la pleine lumière."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-206",
+    "number": "206",
+    "title": "Viens, âme qui pleures",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Viens, âme qui pleures,\nViens à ton Sauveur ;\nDans tes tristes heures,\nDis-lui ta douleur ;\nDis tout bas ta plainte\nAu Seigneur Jésus,\nParle-lui sans crainte,\nEt ne pleure plus."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Dis tout à ce frère,\nÀ ce tendre ami,\nTon épreuve amère,\nTon deuil, ton souci.\nIl aime, il console\nLes cœurs abattus ;\nCrois à sa parole\nEt ne pleure plus."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Aux cœurs en détresse\nPloyant sous le faix,\nDis que Dieu les presse\nDe chercher sa paix.\nCalme leurs alarmes ;\nDis-leur que Jésus\nA séché nos larmes…\nVa, ne pleure plus."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-207",
+    "number": "207",
+    "title": "Maître, entends-tu la tempête",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Maître, entends-tu la tempête\nEt ses terribles accents ?\nParle, Seigneur, et l’arrête ;\nSauve, sauve tes enfants !\nMais aucun bruit ne l’éveille ;\nIl dort et nous périssons.\nÀ nos cris prête l’oreille,\nSauve-nous, nous t’en prions !"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Il parle aux flots en démence :\nPaix… vous soit !…\nLa mer, les vents font silence ;\nPaix vous soit ! (bis)\nIl est notre délivrance ;\nPaix vous soit !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Maître, mon cœur qui chancelle\nTraverse les grandes eaux,\nEt l’orage à ma nacelle\nLivre de rudes assauts.\nOh ! qui verra ma détresse ?\nD’où me viendra le secours ?\nÀ toi, Seigneur, je m’adresse,\nC’est à toi que j’ai recours."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Maître, l’onde est apaisée,\nLe doute a quitté mon cœur,\nEt mon âme consolée\nA retrouvé son Sauveur.\nOh ! prends en ta main ma vie,\nJusques au jour de ma mort.\nEn toi seul je me confie ;\nTu me conduiras au port."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-208",
+    "number": "208",
+    "title": "Quand le vol de la tempête",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Quand le vol de la tempête\nVient assombrir ton ciel bleu,\nAu lieu de baisser la tête,\nCompte les bienfaits de Dieu."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Compte les bienfaits de Dieu,\nMets-les tous devant tes yeux,\nTu verras, en adorant,\nCombien le nombre en est grand."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Quand sur la route glissante,\nTu chancelles sous la croix,\nPense à cette main puissante\nQui t’a béni tant de fois."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Si tu perds dans le voyage\nPlus d’un cher et doux trésor,\nPense au divin héritage\nQui Là-Haut, te reste encor."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Bénis donc, bénis sans cesse\nCe Père qui chaque jour\nRépand sur toi la richesse\nDe son merveilleux amour."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-209",
+    "number": "209",
+    "title": "Pour toi qu’un tourment oppresse",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Pour toi qu’un tourment oppresse,\nÔ cœur abattu !\nJésus est plein de tendresse,\nLe sais-tu ?"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Vers Jésus quelle lumière\nPourra me guider ?\nTes yeux doivent au Calvaire\nRegarder."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Ce roi, de quel diadème\nEst-il couronné ?\nVois, d’épines son front blême\nEst orné."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Quel sera d’un vrai fidèle\nLe sort ici-bas ?\nLes douleurs du saint modèle,\nSes combats."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Si je crois et si j’espère,\nQu’obtiendrai-je enfin ?\nPais et joie auprès du Père,\nDans son sein !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 6",
+        "text": "J’entends ta voix, divin Maître ;\nElle me dit : Viens !\nMe voici ! oui, je veux être\nL’un des tiens."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-210",
+    "number": "210",
+    "title": "Une nacelle en silence",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Une nacelle en silence\nVogue sur un lac d’azur ;\nTout doucement elle avance,\nSous un ciel tranquille et pur.\nMais soudain le vent s’élève,\nChassant un nuage noir,\n— Et les vagues qu’il soulève\nFont trembler, car c’est le soir. — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Grande est alors la détresse\nDes voyageurs éperdus ;\nGrande est aussi leur faiblesse,\nLeur foi ne les soutient plus.\nMais il en est un qui veille\nSur eux tous, bien qu’endormi ;\n— Ah ! faudra-t-il qu’on l’éveille !\nN’est-il plus leur tendre Ami ? — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Maître, es-tu donc insensible ?\nTu le vois, nous périssons !\nTout miracle t’est possible,\nSauve-nous, nous t’en prions !\nD’eux aussitôt il s’approche,\nPuis, il dit au vent : « Tais-toi ! »\n— Et tendrement leur reproche\nD’avoir eu si peu de foi. — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Ainsi souvent, dans la vie,\nL’orage assombrit nos cœurs,\nBien que pour nous Jésus prie,\nPrêt à calmer nos terreurs.\nComptons mieux sur sa tendresse,\nSon cœur ne saurait changer ;\n— De sa brebis en détresse\nIl est toujours le Berger ! — (bis)"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-211",
+    "number": "211",
+    "title": "Pour moi chrétien, la terre est un exil",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Pour moi chrétien, la terre est un exil ;\nMais tout est bien. (bis)\nIl faut marcher de péril en péril ;\nMais tout est bien. (bis)\nPourquoi les pleurs, la terreur ou l’ennui ?\nChrist est à moi demain comme aujourd’hui ;\nAu ciel bientôt je serai tout à lui.\nOui, tout est bien. (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Larmes, travail, deuil, tristesse ici-bas ;\nMais tout est bien. (bis)\nDe Canaan j’approche à chaque pas ;\nOui, tout est bien. (bis)\nEn vain le monde et son charme trompeur\nDans ses liens veut retenir mon cœur ;\nJ’avance en paix, les yeux sur mon Sauveur.\nOui, tout est bien. (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Encore un jour, et j’atteindrai le but ;\nOui, tout est bien. (bis)\nEt je verrai le pays du salut ;\nOui, tout est bien. (bis)\nEncore un jour, le monde va passer.\nÔ pèlerin, marche sans te lasser ;\nBientôt en Dieu tu vas te reposer.\nOui, tout est bien. (bis)"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-212",
+    "number": "212",
+    "title": "La croix que Dieu me donne",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "La croix que Dieu me donne\nÀ porter ici-bas\nEst jointe à la couronne\nQui ne se flétrit pas.\nCelui qui me l’impose\nSe nomme mon Sauveur ;\nEn son sein je dépose\nLe soupir de mon cœur."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Le premier, sur lui-même\nIl a chargé la croix.\nAprès lui, puisqu’il m’aime,\nDois-je en craindre le poids ?\nJésus, en qui j’espère\nEt qui la prit sur lui,\nMe la rendra légère :\nIl est mon sûr appui."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Il sait, ce Dieu tout sage,\nIl sait, bien mieux que moi,\nRégler ce court voyage\nOù s’avance ma foi.\nMa route m’est tracée\nPar sa main, chaque jour ;\nPeut-elle être placée\nAilleurs qu’en son amour ?"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Prends donc, prends sans tristesse,\nÔ mon âme ! ta croix !\nDu Seigneur la sagesse\nEn mesura le poids.\nTon Dieu, ton Dieu fidèle,\nTe tient sous son regard :\nÀ souffrir s’il t’appelle,\nAh ! sache aimer ta part."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-213",
+    "number": "213",
+    "title": "Invoque-moi du sein de la détresse",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "« Invoque-moi du sein de la détresse :\nMon bras puissant te sauvera. »\n— C’est Dieu qui parle, oh ! crois à sa promesse !\nBientôt ta voix l’exaltera. — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Si tout est sombre, oh ! ne perds pas courage,\nNe doute pas du Dieu vivant.\n— Même au milieu des fureurs de l’orage,\nDemeure en paix, crois seulement. — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Mais n’attends pas que le mal te domine,\nQue l’ennemi soit dans ton cœur.\n— Elle est à toi, la puissance divine :\nSaisis-la donc et sois vainqueur. — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Jamais, jamais, Dieu qui fit la promesse,\nNe manquera de l’accomplir.\n— Que son enfant, sauvé de la détresse,\nNe manque pas de le bénir ! — (bis)"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-215a",
+    "number": "215a",
+    "title": "Oh ! quelle paix parfaite",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Oh ! quelle paix parfaite\nDans tes bras, ô Jésus !\nMon âme satisfaite,\nLà ne s’alarme plus."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Ton amour me console,\nC’est toi qui me défends ;\nDe ta douce parole\nJ’écoute les accents."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "L’ennemi ne peut nuire\nÀ qui reste en ton sein ;\nTout son effort expire\nSous ton pouvoir divin."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Oui, mon cœur est sans crainte,\nJe suis en sûreté ;\nDe ton amour l’étreinte\nMe tient bien abrité."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-215b",
+    "number": "215b",
+    "title": "Quand ma route est obscure",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Quand ma route est obscure,\nQu’à peine une lueur\nM’éclaire et me rassure,\nJe regarde au Sauveur !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Quand mon âme entraînée\nVers un plaisir trompeur,\nAu mal est enchaînée,\nJe regarde au Sauveur !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Quand ma coupe est remplie,\nComblé par la faveur\nDu Dieu que l’homme oublie,\nJe regarde au Sauveur !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Dans le calme ou l’orage,\nLa joie ou la douleur,\nÀ toute heure, à tout âge,\nRegardons au Sauveur !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-216",
+    "number": "216",
+    "title": "Ton beau nom calme et console",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Ton beau nom calme et console,\nÔ Jésus, mon Rédempteur !\nJe savoure ta parole,\nQuand ta voix parle à mon cœur.\nSur toi seul je me repose,\nTa promesse me soutient ;\nAvec toi j’ai toute chose,\nEt mon âme t’appartient."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Je t’apporte ma faiblesse,\nMieux que moi tu la connais.\nJe t’apporte ma tristesse,\nEt tu me donnes la paix.\nMes soucis, tu les partages ;\nTu prends sur toi mes fardeaux ;\nDu regard tu m’encourages,\nEt tu guéris tous mes maux."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-217",
+    "number": "217",
+    "title": "Quel autre au ciel ai-je que toi ?",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Quel autre au ciel ai-je que toi ?\nÔ mon Dieu, mon Sauveur !\nN’as-tu pas ouvert à ma foi\nLes trésors de ton cœur ?\nTu t’es donné toi-même à moi,\nEt, vivant sous ta douce loi,\nJe ne prends de plaisir qu’en toi,\nÔ mon Dieu, mon Sauveur !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Que me font les biens d’ici-bas ?\nÔ mon Dieu, mon Sauveur !\nIls passent, tu ne passes pas ;\nTu suffis à mon cœur.\nDans le deuil ou la pauvreté,\nDans l’exil ou l’adversité,\nTu restes ma félicité,\nÔ mon Dieu, mon Sauveur !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Je serai toujours avec toi,\nÔ mon Dieu, mon Sauveur !\nRien ici-bas, non, rien ne doit\nM’arracher de ton cœur.\nLes vents peuvent se déchaîner,\nLes torrents peuvent déborder :\nTa grâce est mon ferme rocher,\nÔ mon Dieu, mon Sauveur !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Par la main droite tu m’as pris,\nÔ mon Dieu, mon Sauveur !\nPar ton conseil, tu me conduis\nAu repos sur ton cœur ;\nEt quand viendra le dernier jour,\nTu m’ouvriras avec amour\nLes portes du divin séjour,\nÔ mon Dieu, mon Sauveur !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-218",
+    "number": "218",
+    "title": "Mort avec Christ",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Mort avec Christ d’une mort volontaire,\nJe vis au ciel déjà sur cette terre ;\nEn attendant son glorieux retour,\nJe suis gardé par lui de jour en jour."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Jour après jour gardé par ton amour,\nJour après jour à l’abri de ton aile,\nC’est le repos et la vie éternelle…\nJe t’appartiens, ô Sauveur, pour toujours !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Il n’est douleurs que son cœur ne partage,\nIl n’est fardeaux dont il ne me soulage ;\nIl n’est de pleurs qu’il ne daigne tarir,\nIl n’est de maux qu’il ne puisse guérir."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "À mes soupirs s’incline son oreille ;\nLorsque je dors, près de moi son cœur veille ;\nQuand, pour toujours, mes yeux se fermeront,\nSes bras puissants au ciel me porteront."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-219",
+    "number": "219",
+    "title": "Dans ce triste monde",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Dans ce triste monde je ne puis vivre,\nJe n’y puis trouver le bonheur.\n— Malgré ses attraits, toi seul je veux suivre,\nÔ Seigneur Jésus, mon Sauveur ! — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Lorsque la tempête ou l’orage gronde\nEt que mon cœur est effrayé,\n— Vers toi, je regarde, ô Sauveur du monde,\nEn toi, je me suis confié. — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Désormais pour moi brille la lumière,\nDevant ton regard l’ombre fuit.\n— Bientôt je te verrai, céleste Père,\nÀ l’horizon l’étoile luit. — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Bientôt, Jésus, tu quitteras ton trône,\nJe te verrai dans ta beauté.\n— Quels transports quand tu mettras la couronne\nSur le front de ton racheté. — (bis)"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-220",
+    "number": "220",
+    "title": "Oh ! quel repos quand le mal m’environne",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Oh ! quel repos quand le mal m’environne\nD’être conduit !\nAutour de moi ton tendre amour rayonne\nQuand il fait nuit.\nEt pas à pas, je vais en mon chemin,\nToujours tenu par ta fidèle main."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Ah ! trop longtemps, n’acceptant point de maître,\nManquant de foi,\nPauvre insensé, je ne voulais pas être\nConduit par toi.\nEt l’ennemi s’attachait à mes pas,\nEt m’entraînait où je ne voulais pas."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Mais maintenant que tu m’as fait connaître\nTon grand amour,\nJe ne pourrais sans toi, bien-aimé Maître,\nVivre un seul jour.\nJe t’appartiens, mon cœur aime ta loi,\nC’est mon bonheur d’être conduit par toi."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-221",
+    "number": "221",
+    "title": "Tiens dans ta main",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Tiens dans ta main, ta main puissante et forte,\nTon faible enfant qui seul ne peut marcher.\nVers Toi, Seigneur, tout mon désir se porte,\nSur mon chemin, garde-moi de broncher !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Tiens dans ta main tous les jours de ma vie,\nQu’ils soient des jours de peine ou de bonheur ;\nQue de t’aimer, soit toute mon envie,\nQue je sois à Toi, Jésus, mon Sauveur !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Tiens dans ta main, mon cœur plein de faiblesse,\nSans ton secours je ne puis faire un pas.\nÉcoute-moi, regarde ma tristesse,\nViens, secours-moi, ne m’abandonne pas !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Tiens dans ta main ma main, parfois tremblante,\nQuand vient l’épreuve et ses jours de douleur.\nDonne à ma foi, souvent si chancelante,\nPlus de douceur, de paix et de ferveur !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Tiens dans ta main mon âme tout entière ;\nRévèle-moi, Jésus, tout ton amour ;\nSois mon rocher, mon ancre, ma lumière,\nMon Roi, mon Maître, Jésus ! chaque jour !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-222",
+    "number": "222",
+    "title": "Que ton fidèle amour",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Que ton fidèle amour est une grande chose,\nÔ Dieu mon Rédempteur, mon rocher, mon gardien !\nOh ! quel puissant soutien, (bis)\nQue ce bras de ta grâce où mon cœur se repose !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Oui, je marche avec Toi dans mon pèlerinage ;\nAutrefois j’étais seul, sans guide et sans Sauveur,\nMais aujourd’hui, Seigneur, (bis)\nJe poursuis avec Toi mon terrestre voyage."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Bien-aimé Fils de Dieu ! mon cœur, plein d’allégresse,\nDans la paix de la foi, se tient sous ton regard.\nOh ! quelle riche part, (bis)\nMon âme, chaque jour, possède en ta tendresse !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Ainsi moi, ton enfant, Seigneur, devant ta face\nJe marche vers la gloire et la félicité !\nEt pour l’éternité, (bis)\nTon amour près de Toi me réserve une place."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-223",
+    "number": "223",
+    "title": "À Jésus je m’abandonne",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "À Jésus je m’abandonne ;\nCe qu’il me dit, je le crois,\nEt je prends ce qu’il me donne,\nLa couronne avec la croix."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Compter sur lui d’heure en heure,\nTant que dure le combat ;\nQue l’on vive ou que l’on meure,\nCompter sur lui, tout est là."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Que si l’ennemi se montre,\nMon cœur n’en est point troublé ;\nAvec Christ, à sa rencontre\nJe puis aller sans trembler."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Suis-je en paix, vers la lumière\nMon chant s’élève attendri,\nPour se changer en prière\nSi l’horizon s’assombrit."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Qu’on m’approuve ou qu’on me blâme,\nEt demain comme aujourd’hui,\nJe ne veux, quoi qu’on réclame,\nJamais compter que sur lui."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-224",
+    "number": "224",
+    "title": "Comme un fleuve immense",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Comme un fleuve immense,\nEst la paix de Dieu.\nParfaite elle avance\nVainqueur en tout lieu ;\nParfaite elle augmente\nConstamment son cours ;\nParfaite sa pente\nS’abaisse toujours."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Fondés sur Dieu même,\nNos cœurs à jamais\nOnt pour biens suprêmes\nSa grâce et sa paix."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Sous ta main meurtrie,\nSe brise, ô mon Roi !\nToute arme ennemie\nQu’on forge pour moi !\nRien ne peut me nuire\nNi troubler mon cœur,\nTu veux me conduire,\nTu seras Vainqueur."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Tu traces ma voie :\nJ’y marche avec foi ;\nL’épreuve et la joie\nMe viennent de toi !\nCadran de nos vies,\nMarque, chaque jour,\nLes heures bénies\nDu Soleil d’amour !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Océan de gloire,\nPaix de mon Sauveur !\nGage de victoire !\nTrésor de bonheur !\nTa grâce infinie,\nCoulant nuit et jour,\nInonde ma vie\nDe vagues d’amour !"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain 2",
+        "text": "Selon ta promesse,\nÔ Jésus mon Roi !\nJe trouve sans cesse\nPaix parfaite en Toi."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-225",
+    "number": "225",
+    "title": "Ô Fils de Dieu, mon Sauveur bien-aimé",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Ô Fils de Dieu, mon Sauveur bien-aimé !\nToi dont la voix au bonheur me convie,\nPrends en tes mains les rênes de ma vie,\nRepais mon cœur, de ta grâce affamé."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Ô Jésus-Christ, mon Sauveur bien-aimé !\nToi dont les pas ont frayé, sur la terre,\nL’étroit sentier qui seul conduit au Père,\nSoutiens mon cœur, de ton souffle animé."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Ô Fils de Dieu, mon Sauveur bien-aimé !\nQue loin de toi jamais je ne m’égare ;\nDe ton amour que rien ne me sépare ;\nQue pour toi seul mon cœur soit enflammé."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-226",
+    "number": "226",
+    "title": "Ne crains rien je t’aime",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Ne crains rien, je t’aime !\nJe suis avec toi !\nPromesse suprême,\nQui soutient ma foi.\nLa sombre vallée\nN’a plus de terreur,\nL’âme consolée,\nJe marche avec mon Sauveur."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Non, jamais tout seul, (bis)\nJésus mon Sauveur me garde,\nJamais ne me laisse seul.\nNon, jamais tout seul, (bis)\nJésus mon Sauveur me garde,\nJe ne suis jamais tout seul."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "L’aube matinière\nNe luit qu’aux beaux jours,\nJésus, ma lumière,\nM’éclaire toujours !\nQuand je perds de vue\nL’astre radieux,\nÀ travers la nue,\nJésus me montre les cieux !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Les dangers accourent,\nSubtils, inconnus :\nDe près ils m’entourent,\nPlus près est Jésus,\nQui dans le voyage,\nMe redit : « C’est moi !\nNe crains rien : courage !\nJe suis toujours avec toi ! »"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-227",
+    "number": "227",
+    "title": "Paix, douce paix",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Paix ! douce paix ! et mes nombreux péchés ?\nTon sang, Jésus, les a tous effacés !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Paix ! douce paix ! pressé par mes travaux ?\nTa volonté, Jésus, c’est mon repos !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Paix ! douce paix ! dans ma grande douleur ?\nToi seul, Jésus, tu consoles mon cœur."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Paix ! douce paix ! et dans l’éloignement ?\nJésus, sur nous tu veilles constamment."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Paix ! douce paix ! et le sombre avenir ?\nJésus nous reste et saura nous bénir."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 6",
+        "text": "Paix ! douce paix ! À l’heure de la mort ?\nJésus-Christ vainqueur nous conduit au port."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 7",
+        "text": "Paix ! douce paix ! gloire et félicité,\nAvec Jésus pendant l’éternité !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-228",
+    "number": "228",
+    "title": "Oh ! le meilleur ami, c’est Jésus",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Oh ! le meilleur ami, c’est Jésus !\nC’est le Sauveur des hommes perdus !\nPar sa mort expiatoire,\nIl nous donne la victoire,\nOui, le meilleur ami, c’est Jésus !"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Le meilleur ami, c’est Jésus : (bis)\nIl nous préserve de chutes,\nCombat pour nous dans nos luttes,\nOui, le meilleur ami, c’est Jésus !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Oh ! le meilleur ami, c’est Jésus !\nGrâce à lui, nos fardeaux ne sont plus !\nSa paix remplace la crainte,\nLe chant succède à la plainte,\nOui, le meilleur ami, c’est Jésus !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Oh ! le meilleur ami, c’est Jésus !\nQuand aux bords du Jourdain parvenus,\nJésus de sa main puissante,\nTarit la vague écumante,\nOui, le meilleur ami, c’est Jésus !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Là-haut, pour toujours, avec Jésus !\nDans le grand cortège des élus,\nTransformés à son image,\nNous chanterons en âge :\nOui, le meilleur ami, c’est Jésus !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-229",
+    "number": "229",
+    "title": "Jamais Dieu ne délaisse",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Jamais Dieu ne délaisse\nQui se confie en lui.\nSi le monde m’oppresse,\nLui-même est mon appui.\nCe Dieu bon et fidèle\nGarde en sa paix les siens\nPour la vie éternelle,\nEt les comble de biens."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Je veux, sachant qu’il m’aime,\nMe remettre à ses soins :\nBeaucoup mieux que moi-même,\nIl connaît mes besoins.\nCe Dieu plein de tendresse\nConfondrait-il ma foi ?\nNon ; plus le mal me presse,\nPlus il est près de moi."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Monde ! ce qui t’enchante,\nBiens, honneurs, volupté,\nN’est plus ce qui me tente :\nTout n’est que vanité !\nMon trésor, mon partage,\nMon tout, c’est Jésus-Christ,\nQui me donne pour gage\nLe sceau de son Esprit."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Seigneur ! par l’efficace\nDu sang versé pour moi,\nAccorde-moi la grâce\nDe vivre tout pour toi.\nC’est la vie éternelle\nDéjà dès ici-bas,\nJusqu’au jour qui m’appelle\nÀ passer dans tes bras."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-230",
+    "number": "230",
+    "title": "Un chrétien je croyais être",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Un chrétien je croyais être.\nMais j’ignorais le bonheur,\nQue Jésus, mon divin Maître,\nVient apporter dans un cœur."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Oh ! la paix que Jésus donne,\nJe ne la connaissais pas,\nTout sur mon chemin rayonne,\nDepuis qu’il conduit mes pas !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Sa puissance souveraine\nMaintenant règne sur moi ;\nDu péché brise la chaîne\nMe rend vainqueur par la foi."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Et, tranquillement j’avance,\nM’appuyant sur mon Sauveur.\nSon adorable présence\nMe donne le vrai bonheur !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-231",
+    "number": "231",
+    "title": "Non, rien en ma personne",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Non, rien en ma personne,\nN’est digne d’être aimé,\nCe que Jésus me donne\nPeut seul être estimé.\nJésus est ma justice,\nMa gloire, mon appui ;\nIl m’aime, il m’est propice,\nEt je puis tout par Lui."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Nul ne peut à mon âme\nDisputer son bonheur ;\nDe l’enfer, de sa flamme,\nJe ne sens nulle peur.\nLe Seigneur, juste Juge,\nEst mon plus tendre ami ;\nSon cœur est le refuge,\nOù je fuis l’ennemi."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Oui, malgré la tempête,\nJésus, à qui je suis,\nToujours sous sa houlette\nGardera sa brebis.\nDussé-je pour mon Maître\nPerdre tout ici-bas,\nÀ Lui seul je veux être,\nJe ne le quitte pas."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-232",
+    "number": "232",
+    "title": "Quand je craindrais sur la route",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Quand je craindrais sur la route,\nSeigneur, tiens ma main !\nQuand m’assaillira le doute,\nSeigneur, tiens ma main !"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Seigneur, tiens ma main ! (bis)\nOh ! Sauveur incomparable,\nToujours tiens ma main !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Quand le péché m’environne,\nSeigneur, tiens ma main !\nLa victoire, tu la donnes,\nSeigneur, tiens ma main !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Dans la joie ou la tristesse,\nSeigneur, tiens ma main !\nDans la paix ou la détresse,\nSeigneur, tiens ma main !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Dans la nuit d’épreuve amère,\nSeigneur, tiens ma main !\nConduis-moi vers la lumière !\nSeigneur, tiens ma main !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Je verrai ta main meurtrie,\nPour toujours là-haut !\nDans la céleste patrie,\nOh ! divin Agneau !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-233",
+    "number": "233",
+    "title": "Je ne sais pourquoi",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Je ne sais pourquoi dans sa grâce\nJésus m’a tant aimé,\nPourquoi par son sang il efface\nMa dette, mon péché."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Mais, je sais, qu’en Lui j’ai la vie,\nIl m’a sauvé dans son amour ;\nEt gardé par sa main meurtrie,\nJ’attends l’heure de son retour."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Je ne sais comment la lumière\nÉclaire tout mon cœur,\nComment je compris ma misère\nEt reçus mon Sauveur !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Je ne sais quelle est la mesure\nDe joie et de douleur\nQue pour moi, faible créature,\nRéserve mon Sauveur."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Je ne sais quand de la victoire\nL’heure enfin sonnera,\nQuand l’Agneau, l’Époux, dans sa gloire\nAvec Lui me prendra."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-234",
+    "number": "234",
+    "title": "Quel ami fidèle et tendre",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Quel ami fidèle et tendre\nNous avons en Jésus-Christ,\nToujours prêt à nous entendre,\nÀ répondre à notre cri !\nIl connaît nos défaillances,\nNos chutes de chaque jour.\nSévère en ses exigences,\nIl est riche en son amour."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Quel ami fidèle et tendre\nNous avons en Jésus-Christ,\nToujours prêt à nous comprendre\nQuand nous sommes en souci !\nDisons-lui toutes nos craintes,\nOuvrons-lui tout notre cœur.\nBientôt, ses paroles saintes\nNous rendront le vrai bonheur."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Quel ami fidèle et tendre\nNous avons en Jésus-Christ,\nToujours prêt à nous défendre\nQuand nous presse l’ennemi !\nIl nous suit dans la mêlée,\nNous entoure de ses bras.\nEt c’est lui qui tient l’épée\nQui décide des combats."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Quel ami fidèle et tendre\nNous avons en Jésus-Christ,\nToujours prêt à nous apprendre\nÀ vaincre en comptant sur lui !\nS’il nous voit vrais et sincères\nÀ chercher la sainteté,\nIl écoute nos prières\nEt nous met en liberté."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Quel Ami fidèle et tendre\nNous avons en Jésus-Christ !\nBientôt Il viendra nous prendre\nPour être au ciel avec lui.\nSuivons donc l’étroite voie\nEn comptant sur son secours.\nBientôt nous aurons la joie\nDe vivre avec lui toujours !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-235",
+    "number": "235",
+    "title": "Tant qu’il vit, tant qu’il règne",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Tant qu’il vit, tant qu’il règne,\nMon tout-puissant ami,\nIl n’est rien que mon âme craigne ;\nJe me sens à l’abri."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Berger fidèle et tendre,\nIl conduit ses agneaux\nDans les prés où viennent s’épandre\nLes célestes ruisseaux."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Qu’importe la nuit sombre,\nLe lion qui rugit ?\nJe sais que mon Berger dans l’ombre\nMe regarde et me suit."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Si ma route est glissante\nEt mon pas incertain,\nJe m’appuie à sa main puissante\nEt poursuis mon chemin."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "À toi seul je regarde,\nÔ Berger des brebis !\nTon cœur m’aime et ton œil me garde :\nVoilà mon paradis."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-236",
+    "number": "236",
+    "title": "Ô jour béni, jour de victoire",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Ô jour béni, jour de victoire\nQue je ne saurais oublier ;\nJ’ai vu, j’ai vu le Roi de gloire\nApparaissant sur mon sentier !\nSa beauté, sa gloire infinie\nDe tous les côtés m’entourait ;\nSon regard, qui porte la vie,\nSur ma pauvre âme s’abaissait."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Son manteau couvrait ma misère,\nSes bras me serraient sur son cœur ;\nIl me portait dans sa lumière,\nLoin du péché, de la douleur.\nDe sa main essuyant mes larmes,\nIl me parlait de son amour :\nViens, mon enfant, sois sans alarmes ;\nJe te prends à moi sans retour."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Et je suis dans cette retraite,\nDont je ne sortirai jamais ;\nEt je goûte une paix parfaite,\nOù ma foi s’abreuve à longs traits.\nNon, tout ceci n’est point un rêve,\nMais la grande réalité ;\nC’est un jour nouveau qui se lève,\nQui doit durer l’éternité."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "En avant donc, avec courage,\nAvec espoir, avec bonheur ;\nJe me consacre sans partage\nÀ mon Dieu, mon Roi, mon Sauveur\nIl dit à mon âme ravie :\nNe t’occupe plus que de moi,\nEt je dirigerai ta vie\nEt je m’occuperai de toi."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Il a saisi mes mains tremblantes ;\nJ’ai dit amen à ce contrat !\nIl étend ses mains bénissantes,\nC’est en effet lui qui combat.\nEt, les yeux fermés, je m’avance,\nTranquille, sur le droit chemin.\nJ’entonne un chant de délivrance ;\nIl peut tout, car je ne suis rien !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-237",
+    "number": "237",
+    "title": "Aux jours d’angoisse",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Aux jours d’angoisse et de souffrance,\nQuand le cœur est rempli d’effroi,\nJésus dit : « Ayez confiance !\nVenez à moi ! »"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Lorsque soudain survient l’orage,\nQue nul abri ne s’offre à toi,\nDe Jésus entends le message :\n« Venez à moi ! »"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Quand le péché te sollicite,\nQuand tu sens vaciller ta foi,\nÉcoute sa voix qui t’invite :\n« Venez à moi ! »"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Il nous pardonne, il nous console,\nIl prend sur lui tous nos fardeaux,\nEt nous trouvons à son école\nLe vrai repos."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-238",
+    "number": "238",
+    "title": "Oui, selon ta promesse",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Oui, selon ta promesse,\nÔ Jésus, mon Sauveur !\nJ’ai trouvé l’allégresse\nAuprès de la douleur,\nLe rayon qui rassure\nDans la plus sombre nuit,\n— Un baume à la blessure,\nDans l’épreuve un appui. — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Dans le désert aride,\nSous un ciel embrasé,\nUne eau fraîche et limpide\nJaillissant du rocher,\nL’ombre de la nuée\nAbritant le chemin,\n— La céleste rosée\nQui remplace le pain. — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Jésus, mon divin Maître,\nN’es-tu pas tout pour moi ?\nLa source de mon être,\nLe rocher de ma foi,\nLe soleil qui m’éclaire,\nLe ciel qui me sourit,\n— L’eau qui me désaltère,\nLe pain qui me nourrit ! — (bis)"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-239",
+    "number": "239",
+    "title": "Sur toi, Sauveur, qui se fonde",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Sur toi, Sauveur, qui se fonde,\nPeut au péché résister ;\nL’effort du monde\nPour le tenter,\n— Est comme l’onde\nContre un rocher. — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Quelle est, ô Dieu ! la puissance\nD’un seul désir, d’un penchant !\nSans vigilance,\nLe plus vaillant\n— Tombe et t’offense\nEn un moment. — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Ton joug, Seigneur, est facile,\nAh ! dans ton sein cache-moi !\nDans cet asile,\nExempt d’effroi,\n— Mon cœur tranquille\nVivra pour toi. — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Qu’en toi ma paix soit parfaite ;\nSois mon rocher, ô Dieu fort !\nDans la tempête\nDeviens mon port,\n— Et ma retraite\nMême en la mort. — (bis)"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-240",
+    "number": "240",
+    "title": "Brillante Étoile",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Brillante Étoile, Étoile du matin,\nToi, conduis-moi !\nQuand tout est noir, obscur, sur mon chemin,\nToi, conduis-moi !\nPourquoi vouloir sonder comme autrefois\nL’avenir ? non : un seul pas à la fois."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Dans le passé je ne demandais point :\nToi, conduis-moi !\nJe voulais voir s’ouvrir la route au loin,\nToi, conduis-moi !\nMais, maintenant, Jésus, j’ai fait mon choix :\nIl me suffit d’un seul pas à la fois."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "À travers lande et marais et rocher,\nToi, conduis-moi !\nL’épais brouillard ne saurait te cacher :\nToi, conduis-moi !\nÔ Guide sûr, quand je perçois ta voix,\nIl me suffit d’un seul pas à la fois."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Dans la souffrance, au sein de la douleur,\nToi, conduis-moi !\nAu jour de deuil tu consoles mon cœur :\nToi conduis-moi !\nDu haut du ciel, je sais que tu me vois ;\nIl me suffit d’un seul pas à la fois."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Sur ton amour, oh ! j’aime à m’appuyer !\nToi, conduis-moi !\nMa seule étude est de me confier :\nToi, conduis-moi !\nTout est repos, Jésus, près de ta croix ;\nIl me suffit d’un seul pas à la fois."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-241",
+    "number": "241",
+    "title": "Saisis ma main craintive",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Saisis ma main craintive\nEt conduis-moi ;\nFais que toujours je vive\nPlus près de Toi.\nSans toi, mon tendre Père,\nPour me guider,\nJe ne sais sur la terre\nComment marcher."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Que ta main me dispense\nJoie ou douleur,\nPaisible en ta présence\nGarde mon cœur ;\nEn Toi pour toute chose,\nSe confiant,\nÀ tes pieds se repose\nTon faible enfant."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Quand la nuit la plus noire\nTe voilerait,\nTon bras jusqu’à la gloire\nMe porterait.\nSaisis ma main craintive,\nEt conduis-moi :\nFais que toujours je vive\nPlus près de Toi."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-242",
+    "number": "242",
+    "title": "Mon salut, ma nourriture",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Mon salut, ma nourriture,\nMon parfait bonheur,\nLe guide en qui je m’assure :\nC’est toi seul, Seigneur.\nEn moi ta Parole opère,\nM’occupant de toi ;\nDe toi, l’Envoyé du Père,\nQui mourus pour moi."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Ô Rédempteur secourable,\nQuand tu m’as trouvé,\nJ’étais perdu, misérable,\nTa main m’a sauvé,\nEt, dans mon insuffisance,\nJ’éprouve en tout temps,\nQue les soins de ta clémence\nSont des soins constants."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "La paix, la vie éternelle\nSont le lot des tiens ;\nTa faveur perpétuelle\nMe comble de biens.\nPar la foi de l’Évangile,\nMon cœur transformé\nNe veut que toi pour asile,\nSauveur bien-aimé !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Ta sagesse, ta justice,\nTa fidélité,\nSont ma gloire, mon délice,\nMa tranquillité.\nRecevant « grâce sur grâce »,\nJ’adore à genoux\nTa tendresse qui dépasse\nMes vœux les plus doux."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-243",
+    "number": "243",
+    "title": "Quel repos céleste",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Quel repos céleste, Jésus, d’être à toi !\nÀ toi pour la mort et la vie,\nDans les jours mauvais de chanter avec foi :\nTout est bien, ma paix est infinie !"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "— Quel repos, — (ter) – quel céleste repos !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Quel repos céleste, mon fardeau n’est plus !\nLibre par le sang du Calvaire,\nTous mes ennemis, Jésus les a vaincus,\nGloire et louange à Dieu notre Père !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Quel repos céleste, tu conduis mes pas,\nTu me combles de tes richesses,\nDans ton grand amour, chaque jour tu sauras\nDéployer envers moi tes tendresses."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Quel repos céleste, quand enfin, Seigneur,\nAuprès de Toi, j’aurai ma place,\nAprès les travaux, les combats, la douleur,\nÀ jamais je pourrai voir ta face !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-244",
+    "number": "244",
+    "title": "Sur toi je me repose",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Sur toi je me repose,\nÔ Jésus, mon Sauveur !\nFaut-il donc autre chose\nPour un pauvre pécheur ?"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Conduit par ta lumière,\nGardé par ton amour,\nVers la maison du Père\nMarchant de jour en jour…"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Ah ! ma misère est grande !\nMais tu m’as pardonné ;\nSainte et vivante offrande\nPour moi tu t’es donné ;\nEt de toute souillure,\nPar le sang de ta croix,\nMon âme devient pure ;\nTu l’as dit, je le crois !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Moi-même en son sacrifice\nImmolé désormais,\nSeigneur, à ton service\nMe voici pour jamais !\nQu’importe ma faiblesse,\nPuisque je t’appartiens :\nTu n’as point de richesse\nQui ne soit pour les tiens."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Au plus fort de l’orage\nTu te tiens près de moi,\nRanimant mon courage\nEt soutenant ma foi ;\nC’est dans ton cœur qui m’aime\nQue tu sais me cacher ;\nEn vain Satan lui-même\nVoudrait m’en arracher…"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "En toi j’ai la victoire,\nLa paix, la liberté ;\nÀ toi je rendrai gloire\nDurant l’éternité ;\nSi du bonheur qui passe\nLa source doit tarir,\nC’est assez de ta grâce\nPour vivre et pour mourir…"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-245",
+    "number": "245",
+    "title": "Mon Dieu, plus près de toi",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Mon Dieu, plus près de toi,\nPlus près de toi !\nC’est le mot de ma foi :\nPlus près de toi !\nDans le jour où l’épreuve\nDéborde comme un fleuve,\nGarde-moi près de toi,\nPlus près de toi !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Plus près de toi, Seigneur,\nPlus près de toi !\nTiens-moi, dans ma douleur,\nTout près de toi.\nAlors que la souffrance\nFait son œuvre en silence,\nToujours plus près de toi,\nSeigneur, tiens-moi !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Plus près de toi, toujours\nPlus près de toi !\nDonne-moi ton secours,\nSoutiens ma foi.\nQue Satan se déchaîne,\nTon amour me ramène\nToujours plus près de toi,\nPlus près de toi !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Mon Dieu, plus près de toi !\nDans le désert\nJ’ai vu, plus près de toi,\nTon ciel ouvert.\nPèlerin, bon courage !\nTon chant brave l’orage…\nMon Dieu, plus près de toi,\nPlus près de toi."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-246",
+    "number": "246",
+    "title": "C’est à l’ombre de tes ailes",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "C’est à l’ombre de tes ailes\nQu’est le vrai repos ;\nLà plus de douleurs cruelles,\nLà plus d’angoisses mortelles,\n— Là plus d’écrasants fardeaux :\nC’est le vrai repos ! — (bis)"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "— Vrai repos, paix parfaite, et bonheur,\nSous les ailes du Seigneur ! — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "C’est à l’ombre de tes ailes\nQu’on trouve la paix…\nLes oiseaux dans leurs nids frêles,\nSous les plumes maternelles\n— Ne s’épouvantent jamais :\nIls dorment en paix ! — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "C’est à l’ombre de tes ailes\nQu’est le vrai bonheur.\nToutes choses sont nouvelles,\nEt c’est la vie éternelle,\n— Que d’être près de ton cœur,\nC’est le vrai bonheur ! — (bis)"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-247",
+    "number": "247",
+    "title": "Pour toi seul en qui j’espère",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Pour toi seul en qui j’espère,\nPour toi seul, d’un cœur joyeux,\nJe fais monter de la terre\nMon cantique vers les cieux.\nPour toi seul, (bis)\nOui, mon Sauveur, pour toi seul."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "À toi seul, sainte victime,\nAgneau mis à mort pour moi,\nDont le sang lava mon crime,\nÀ toi seul s’attend ma foi.\nÀ toi seul, (bis)\nOui, mon Sauveur, à toi seul."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "À toi seul, dans la détresse,\nÀ toi seul j’aurai recours,\nÀ toi seul, ma forteresse,\nLe Rocher de mon secours.\nÀ toi seul, (bis)\nOui, mon Sauveur, à toi seul."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-248",
+    "number": "248",
+    "title": "Conduis-nous sûrement",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Conduis-nous sûrement, ô divin Sauveur !\nÀ travers le monde, vers le vrai bonheur,\nMène ton troupeau et la nuit et le jour\nJusque dans ton beau séjour."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Conduis-nous tous,\nConduis-nous tous, ô Toi le seul chemin.\nConduis-nous tous,\nConduis-nous tous par la main !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Si le ciel est couvert d’un nuage épais,\nSi l’orage gronde et les jours sont mauvais,\nBientôt nous serons à l’abri pour toujours\nDans ton céleste séjour."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Comme d’un manteau, de force tu revêts\nCeux que par le sang de Jésus tu rends nets ;\nNous sommes gardés par ton puissant amour\nPour ton glorieux séjour."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Gloire soit à toi, saint et divin Pasteur,\nQue ta louange remplisse notre cœur.\nHâte-toi, car nous voudrions à notre tour\nEntrer dans ton beau séjour."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-249",
+    "number": "249",
+    "title": "J’ai soif de ta présence",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "J’ai soif de ta présence,\nDivin chef de ma foi ;\nDans ma faiblesse immense,\nQue ferais-je sans Toi ?"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Chaque jour, à chaque heure,\nOh ! j’ai besoin de Toi ;\nViens, Jésus, et demeure\nAuprès de moi."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Des ennemis, dans l’ombre,\nRôdent autour de moi ;\nAccablé par le nombre,\nQue ferais-je sans Toi ?"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Pendant les jours d’orage,\nD’obscurité, d’effroi,\nQuand faiblit mon courage,\nQue ferais-je sans Toi ?"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Ô Jésus ! ta présence,\nC’est la vie et la paix ;\nLa paix dans la souffrance,\nEt la vie à jamais."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-250",
+    "number": "250",
+    "title": "Écoutez, petits et grands",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Écoutez, petits et grands,\nDe Jésus-Christ la parole,\nIl rend confus les méchants,\nNous instruit et nous console.\n— Approchez-vous du Sauveur,\nIl vous porte sur son cœur. — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Dans peu de temps il viendra\nEnlever sa chère Église ;\nDans son ciel, il la prendra :\nDès longtemps elle est acquise.\n— Pour goûter ce vrai bonheur\nIl faut venir au Sauveur. — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "La part de tous ici-bas,\nEst une part de souffrance ;\nDe ce combat je suis las,\nMais une douce espérance\n— Vient fortifier mon cœur\nEt l’inonder de bonheur. — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Plus haut que ces tristes lieux\nDans une joie éternelle,\nBien au-delà du ciel bleu\nEt des cités, la plus belle\n— C’est la cité du Dieu fort\nOù ne règne plus la mort. — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Là, réunis tous un jour\nEt pour toujours dans la gloire\nDans la paix et dans l’amour,\nChantant l’hymne de victoire,\n— Avec Jésus dans les cieux\nNous serons toujours joyeux. — (bis)"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-251",
+    "number": "251",
+    "title": "Ici pleurer et souffrir",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Ici pleurer et souffrir,\nVoir ceux qu’on aime mourir ;\nAux cieux plus de tristesse !"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Oh ! nous serons aux cieux\nPour toujours, toujours heureux,\nPrès du Seigneur Jésus,\nOù l’on ne se quitte plus !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Purs, par le sang de l’Agneau,\nRachetés, nés de nouveau,\nSaints comme Dieu lui-même."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Nous verrons notre Sauveur :\nÔ grâce, ô gloire, ô bonheur !\nOui, nous verrons sa face !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "D’âge en âge, en son saint lieu,\nNous dirons à notre Dieu\nLe cantique qu’il aime."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-252",
+    "number": "252",
+    "title": "Voir mon Sauveur face à face",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Voir mon Sauveur face à face,\nVoir Jésus dans sa beauté,\nÔ joie ! ô suprême grâce !\nÔ bonheur ! félicité !"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Oui, dans ta magnificence\nJe te verrai, divin Roi !\nPour toujours en ta présence\nJe serai semblable à toi !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Ta gloire est encor voilée,\n– Ah ! D’un voile ensanglanté !…\nBientôt sera révélée\nTon ineffable beauté !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Oh ! quels transports d’allégresse,\nQuand tes yeux baissés sur moi,\nMe diront avec tendresse :\n« Je mourus aussi pour toi ! »"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-253",
+    "number": "253",
+    "title": "La trompette a retenti",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "La trompette a retenti :\n(Écoutez, écoutez),\nDu ciel résonne ce cri :\nLe Seigneur revient !\nOh ! toi qui sommeilles\n(Écoutez, écoutez),\nViens et te réveille :\nLe Seigneur revient !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Entendez-vous le clairon ?\n(Écoutez, écoutez),\nL’Épouse en connaît le son :\nJésus vient bientôt !\nEt dans l’allégresse\n(Écoutez, écoutez),\nSon cœur dit sans cesse :\nJésus, viens bientôt !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "La trompette retentit :\n(Écoutez, écoutez),\nLevez-vous, il est minuit,\nVoici l’Époux vient !\nAu banquet de fête\n(Écoutez, écoutez),\nQue chacun s’apprête :\nVoici, l’Époux vient !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-254",
+    "number": "254",
+    "title": "Il va venir le Seigneur que j’adore",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Il va venir, le Seigneur que j’adore ;\nBientôt sa voix retentira du ciel.\nÀ mes regards l’horizon se colore\nDes purs rayons du soleil éternel."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Gloire à toi seul, Seigneur Jésus,\nGloire à jamais, gloire à ton nom !\nDe ton beau ciel je ne sortirai plus\nEt pour toujours j’exalterai ton nom."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Qu’autour de moi s’élève la tempête,\nJe suis en paix car tu veilles sur moi ;\nJe puis, ô mon Sauveur, lever la tête,\nTu vas venir me prendre auprès de toi."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Maison du Père, où ton amour m’appelle,\nSainte cité, demeure des élus,\nLes lieux qu’éclaire une gloire éternelle,\nMe sont ouverts par toi-même, ô Jésus !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Bonheur ineffable ! Quand dans ta gloire,\nAux yeux des rachetés tu paraîtras,\nJésus, avec le cri de la victoire\nPrès de toi, pour toujours tu me prendras."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-255",
+    "number": "255",
+    "title": "Or, vers minuit",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Or, vers minuit, se fit entendre\nUn cri disant : « Voici l’Époux ! »\nC’est Jésus ! voyez-le descendre !\nAutour de lui rallions-nous."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Que l’Église aujourd’hui s’apprête\nPour l’heure de ce rendez-vous ;\nC’est la veille d’un jour de fête :\n« Voici l’Époux ! voici l’Époux ! »"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Cette espérance glorieuse\nRanime nos cœurs abattus.\nOh ! quelle perspective heureuse,\nD’être bientôt avec Jésus !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Ceux qui dorment, de leur poussière\nEntendront ta voix comme nous ;\nEt, comme nous, loin de la terre,\nIront au-devant de l’Époux."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-256",
+    "number": "256",
+    "title": "Dans la patrie éternelle",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Dans la patrie éternelle\nLe repos enfin m’attend,\nJésus l’a pour moi, rebelle,\nConquis au prix de son sang."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Jésus, Jésus m’y convie,\nPrès de l’arbre de la vie.\nIl promet une patrie, un repos pour moi.\nAu péché je suis en butte,\nLà plus de mal, plus de chute,\nLe repos après la lutte,\nLe repos pour moi."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Il prépare ma demeure\nPour toute l’éternité.\nQuand viendra ma dernière heure,\nTout sera félicité."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Jamais douleur, ni tristesse\nNe seront près du Sauveur ;\nTout sera chant d’allégresse,\nTout sainteté, tout bonheur."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Nous verrons de Christ la gloire\nEt la mort ne sera plus.\nTriomphez de sa victoire,\nÔ rachetés de Jésus !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Chantez, éclatez de joie,\nHeureux héritiers du ciel !\nCar au terme de la voie\nEst un repos éternel !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-257",
+    "number": "257",
+    "title": "Je ne sais pas le jour",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Je ne sais pas le jour où je verrais mon Roi,\nMais je sais qu’Il me veut dans sa sainte demeure ;\nLa lumière vaincra les ombres à cette heure ;\nCe sera la gloire pour moi…"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Ce sera la gloire pour moi… (bis)\nLa lumière vaincra les ombres à cette heure :\nCe sera la gloire pour moi."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Je ne sais quels seront les chants des bienheureux,\nLes accents, les accords des hymnes angéliques,\nMais je sais que, joignant ma voix aux saints cantiques,\nBientôt j’adorerai comme eux…"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain 2",
+        "text": "Bientôt j’adorerai comme eux… (bis)\nMais je sais que, joignant ma voix aux saints cantiques,\nBientôt j’adorerai comme eux."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Je ne sais quel sera le palais éternel,\nMais je sais que ma place y est déjà connue.\nUn regard de Jésus sera ma bienvenue.\nPour moi, pour moi s’ouvre le ciel…"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain 3",
+        "text": "Pour moi, pour moi s’ouvre le ciel… (bis)\nUn regard de Jésus sera ma bienvenue.\nPour moi, pour moi s’ouvre le ciel."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-258",
+    "number": "258",
+    "title": "Oh! viens, Seigneur Jésus",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Oh ! viens, Seigneur, Jésus ! ta divine présence\nEst pour les tiens le suprême bonheur.\nDans ce désert brûlant, nous sentons ton absence,\nEmmanuel, ô glorieux Sauveur !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Oh ! viens, Seigneur Jésus ! accomplis ta promesse,\nHâte le jour, réponds à notre appel…\nAux yeux de tous tes saints, objets de ta tendresse,\nOh ! lève-toi, parais, descends du ciel !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Oh ! viens, Seigneur Jésus ! ton Épouse en prière\nAttend le cri, signal de son départ ;\nElle sait que bientôt, dans la maison du Père,\nCéleste Époux, là, tu seras sa part."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Oh ! viens, Seigneur Jésus ! la dernière trompette\nVa retentir à ton commandement ;\nTes heureux rachetés – allégresse parfaite –\nS’élèveront, ravis en un moment !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Oh ! viens, Seigneur Jésus ! viens, cette heure bénie\nComble les vœux de tout ton cher troupeau ;\nCar pour toujours l’Église, à son Chef réunie,\nCélébrera les gloires de l’Agneau !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-259",
+    "number": "259",
+    "title": "Sainte Sion, ô patrie éternelle",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Sainte Sion, ô patrie éternelle !\nSéjour des cieux qu’habite le grand Roi,\nOù doit sans fin régner l’âme fidèle,\nC’est mon bonheur que de penser à toi."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Dans tes parvis tout est joie, allégresse,\nChants de triomphe, ineffables plaisirs ;\nLà plus de deuil, plus de maux, de détresse,\nLà plus d’ennuis, de langueurs, de soupirs."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Tes habitants ne craignent plus l’orage ;\nIls sont au port, ils y sont pour jamais :\nLeur ciel est pur, il n’a plus de nuage,\nDieu dans leur cœur fait abonder la paix."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Ô mon Sauveur, qui par ton sacrifice,\nAux rachetés ouvris ces nouveaux cieux,\nTu m’as couvert de ta sainte justice ;\nVers ta Sion j’élève en paix mes vœux."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-260",
+    "number": "260",
+    "title": "Oh ! quand sera-ce",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Oh ! quand sera-ce, Fils de Dieu,\nQue ton Église émue\nVerra son Époux, du saint lieu\nDescendre sur la nue ?\nRéponds à notre cri Seigneur,\nEt viens bientôt puissant Vainqueur !\nOh ! viens, Seigneur Jésus ! (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Tu nous donnes ta douce paix,\nNous sentons ta présence ;\nTu ne nous laisseras jamais,\nC’est là notre assurance,\nMais quand pourrons-nous donc enfin\nTe voir ô notre Époux divin ?\nOh ! viens, Seigneur Jésus ! (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "De tous tes ennemis, ô Dieu,\nNous voyons la puissance :\nQue de rebelles en tout lieu,\nDe vice et de souffrance !\nViens bientôt, grand Triomphateur,\nMettre un terme à tant de douleur !\nOh ! viens, Seigneur Jésus ! (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "« Veillez, priez, nous dit Jésus,\nTenez vos lampes prêtres ! »\nQue rien ne nous entrave plus,\nLevons, levons nos têtes !\nIl vient, il vient, entendez-vous\nCe cri : « Voici, voici l’Époux ! »\nTu viens, Seigneur Jésus ! (bis)"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-261",
+    "number": "261",
+    "title": "Oh ! quel beau jour, où, devant ta face",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Oh ! quel beau jour, où, devant ta face,\nTous tes rachetés apparaîtront,\nEn célébrant ta gloire et ta grâce !\nDe leurs chants les cieux retentiront."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Nombreux comme le sable des plages ! (bis)\nOh ! que ce sera beau, lorsque nous irons là-haut,\nAussi nombreux que le sable des plages !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Je la vois, cette armée innombrable,\nSes rangs reflétant l’éclat des cieux,\nTressaillant d’un bonheur ineffable,\nSur le seuil du séjour radieux."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "De son trône éclatant de lumière,\nJ’entends la douce voix du Seigneur :\n« Venez, vous bien-aimés de mon Père,\nLa couronne est à chaque vainqueur. »"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Puis au sein du vaste océan d’anges,\nNos cohortes déversent leurs flots ;\nL’univers tremble au son des louanges ;\nPlus de combats, de pleurs, de sanglots !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-262",
+    "number": "262",
+    "title": "Il vient bientôt",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Il vient bientôt remporter la victoire,\nNotre Seigneur, aujourd’hui méprisé !\nBientôt, bientôt nous serons dans la gloire,\nEt sous nos pieds, Satan sera brisé.\nNotre Chef, le Prince de la vie,\nPour les siens bientôt va revenir ;\nNotre but, c’est la sainte patrie ;\nNotre espoir, l’héritage à venir !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Il vient bientôt ! le Seigneur va paraître,\nL’Agneau de Dieu, dont le sang fut versé.\nSes ennemis devront le reconnaître,\nIls le verront : Celui qu’ils ont percé.\nIls verront l’Agneau dans sa colère,\nDevant lui les rochers s’enfuiront ;\nIl sera, lui seul, roi sur la terre ;\nSes élus avec lui régneront."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Il vient bientôt, avec sa récompense :\nCeux qui sur terre auront porté leur croix,\nAvec l’Agneau, partagé la souffrance,\nDe lui recevront le prix de leur foi.\nAcceptons et l’opprobre, et l’outrage ;\nNous serons couronnés dans les cieux,\nNous vaincrons, ne perdons point courage :\nLe voici ! Il vient ! Levons les yeux !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Il vient bientôt ! « Sortons à sa rencontre ! »\nEntendez-vous retentir cet appel ?\nAvant qu’en Juge au pécheur il se montre,\nNous serons tous enlevés dans le ciel.\nPeuple élu, Église tout entière,\nTravaillons et luttons sans faiblir ;\nAimons-nous, veillons dans la prière,\nSoyons prêts : le Seigneur va venir !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-263",
+    "number": "263",
+    "title": "Quel bonheur ! Jésus vient",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Quel bonheur ! Jésus vient ! Sa voix se fait entendre ;\nLes ténèbres s’en vont ; voici le point du jour.\nQu’il nous trouve veillant, les reins ceints pour l’attendre,\nPortant du fruit pour lui, heureux dans son amour !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Bientôt près de son trône, où notre âme ravie\nGoûtera le repos du séjour glorieux,\nNos yeux contempleront le Prince de la vie,\nCelui qui s’abaissa pour nous ouvrir les cieux."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Alors éclatera l’hymne de l’allégresse ;\nNos lèvres s’ouvriront dans un parfait bonheur,\nEt tous, à l’unisson, répéteront sans cesse\nLes gloires de l’Agneau, du divin Rédempteur."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-264",
+    "number": "264",
+    "title": "Avec allégresse",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Avec allégresse\nMarcher vers le ciel,\nRegarder sans cesse\nNotre Emmanuel ;\nPuiser foi nouvelle\nDans ce doux regard,\nDe l’âme fidèle,\nC’est la sûre part."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Frères, frères !\nLes cœurs en haut !\n— Jésus nous appelle,\nIl viendra bientôt. — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Les anges fidèles,\nLes saints rachetés,\nTroupes immortelles,\nDisent tes bontés.\nJésus, Roi de gloire !\nTon amour vainqueur,\nGage de victoire\nSauve le pécheur."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Là, tout est lumière\nPaix et sainteté ;\nLà, plus de misère,\nTout est charité !\nSur ce doux rivage\nOnt cessé les pleurs ;\nJésus, ton image\nEst dans tous les cœurs."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Amis, bon courage !\nL’étoile qui luit\nDissipe l’orage\nEt la sombre nuit.\nVeillons sur notre âme,\nJésus vient bientôt !\nLui seul nous réclame :\nTous les cœurs en haut !"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain 2",
+        "text": "Frères, frères !\nLe ciel est près !\n— Jésus, Roi de gloire,\nY règne à jamais ! — (bis)"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-265",
+    "number": "265",
+    "title": "Vers le ciel, vers le ciel",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Vers le ciel, vers le ciel,\nJ’entends, Jésus, ton appel,\nEt mon cœur vers toi s’élance,\nDans la joyeuse espérance\nDe te voir, Emmanuel !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Quel bonheur ! quel bonheur\nD’être auprès de toi, Seigneur !\nD’entrer dans la cité sainte,\nDélivré de toute crainte,\nÀ l’abri du Tentateur."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Ici-bas, ici-bas\nTout se flétrit sous nos pas.\nDe toi mon âme est avide ;\nJe voudrais, d’un vol rapide,\nAller, ô Dieu ! dans tes bras."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Heureux jour, heureux jour\nOù s’ouvrira le séjour\nDe mon Sauveur que j’adore.\nQuand brillera ton aurore ?\nJe l’attends, ô Dieu d’amour !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-266",
+    "number": "266",
+    "title": "Dans le ciel, séjour de la gloire",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Dans le ciel, séjour de la gloire,\nSeigneur Jésus, nous verrons ta beauté.\nLà, nous chanterons ta victoire,\nNous exalterons ta bonté."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Regardons à Jésus\nEn marchant vers le ciel.\nRegardons à Jésus,\nIl est le Sauveur éternel."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Souvent les ennuis de la terre\nNous font désirer le repos du ciel.\nOui, c’est près de toi, notre Père\nQu’est notre héritage éternel."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Devant nous brille la lumière\nAnnonçant l’aurore d’un jour nouveau.\nEn nous envolant de la terre\nNous entrerons dans le repos."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "En avant ! avec confiance,\nLevons les yeux au ciel, Jésus est là ;\nD’un pas ferme avec assurance,\nMarchons ! marchons ! hâtons nos pas."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-267",
+    "number": "267",
+    "title": "Bientôt, Seigneur, tu reviendras",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Bientôt, Seigneur, tu reviendras !\nToi, notre Chef, notre espérance !\nJour de bonheur, de délivrance !\nAu ciel tu nous introduiras :\nTu reviendras !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Tu l’as promis : plus qu’un instant,\nJe viens vous prendre dans ma gloire ;\nJusqu’au signal de la victoire,\nVeillez, priez, en combattant,\nPlus qu’un instant !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Ne tarde plus : reviens, Seigneur !\nC’est le soupir de ton Église ;\nElle est à toi, tu l’as acquise,\nMourant pour elle, ô Rédempteur !\nReviens Seigneur !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Pour ton retour, oh ! tiens-nous prêts !\nQue ton Esprit nous sanctifie,\nQue nul des tiens, manquant de vie,\nNe soit confus à ton aspect.\nOui, tiens-nous prêts !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-268",
+    "number": "268",
+    "title": "Pèlerin, sur cette terre",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Pèlerin sur cette terre,\nJe m’avance vers le ciel\nVers le pays de lumière,\nSéjour éternel !\nIci d’ennemis sans nombre\nJe me vois environné,\nMa route souvent est sombre,\nMais je suis aimé."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Aimé du plus tendre Père\nQui m’a conduit en chemin,\nEt dirigé ma carrière\nPar sa sûre main.\nPendant l’épreuve et l’orage,\nEt l’angoisse et la douleur,\nSa voix me dit : « Prends courage,\nJe suis ton Sauveur ! »"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Travailler pour un tel Maître,\nLe servir en l’attendant,\nApprendre à le mieux connaître\nEn le contemplant !\nQuel bonheur incomparable,\nEt qu’il est heureux mon sort !\nOui, mon Sauveur adorable\nMe conduit au port !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Le port, c’est le doux rivage\nOù cesseront tous nos pleurs,\nOù de Jésus-Christ l’image\nRavira nos cœurs.\nQu’importe donc la souffrance,\nJésus vient ! levons les yeux !\nBien près est la délivrance,\nIls s’ouvrent les cieux !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-269",
+    "number": "269",
+    "title": "Là-haut, là-haut",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Là-haut, là-haut, dans la maison du Père,\nEst la demeure où je dois être admis ;\nIls sont là-haut les vrais biens que j’espère,\nEt le repos qui m’est promis. (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Par la valeur de l’œuvre expiatoire,\nQui m’a rendu parfait devant mon Dieu,\nJ’hériterai l’incorruptible gloire,\nPrès de l’Agneau, dans le saint lieu. (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Jamais péché, ni douleur, ni détresse,\nNe m’atteindront dans cet heureux séjour.\nLe deuil fait place à la pure allégresse,\nDans les parvis du Dieu d’amour. (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Mes yeux verront la beauté ravissante\nDu Rédempteur, sur son trône exalté ;\nAux doux rayons de sa gloire éclatante,\nTout sera joie et sainteté. (bis)"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-270",
+    "number": "270",
+    "title": "Il est un espoir",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Il est un espoir, qui toujours soulage\nLes cœurs fatigués et lassés du chemin ;\nIl est un repos au bout du voyage ;\nÀ toutes nos luttes, il est une fin :"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "C’est la cité du ciel,\nLe bonheur éternel,\nSéjour où les élus,\nContempleront Jésus !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Il est un séjour où tout est lumière,\nOù rien de souillé, ni d’impur n’entrera,\nOù ne seront plus ni mort, ni misère,\nOù le racheté pour toujours chantera."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Dans la cité sainte, il n’est plus de temple :\nLe Seigneur et l’Agneau seront avec nous.\nPour l’éternité, l’Église contemple,\nSon bien-aimé Sauveur, son Chef, son Époux."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Ô Jérusalem ! céleste patrie !\nTout mon cœur s’enflamme, quand je pense à toi.\nAgneau mis à mort, Prince de la vie,\nEntends mes soupirs et l’appel de ma foi."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain 2",
+        "text": "Bientôt, bientôt au ciel,\nOh ! bonheur éternel,\nAvec tous les élus,\nJe te verrai, Jésus !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-271",
+    "number": "271",
+    "title": "Le temps s’envole",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Le temps s’envole et nous emporte,\nEn vain voulons-nous l’arrêter,\nSa course toujours la plus forte,\nSans trêve, rapide, nous porte…\nInutile de regretter."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Le temps s’envole… et tout s’efface…\nLe monde n’est que vanité !\nSa gloire, ses faveurs, tout passe.\nDe ses attraits le cœur se lasse\nSur le seuil de l’Éternité."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Le temps s’envole… et tout rayonne\nSur ton chemin, sainte Cité !\nDu Sauveur l’amour qui pardonne,\nInonde le cœur et l’étonne…\nIneffable félicité !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Le temps s’envole… et notre Père\nNous prépare pour son séjour.\nDans tous nos cœurs sa grâce opère,\nIl recueille notre prière.\nFrères, croyons à son amour."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Le temps s’envole… et la souffrance,\nLes pleurs, le désespoir, la mort,\nVont disparaître, en la présence\nDe Jésus-Christ notre espérance,\nQuand nous entrerons dans le port."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 6",
+        "text": "Le temps s’envole… et sur la nue\nNos yeux contempleront Jésus.\nOh ! quel jour pour l’Église émue\nQue la gloire de sa venue !\nQuel triomphe pour les élus !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-272",
+    "number": "272",
+    "title": "Connais-tu cette cité ?",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Connais-tu cette cité,\nLa cité céleste ?\nDans ses murs tout est clarté,\nPlus d’ombre funeste.\nPèlerins et voyageurs,\nIci-bas dans les douleurs,\nToujours ce trésor nous reste,\nLa cité céleste."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Connais-tu cette cité,\nLa cité bénie ?\nOù tout est félicité,\nSublime harmonie.\nL’Agneau seul est son soleil\nEt son éclat sans pareil\nIllumine et vivifie\nLa cité bénie."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "D’or, de perles et d’azur\nEst notre patrie !\nConnais-tu le fleuve pur\nL’arbre de la vie ?\nPlus de fardeaux à jamais,\nPour les élus tout est paix !\nDe Dieu la cité chérie,\nC’est notre patrie."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Ô Salem, repos si doux,\nMon cœur te désire !\nAprès son chef, son époux,\nL’Église soupire !\nÊtre à toujours devant toi,\nMon Seigneur ! mon divin Roi,\nPour te chanter et te dire :\nMon cœur te désire."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-273",
+    "number": "273",
+    "title": "Contempler mon Dieu sur son trône",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Contempler mon Dieu sur son trône,\nVivre avec Jésus dans le ciel,\nJeter à ses pieds ma couronne,\nC’est là le bonheur éternel."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Dans le ciel, (bis)\nVivre avec Jésus dans le ciel,\nDans le ciel, (ter)\nC’est là le bonheur éternel."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Unir ma voix aux chœurs des anges,\nBénir, louer Emmanuel,\nChanter à jamais ses louanges,\nC’est là le bonheur éternel."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Jouir d’une paix infinie,\nRevoir mes amis dans le ciel,\nPosséder l’immortelle vie,\nC’est là le bonheur éternel."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Retrouver les saints dans la gloire,\nPrès du trône de l’Éternel,\nCélébrer la même victoire.\nC’est là le bonheur éternel."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-274",
+    "number": "274",
+    "title": "Au ciel est la maison",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Au ciel est la maison du Père,\nÉtincelante de beauté.\nTout en elle est gloire et lumière,\nIneffable félicité."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Vers le ciel, (bis)\nNous marchons vers le ciel,\nC’est au ciel, (bis)\nQu’est notre héritage éternel."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Là le bonheur est sans mélange,\nLà le péché ne règne plus ;\nC’est l’amour et c’est la louange,\nC’est la présence de Jésus."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Dans nos fatigues sur la terre,\nDans nos combats et nos douleurs,\nC’est toi, douce maison du Père,\nQue cherchent nos yeux et nos cœurs."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Jours de peine ou jours d’allégresse,\nDouce brise ou vents orageux,\nPoussez-nous, poussez-nous sans cesse\nVers notre demeure des cieux."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-275",
+    "number": "275",
+    "title": "Nous attendons le Sauveur glorieux",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Nous attendons le Sauveur glorieux\nD’un cœur joyeux, remplis de confiance.\nIl va régner sur la terre et les cieux,\nDans le beau jour de notre délivrance."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Voir face à face\nNotre Sauveur…\nOh ! quelle grâce, quel parfait bonheur !\nVoir face à face\nNotre Sauveur…\nOh ! quel parfait bonheur."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Autour de lui nous nous retrouverons\nEn un clin d’œil, formés à son image :\nÀ sa rencontre, ensemble nous irons,\nEt le servir sera notre partage."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Là, le soleil chasse l’obscurité,\nUn jour sans fin succède à la nuit sombre ;\nPlus d’ouragan dans ce port abrité,\nOh ! le bonheur sera pur et sans ombre."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Tout près de lui nous pourrons approcher,\nEt notre main par la sienne tenue,\nDans les lieux saints qu’il fera beau marcher,\nAprès la foi, pour toujours par la vue."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-276",
+    "number": "276",
+    "title": "Consolez vos cœurs qui pleurent",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Consolez vos cœurs qui pleurent,\nCar en Jésus tous ceux qui meurent\nDès à présent sont bienheureux.\nL’esprit de Dieu nous l’affirme ;\nDépouillés de leur corps infirme,\nIls nous attendent dans les cieux.\nAprès tous leurs travaux,\nIls goûtent le repos, Alléluia !\nDe leurs combats, ils ont le prix\nEt leurs œuvres les ont suivis."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Là, plus de deuil ni d’alarmes,\nPlus de fatigues, plus de larmes,\nPour eux a cessé la douleur.\nÀ la source de la vie\nQui jamais ne sera tarie,\nIls puisent la paix, le bonheur.\nBientôt le jour luira\nOù notre cœur dira : Alléluia !\nPar toi, Jésus, sauvés, bénis,\nAvec eux nous serons unis !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Au ciel avec les saints anges,\nNous célébrerons tes louanges,\nÔ Père, et celles de l’Agneau ;\nIl est notre délivrance,\nIl nous a donné l’espérance,\nEt nous triomphons du tombeau.\nPour nous plus de terreur,\nNous avons un Sauveur, Alléluia !\nC’est par sa croix que dans les cieux\nNous entrerons victorieux."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-277",
+    "number": "277",
+    "title": "Avançons-nous joyeux",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Avançons-nous joyeux, toujours joyeux,\nVers le pays de tous les bienheureux ;\nVers la demeure où Jésus pour nous prie ;\nMarchons, marchons, c’est là notre patrie.\n— Avançons-nous joyeux, toujours joyeux,\nVers le pays de tous les bienheureux. — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Des chants d’amour retentiront aux cieux :\nQuels doux concerts ! Hymnes des bienheureux !\nNous entendrons votre sainte harmonie\nQuand nous aurons atteint notre patrie.\n— Avançons-nous joyeux, toujours joyeux,\nVers le pays de tous les bienheureux. — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Là-haut ! là-haut ! tu nous attends, Seigneur !\nCar c’est à toi qu’appartient notre cœur.\n« Viens, ô Jésus ! » c’est le cri de l’Église ;\nRecueille-nous dans la terre promise !\n— Là nous serons joyeux, toujours joyeux :\nC’est le pays de tous les bienheureux. — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Heureux bientôt, dans un monde nouveau,\nNous prendrons part au banquet de l’Agneau ;\nLà plus de cris, plus de deuil, plus de larmes,\nPlus de péchés, de douleurs, ni d’alarmes ;\n— Là nous serons joyeux, toujours joyeux :\nC’est le pays de tous les bienheureux. — (bis)"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-278",
+    "number": "278",
+    "title": "C’est de toi, Dieu tout bon",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "C’est de toi, Dieu tout bon, c’est que ta bienveillance\nQue ces nouveaux époux attendent le bonheur ;\nHumblement prosternés en ta sainte présence,\nIls font monter vers toi tous les vœux de leur cœur."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Répands sur eux, Seigneur, tes bontés paternelles,\nEt daigne les guider en tout temps, en tous lieux ;\nÀ leurs engagements rends-les toujours fidèles,\nUnis-les pour la terre, unis-les pour les cieux !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Dans les jours du bonheur, que la reconnaissance\nLes rapproche de toi, seul auteur de tout bien ;\nEt quand viendra pour eux l’heure de la souffrance,\nSois encor leur espoir, leur force et leur soutien."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Montre-leur, au-delà du court pèlerinage\nQu’ils vont sous ton regard accomplir ici-bas,\nLe refuge éternel, le céleste héritage,\nLa victoire et la paix après tous les combats."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-279",
+    "number": "279",
+    "title": "Béni soit le lien",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Béni soit le lien\nQui nous unit en Christ,\nLe saint amour, l’amour divin\nQue verse en nous l’Esprit !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Au ciel, vers notre Dieu,\nAvec joie et ferveur,\nS’élèvent nos chants et nos vœux,\nParfum doux au Seigneur."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Nous mettons en commun\nNos fardeaux, nos labeurs ;\nEn Jésus nous ne sommes qu’un\nDans la joie et les pleurs !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Si nous devons bientôt\nQuitter ces lieux bénis,\nNous nous retrouverons là-haut,\nPour toujours réunis."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-280",
+    "number": "280",
+    "title": "Ah ! qu’il est beau de voir",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Ah ! qu’il est beau de voir des frères\nD’un même amour unis entre eux.\nEsprit de Dieu ! tu les éclaires,\nTu les embrases de tes feux.\n— Leurs chants pieux et leurs prières\nComme un encens montent aux cieux. — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Ô Rédempteur ! En ta présence,\nDans ta sainte communion,\nIls savourent la jouissance\nD’une céleste affection.\n— Aussi leurs cœurs en assurance\nT’offrent leur adoration. — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Dans tous les lieux la même vie\nAnime tous tes rachetés,\nPartout leur âme est réjouie\nDe tes douces gratuités.\n— Oui, ton Église est enrichie\nDe tes magnifiques bontés. — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Répands sur nous, Dieu charitable !\nTon Esprit de grâce et de paix.\nAccueillis à la même table\nEt goûtant les mêmes bienfaits,\n— Qu’un amour saint et véritable\nNous unisse en toi pour jamais. — (bis)"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-281",
+    "number": "281",
+    "title": "Tu nous combles de biens",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Tu nous combles de biens, Seigneur !\nTa main de donner ne se lasse.\nAccorde-nous aussi la grâce\nD’user de tout à ton honneur."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-282",
+    "number": "282",
+    "title": "Ô Dieu, nous le plaçons sous ta main paternelle",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Ô Dieu, nous le plaçons sous ta main paternelle,\nNotre frêle trésor, notre enfant nouveau-né.\nQu’il entre dans la vie abrité sous ton aile :\nNous te donnons l’enfant que tu nous as donné."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Il est à toi, Seigneur, avant d’être à nous-mêmes :\nFais que ce soit, un jour, lui qui se donne à toi !\nBien mieux que nous encor nous savons que tu l’aimes :\nOh ! qu’il t’aime à son tour, et marche sous ta loi."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Jésus, Fils éternel, Sauveur de tous les âges,\nToi qui posas ta main sur les plus jeunes fronts,\nTu vins pour les petits, et non pas pour les sages :\nPrends dans tes bras divins l’enfant que nous t’offrons."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Quand, bientôt il devra fouler notre poussière,\nConduis ses pas tremblants sur le chemin des cieux ;\nEt quand il connaîtra les douleurs de la terre,\nViens toi-même essuyer les larmes de ses yeux."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-283",
+    "number": "283",
+    "title": "Seigneur Jésus, une vaste carrière",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Seigneur Jésus ! une vaste carrière\nS’ouvre aux travaux des messagers de paix ;\nDe l’Évangile ils portent les bienfaits\nAux malheureux privés de sa lumière.\nÀ leurs efforts donne un succès heureux !\nNous te prions pour eux."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Lorsque partout ces messagers fidèles,\nÔ Rédempteur ! proclameront ta croix,\nDans les palais, en présence des rois,\nDans les déserts, dans les îles nouvelles,\nÀ leurs efforts donne un succès heureux !\nNous te prions pour eux."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Nous t’en prions, Seigneur ! bénis leur âme :\nQue leur appui soit dans la vérité.\nNous te prions pour que ta charité\nBrûle en leur cœur d’une immortelle flamme.\nÀ leur amour réponds du haut des cieux !\nNous te prions pour eux."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-284",
+    "number": "284",
+    "title": "Qu’ils sont beaux sur les montagnes",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Qu’ils sont beaux sur les montagnes\nLes pieds de tes serviteurs,\nQui parcourent les campagnes,\nPrêchant la grâce aux pécheurs !\nÔ délicieuse vie\nD’un serviteur de Jésus,\nQui pour son Maître s’oublie,\nEn annonçant ses vertus !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Libre de toute autre chaîne,\nLe chrétien qui sert son Dieu,\nDans la souffrance et la peine\nSuit son modèle en tout lieu.\nIl faut qu’en vivante offrande\nIl se donne à son Sauveur ;\nC’est là ce que Dieu demande\nD’un fidèle serviteur."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Au pécheur qui désespère\nAnnoncez la guérison,\nPrêchez la mort salutaire\nQui paya notre rançon.\nDans le cœur le plus aride,\nDieu fait jaillir en un jour\nLa source fraîche et limpide\nDe son éternel amour."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Parlez du Dieu qui console\nÀ tous les cœurs affligés ;\nQu’aux accents de sa parole\nLes pécheurs soient réveillés.\nMontrez-leur, dans leur misère,\nCelui qui veut les sauver,\nEt que partout sur la terre\nOn apprenne à l’invoquer."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-285",
+    "number": "285",
+    "title": "Ô Seigneur, Éternel",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Ô Seigneur, Éternel ! une nouvelle année,\nPar ta grande bonté, nous est encor donnée.\nPuissions-nous saintement la passer sous tes yeux,\nVoyageurs ici-bas et marchant vers les cieux !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Que ce soit pour nous tous un an de bienveillance,\nDe grâce, de progrès, d’amour, de délivrance,\nQue notre âme, suivant les appels de Jésus,\nGoûte au pied de la croix la paix de tes élus !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Nos jours sont dans tes mains, notre course est bornée ;\nPlusieurs ne verront plus une nouvelle année ;\nVeillons donc et prions, et s’il faut déloger,\nNous irons, pleins d’espoir, auprès du bon Berger."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Puissions-nous, rachetés par ton grand sacrifice,\nScellés de ton Esprit, couverts de ta justice,\nNous réjouir en toi, garder le bon dépôt !\nÔ Seigneur Jésus, viens ! Oui, Seigneur, viens bientôt !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-286",
+    "number": "286",
+    "title": "Jésus soit avec vous à jamais",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Jésus soit avec vous à jamais,\nVous guidant avec sagesse,\nVous entourant de tendresse\nVous remplissant toujours de sa paix !"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Avec vous toujours, avec vous !\nOui, qu’Il soit tous les jours avec vous !\nAvec vous toujours, avec vous\nJusqu’au jour du dernier rendez-vous !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Avec vous au milieu du danger,\nÀ l’heure de la détresse,\nQu’il soit votre forteresse,\nQu’il soit toujours votre bon Berger !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Avec vous quand votre ciel est bleu,\nComme au jour de la tempête,\nQue son cœur soit la retraite\nOù vous trouverez la paix de Dieu !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Enfin, dans le dernier des combats,\nPour échanger cette terre\nContre la maison du Père,\nQue Jésus vous porte dans ses bras !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-287",
+    "number": "287",
+    "title": "Si le temps fuit",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Si le temps fuit, si l’heure sonne,\nEt si Dieu, de son doigt divin,\nSur tout ce qui nous environne\nÉcrit ce douloureux mot : « Fin » !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Si tout passe sur cette terre,\nPour l’homme qui passe à son tour,\nQui souvent triste et solitaire\nPeut compter plus d’un mauvais jour ;"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Si tout s’engloutit, tout s’envole,\nSi tout croule sur son chemin,\nQue lui reste-t-il ? La Parole\nDu Dieu puissant et souverain."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Cette Parole est immuable,\nElle seule est la vérité,\nElle demeure inébranlable,\nElle est parfaite en sa beauté !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "C’est elle qui créa le monde ;\nC’est elle qui vint le sauver ;\nC’est cette Parole féconde\nQui peut aussi vivifier."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-288",
+    "number": "288",
+    "title": "Seigneur, que la terre entière",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Seigneur, que la terre entière\nS’éveille à ta grande voix,\nEt se lève à la lumière\nQui rayonne de ta croix ! (bis)"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "— Après la nuit vient l’aurore :\nVoici l’heure du réveil.\nQue toute âme, ô divin Soleil,\nTe contemple et t’adore ! — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Ton sang lave notre crime\nEt dissipe nos remords ;\nEn mourant, sainte Victime,\nTu fais renaître les morts. (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Arrache à l’enfer sa proie,\nTout-puissant Ressuscité !\nSème à pleines mains la joie\nSur ce monde dévasté. (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Que la source soit tarie\nDe vos pleurs, vous qui pleurez,\nPar l’espoir de la patrie\nOù bientôt vous entrerez ! (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Erreur, péché, nuit mortelle,\nFuyez dans le noir passé !\nPour moi la vie éternelle\nPar Jésus a commencé. (bis)"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-289",
+    "number": "289",
+    "title": "Alléluia ! Jésus sort",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Alléluia ! Jésus sort de la tombe,\nAdorons tous ce glorieux Sauveur.\nSous son pouvoir déjà la mort succombe,\nJésus est Roi, Il est le grand Vainqueur."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Gloire, honneur, au Ressuscité ;\nGloire durant l’éternité !\nQue la terre, avec les cieux,\nChante son nom glorieux.\nGloire ! Alléluia !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Alléluia ! Exaltons la victoire\nDe Jésus-Christ, le grand libérateur.\nIl nous invite à vivre pour sa gloire,\nNous le pourrons s’il vit en notre cœur."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Alléluia ! Jésus nous justifie,\nDevant son Père, il plaide avec amour.\nQue peut la mort ? C’est lui qui vivifie ;\nIl nous attend au radieux séjour."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-290",
+    "number": "290",
+    "title": "Ô toi, Seigneur Jésus",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Ô toi, Seigneur Jésus, intarissable source\nDe la paix, de la joie et du seul vrai bonheur,\nViens Jésus, viens remplir mon cœur qui dans sa course\nDepuis longtemps déjà te désire, Seigneur.\nDaigne seul, en tout temps, occuper mes pensées,\nTiens-les, ô mon Sauveur ! sur toi seul attachées,\nCar nul autre que toi, ne peut, ô Rédempteur.\nDans ce triste désert, satisfaire mon cœur."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "De ton trône éternel, rayonnant de lumière,\nÔ Dieu ! ton œil sonda mon immense malheur,\nEt d’en haut, mesurant ma profonde misère,\nSur la terre tu vins, pour me sauver, Seigneur,\nPour me donner du ciel les splendeurs éternelles,\nPour me faire goûter des délices nouvelles,\nPour partager ton trône et ta gloire avec moi,\nPour ouvrir l’espérance aux regards de ma foi."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Seigneur, que désormais, ma constante devise,\nJusqu’au moment béni de ton prochain retour,\nPour m’introduire enfin dans la terre promise,\nSoit de vivre pour toi, de croître en ton amour.\nAttache, ô mon Sauveur ! mon âme à ta Parole,\nC’est elle qui soutient, qui guide et qui console,\nEt qui, dans ce désert peut diriger mes pas,\nPour surmonter le monde et tous ses vains appâts."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-291",
+    "number": "291",
+    "title": "Seigneur Jésus, Bon Berger",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Seigneur Jésus ! Bon Berger\nDes petits agneaux :\nEfface tous mes péchés,\nPrends tous mes fardeaux."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Garde-moi tout près de toi\nSur l’étroit chemin :\nTous les jours, oh ! conduis-moi\nPar ta sûre main."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Et de ta parfaite paix,\nRemplis tout mon cœur.\nNe m’abandonne jamais,\nMon divin Sauveur."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Toi qui m’aimas le premier,\nJe t’aime en retour :\nComment te remercier\nPour ton grand amour ?"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-292",
+    "number": "292",
+    "title": "Suivez, suivez l’Agneau",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Suivez, suivez l’Agneau jusqu’au soir de la vie ;\nSuivez, suivez-le tous, enfants, dès le berceau.\nAu bonheur des élus sa grâce vous convie :\nSuivez toujours, suivez toujours l’Agneau !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Suivez-le sans frayeur, au jour de la tristesse,\nDéposez dans son sein votre pesant fardeau.\nSuivez-le dans la paix, au jour de l’allégresse :\nSuivez toujours, suivez, suivez l’Agneau !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Mais suivez-le partout : le Berger qui vous mène\nNe saurait égarer son cher, son faible agneau.\nOui, le joug du Seigneur est une douce chaîne :\nSuivez toujours, suivez partout l’Agneau !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Suivez-le sans broncher ! Le chemin solitaire\nDoit vous conduire, un jour, au céleste repos,\nMais pour le suivre au ciel suivez-le sur la terre :\nSuivez toujours, ne suivez que l’Agneau !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-293",
+    "number": "293",
+    "title": "Tout joyeux, bénissons",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Tout joyeux bénissons le Seigneur,\nChantons et célébrons ses louanges,\nAdorons avec foi le Sauveur,\nNous joignant aux célestes phalanges."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "— Gloire à Dieu, gloire à Dieu !\nQue ce chant retentisse en tout lieu ! — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Dieu, dans son incomparable amour,\nDu ciel envoya son Fils unique,\nEt la terre et les cieux, dans ce jour,\nS’unissent pour chanter ce cantique :"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Le châtiment qui produit la paix,\nJésus-Christ l’a subi pour mon âme ;\nIl voulut expier nos forfaits,\nEn mourant, lui, sur le bois infâme."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Nous voulons en retour, bon Sauveur,\nT’aimer par-dessus tout autre chose ;\nForme ton amour dans notre cœur,\nEt puis, de chacun de nous, dispose !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-294",
+    "number": "294",
+    "title": "Je suis petit, mais que m’importe ?",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Je suis petit, mais que m’importe ?\nDu bon Berger je suis l’Agneau.\nJe puis donc entrer par la porte\nQui mène au ciel tout son troupeau."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Ah ! que je mette, (bis)\nÔ bon Sauveur !\nSous ta houlette, (bis)\nMon jeune cœur !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Je suis petit, mais de mon âge,\nJésus, tu fus tout comme moi ;\nSi donc ton Esprit me rend sage,\nAlors je serai comme toi."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Je suis petit, mais si ma vie\nEst aussi chétive ici-bas,\nJésus, la tienne est infinie,\nEt d’elle tu m’enrichiras."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-295",
+    "number": "295",
+    "title": "Nul enfant n’est trop petit",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Nul enfant n’est trop petit\nPour la route étroite,\nQuand le Seigneur l’y conduit,\nMarchant à sa droite.\n— Même le plus jeune cœur\nPeut être un temple au Seigneur. — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Ce sont aussi les petits\nQue Jésus convie,\nEt dont les noms sont écrits\nAu Livre de vie.\n— Dans les parvis éternels,\nDieu reçoit ceux qui sont tels. — (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Puis, dans les concerts des cieux,\nLes voix enfantines\nUniront leurs sons joyeux\nAux hymnes divines.\n— Petits et grands, d’un seul cœur,\nLoueront alors le Seigneur. — (bis)"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-296",
+    "number": "296",
+    "title": "Au petit, Jésus dit",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Au petit, Jésus dit :\n« Je veux être\nTon seul Maître ».\nRéponds-lui :\n« Aujourd’hui,\nSous ta grâce\nJe me place."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Et demain,\nQue ta main\nÀ sa guise\nMe conduise.\nEn ce jour,\nTon amour\nPour la vie\nMe convie."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "À mon cœur,\nBon Sauveur,\nFais entendre\nTa voix tendre.\nMon désir,\nMon plaisir\nEst de vivre\nPour te suivre."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Près de toi,\nPar la foi,\nQu’à toute heure\nJe demeure.\nQuel bonheur !\nÔ Seigneur,\nBien suprême,\nTon cœur m’aime ! »"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-297",
+    "number": "297",
+    "title": "Jésus est mon puissant Sauveur",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Jésus est mon puissant Sauveur,\nEn lui seul mon âme est ravie.\nIl m’a donné le vrai bonheur ;\nJe veux l’aimer toute ma vie ;\nÔ Jésus ! viens, de ton amour,\nViens remplir mon cœur pour toujours ! (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Jésus, mon fidèle Berger,\nPrend soin de l’agneau le plus tendre ;\nLorsqu’il le voit dans le danger,\nSur son épaule, il vient le prendre.\nÔ Jésus ! je suis cet agneau,\nLe plus petit de ton troupeau. (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Jésus, mon triomphe assuré,\nBientôt me prendra dans sa gloire.\nPour moi le trône est préparé,\nPour moi le bonheur, la victoire.\nÔ Jésus ! viens, ne tarde plus,\nViens prendre à toi tous tes élus ! (bis)"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-298",
+    "number": "298",
+    "title": "Bientôt Jésus va nous prendre",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Bientôt Jésus va nous prendre,\nAuprès de lui dans le ciel ;\nIl nous a dit de l’attendre,\nJusqu’au jour de son appel."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Nous avons la victoire !\nNous vivons avec Jésus dans le ciel !\nÀ toi seul la gloire !\nOh ! viens bientôt, Emmanuel !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Péchés, travaux et souffrances,\nCesseront et pour toujours.\nDevant sa sainte présence,\nNous chanterons son amour."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Combattons avec courage,\nAttendant ce jour heureux.\nEt chantons malgré l’orage :\nNous sommes victorieux !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-299",
+    "number": "299",
+    "title": "Je suis la lumière",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "« Je suis la lumière »,\nA dit le Seigneur ;\nAvec moi, mon frère,\nOuvre-lui ton cœur."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Le monde est plein d’ombre :\nBrillons, brillons bien,\nToi dans ton coin sombre,\nEt moi dans le mien."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Si la pure flamme\nParfois baisse un peu,\nVeillons sur notre âme,\nRavivons le feu."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Quand le jour se voile\nAu clair firmament,\nLa plus humble étoile\nBrille doucement."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-300",
+    "number": "300",
+    "title": "Ô Pèlerin de la Ville d’or",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Ô Pèlerin de la Ville d’or !\nToujours regarde à Jésus !\nCar c’est pour toi qu’il souffrit la mort,\nToujours regarde à Jésus !"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Toujours regarde à Jésus ! (bis)\nNuit et jour Il est avec toi,\nToujours regarde à Jésus !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Et quand tout est dans l’obscurité,\nToujours regarde à Jésus !\nSon doux regard donne la clarté,\nToujours regarde à Jésus !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Quand tu es tenté de t’égarer,\nToujours regarde à Jésus !\nPar lui toujours tu peux triompher,\nToujours regarde à Jésus !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Te sens-tu triste et découragé ?\nToujours regarde à Jésus !\nTon cœur souffrant il peut soulager.\nToujours regarde à Jésus !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Et lorsque s’approchera la mort,\nToujours regarde à Jésus\nC’est avec lui qu’on atteint le port\nToujours regarde à Jésus !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-301",
+    "number": "301",
+    "title": "Bon Sauveur, berger fidèle",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Bon Sauveur, berger fidèle,\nConduis-nous par ton amour ;\nEt, de ta main paternelle,\nNourris-nous au jour le jour."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Béni sois-tu, tendre Maître,\nJésus, nous sommes à toi,\nÀ toi seul nous voulons être,\nBéni sois-tu, notre Roi !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Dans tes riches pâturages,\nApprends-nous à te chercher ;\nQue sous tes divins ombrages\nNous sachions toujours marcher."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Toi qui nous reçus par grâce,\nBien que faibles et pécheurs,\nPar ta puissance efficace\nPurifie encor nos cœurs."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Enfants, nous voulons te plaire,\nT’obéir, garder ta loi.\nOh ! pour cela daigne faire\nQue nous vivions par la foi !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Bon Sauveur, berger fidèle,\nPour que nous suivions tes pas,\nRemplis-nous d’un nouveau zèle\nEt porte-nous dans tes bras."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-302",
+    "number": "302",
+    "title": "Le Seigneur m’aime",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Le Seigneur m’aime,\nBonheur suprême,\nLe Seigneur m’aime,\nIl est amour !"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Je redirai toujours :\nLe Seigneur m’aime, (bis)\nIl est amour !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Dans la misère\nLa plus amère,\nDans la misère\nJ’étais plongé."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Dans la souffrance\nSans espérance,\nDans la souffrance\nJe gémissais."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Portant ma peine,\nMa lourde chaîne,\nPortant ma peine,\nJ’étais perdu."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Dieu, dans sa grâce\nPrit à ma place,\nDieu dans sa grâce\nPrit son cher Fils."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 6",
+        "text": "En sacrifice\nÀ la justice,\nEn sacrifice\nIl vint s’offrir."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 7",
+        "text": "Le poids immense\nDe mon offense,\nLe poids immense\nTomba sur lui."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 8",
+        "text": "Sur le Calvaire\nLoin de son Père,\nSur le Calvaire\nIl vint mourir."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 9",
+        "text": "Il purifie\nToute ma vie,\nIl purifie\nAvec son sang."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 10",
+        "text": "À toi la gloire\nEt la victoire,\nÀ toi la gloire\nAgneau de Dieu."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-303",
+    "number": "303",
+    "title": "Sous le sang, le précieux sang",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Sous le sang, le précieux sang,\nJe reçois un cœur nouveau,\nSous le précieux sang !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-304",
+    "number": "304",
+    "title": "Jésus quitta le trône de son Père",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Jésus quitta le trône de son Père\nEt descendit ici-bas sur la terre ;\nIl accepta la crèche pour berceau.\nLui, Roi des rois, le Fils du Dieu Très-Haut !"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Oh ! oui, c’est vrai ! je sais que c’est vrai !\n« Il est écrit » : cela suffit !\nQue Jésus m’aime ! oh ! bonheur suprême !\nLa Bible me le dit !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "En tous les lieux portant la délivrance,\nFaisant le bien, guérissant la souffrance,\nIl pardonnait au pécheur repentant,\nIl bénissait jusqu’au petit enfant."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Il fut cloué sur la croix méprisable,\nLui, Juste et Saint, mourut pour moi, coupable.\nPour me sauver, son sang fut répandu ;\nC’est pourquoi j’aime le Seigneur Jésus !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Plus que Vainqueur il sortit de la tombe,\nGloire à l’Agneau, divin Sauveur du monde !\nIl règne au ciel, intercède pour moi,\nEt vient bientôt me chercher : je le crois !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-305",
+    "number": "305",
+    "title": "Jésus me demande d’être",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Jésus me demande d’être\nUn rayon de soleil,\nQui gaîment fasse connaître\nSon amour sans pareil,"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Un rayon de joie,\nUn doux rayon de soleil.\nQue Jésus envoie !\nOh ! quel bonheur sans pareil !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Jésus me demande d’être\nUn rayon bienfaisant,\nComme un reflet de ce Maître\nAimable et complaisant,"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Oui, Seigneur, donne-moi d’être\nComme un rayon d’espoir,\nParaissant à la fenêtre\nQuand le ciel est tout noir."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Oh ! que m’oubliant moi-même,\nJe ne m’efforce plus\nQue d’être pour ceux que j’aime,\nUn reflet de Jésus."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Que partout mon gai sourire\nEt ma joyeuse humeur\nSoit un baume à qui soupire\nEt réjouisse un cœur !"
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain 2",
+        "text": "Que Jésus m’emploie\nEt qu’il me rende pareil\nAux rayons de joie,\nAux doux rayons du soleil !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-306",
+    "number": "306",
+    "title": "Chaque jour de ma vie",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Chaque jour de ma vie,\nJe veux dire au Seigneur :\nApprends-moi, je te prie,\nÀ te donner mon cœur."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Dès que le jour commence,\nJe veux dire au Seigneur :\nTiens-moi dans ta présence,\nMon Dieu, mon Rédempteur !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Souvent dans la journée,\nJe veux dire au Seigneur :\nToi qui me l’as donnée,\nSois-en le bienfaiteur."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Et quand vient la nuit sombre,\nJe veux dire au Seigneur :\nTu me vois sous ton ombre,\nGarde-moi ta faveur."
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-307",
+    "number": "307",
+    "title": "Il est un pays magnifique",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Il est un pays magnifique,\nSans péché, sans maux ni chagrins,\nOù des élus le saint cantique\nS’unit aux chœurs des séraphins."
+      },
+      {
+        "type": "chorus",
+        "label": "Refrain",
+        "text": "Allons tous, (bis)\nAllons dans ce beau pays promis ;\nAllons tous, (bis)\nAllons dans le paradis."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "C’est le pays de la lumière,\nDu vrai repos et de la paix ;\nC’est là que la gloire du Père\nBrille toujours dans son palais."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "C’est la cité sainte et bénie,\nBrillante d’or et de cristal,\nOù croit aussi l’arbre de vie,\nEt d’où l’Agneau chasse tout mal."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "C’est le pays de la promesse\nQue la foi nous fait entrevoir.\nAh ! puissions-nous louer sans cesse\nJésus, pour ce précieux espoir !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-308",
+    "number": "308",
+    "title": "Dès aujourd’hui je veux aimer",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Dès aujourd’hui je veux aimer\nDe tout mon cœur le bon Berger ;\nPuisqu’en son amour il m’appelle,\nJe veux saisir sa main fidèle.\nSeigneur Jésus, je viens à toi,\nDu mal pour toujours garde-moi ! (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Dès ce jour je veux obéir\nÀ mon Sauveur et le servir ;\nPuisqu’à le suivre il me convie,\nJe veux lui consacrer ma vie.\nSeigneur Jésus, je viens à toi,\nÀ ton service accepte-moi ! (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Dès aujourd’hui je suis heureux,\nMon nom est écrit dans les cieux.\nBientôt je quitterai la terre\nPour le pays de la lumière.\nSeigneur Jésus, je suis à toi,\nJusqu’à ton trône porte-moi ! (bis)"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-309",
+    "number": "309",
+    "title": "Jésus ne change pas",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Jésus ne change pas,\nNe change pas, (bis)\nJésus ne change pas,\nNon, Jamais !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Jésus m’a pardonné,\nM’a pardonné, (bis)\nJésus m’a pardonné\nPour toujours !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Jésus me satisfait,\nMe satisfait, (bis)\nJésus me satisfait\nPour toujours !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Jésus me recevra,\nMe recevra, (bis)\nJésus me recevra\nDans le ciel."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Toujours près de Jésus,\nPrès de Jésus, (bis)\nToujours près de Jésus,\nJe serai !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 6",
+        "text": "Gloire, gloire à Jésus !\nGloire à Jésus ! (bis)\nGloire, gloire à Jésus !\nÀ jamais !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-310",
+    "number": "310",
+    "title": "David n’avait rien que sa fronde",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "David n’avait rien que sa fronde\nPour lutter contre le géant ;\nMais au fond de son cœur d’enfant\nHabitait une foi profonde.\nIl savait bien que l’Éternel\nCombattrait avec lui pour sauver Israël !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Il avançait ferme et tranquille\nContre le Philistin puissant,\nQui, l’œil hautain et méprisant,\nRiait de son air juvénile,\nEt se moquait de l’Éternel,\nQui choisissait David pour sauver Israël !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Mais sans trembler, d’une main sûre,\nL’enfant, que son Dieu dirigeait,\nFit au colosse, d’un seul jet,\nUne inguérissable blessure.\nEt c’est ainsi que l’Éternel,\nSelon son bon plaisir, délivrait Israël !"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Comme David, tu nous appelles\nÀ de grands combats, ô Seigneur !\nPour en sortir à ton honneur,\nComme David, rends-nous fidèles,\nEt l’on verra que l’Éternel\nSe tient auprès de nous, comme auprès d’Israël."
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Et si le mal nous environne,\nEt s’il devient plus fort que nous,\nNous t’implorerons à genoux,\nToi qui ne rejettes personne !\nEt, répondant à notre appel,\nTu lutteras pour nous, ô Sauveur-Éternel !"
+      }
+    ]
+  },
+  {
+    "id": "cv-1926-311",
+    "number": "311",
+    "title": "Oh ! que ta main paternelle",
+    "author": "",
+    "book": "Chants de Victoire",
+    "sections": [
+      {
+        "type": "verse",
+        "label": "Couplet 1",
+        "text": "Oh ! que ta main paternelle\nMe bénisse à mon coucher !\nEt que ce soit sous ton aile\nQue je dorme, ô mon Berger ! (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 2",
+        "text": "Veuille effacer par ta grâce\nLes péchés que j’ai commis,\nEt que ton Esprit me fasse\nObéissant et soumis ! (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 3",
+        "text": "Fais reposer sous ta garde\nMes amis et mes parents,\nEt que ton œil les regarde,\nDe ton ciel, petits et grands ! (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 4",
+        "text": "Que ta faveur se déploie\nPour consoler l’affligé ;\nDonne au pauvre un peu de joie,\nAu malade la santé ! (bis)"
+      },
+      {
+        "type": "verse",
+        "label": "Couplet 5",
+        "text": "Seigneur ! j’ai fait ma prière ;\nSous ton aile je m’endors,\nHeureux de savoir qu’un Père\nPlein d’amour veille au-dehors. (bis)"
+      }
+    ]
+  }
+];

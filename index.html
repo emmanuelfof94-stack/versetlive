@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VersetLive — Diffusion biblique pour OBS Studio</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="topbar">
+    <div class="logo">
+      <div class="logo-icon">✝</div>
+      <div>VersetLive</div>
+    </div>
+    <div class="topbar-actions">
+      <div class="status-indicator">
+        <div class="status-dot" id="liveDot"></div>
+        <span id="liveStatus">En attente</span>
+      </div>
+      <button class="btn" id="helpBtn">❔ Aide OBS</button>
+      <button class="btn" id="openPresenterBtn" title="Vue présentateur (orateur)">👁 Présentateur</button>
+      <button class="btn btn-primary" id="openObsBtn">📺 Ouvrir vue OBS</button>
+      <button class="btn btn-danger" id="clearLiveBtn">⏹ Effacer écran</button>
+    </div>
+  </div>
+
+  <div class="app">
+    <!-- LEFT PANEL : Sélection livre/chapitre -->
+    <div class="panel">
+      <div class="panel-header">📖 Bibliothèque</div>
+      <div class="panel-body">
+        <div class="tabs">
+          <button class="tab active" data-tab="browse">Bible</button>
+          <button class="tab" data-tab="search">Rechercher</button>
+          <button class="tab" data-tab="manual">Manuel</button>
+          <button class="tab" data-tab="titles">✨ Titre</button>
+          <button class="tab" data-tab="songs">🎵 Chants</button>
+          <button class="tab" data-tab="louange">🙌 Louange</button>
+        </div>
+
+        <!-- Browse -->
+        <div class="tab-pane" data-pane="browse">
+          <div class="field">
+            <label>Traduction</label>
+            <select id="translationSelect"></select>
+          </div>
+          <div class="field">
+            <label>Livre</label>
+            <select id="bookSelect"></select>
+          </div>
+          <div class="field">
+            <label>Chapitre</label>
+            <select id="chapterSelect"></select>
+          </div>
+          <button class="btn btn-primary btn-block" id="loadChapterBtn">Charger le chapitre</button>
+          <div class="verse-list" id="verseList" style="margin-top:12px;"></div>
+        </div>
+
+        <!-- Search -->
+        <div class="tab-pane" data-pane="search" style="display:none;">
+          <div class="field">
+            <label>Mot-clé ou référence (ex: Jean 3:16)</label>
+            <input type="text" id="searchInput" placeholder="Tapez puis Entrée…">
+          </div>
+          <button class="btn btn-primary btn-block" id="searchBtn">Rechercher</button>
+          <div class="search-results" id="searchResults"></div>
+        </div>
+
+        <!-- Manual -->
+        <div class="tab-pane" data-pane="manual" style="display:none;">
+          <div class="field">
+            <label>Référence</label>
+            <input type="text" id="manualRef" placeholder="ex: Jean 3:16">
+          </div>
+          <div class="field">
+            <label>Texte du verset</label>
+            <textarea id="manualText" placeholder="Saisissez le verset à afficher…"></textarea>
+          </div>
+          <button class="btn btn-primary btn-block" id="manualSendBtn">Envoyer à l'écran</button>
+        </div>
+
+        <!-- Titles -->
+        <div class="tab-pane" data-pane="titles" style="display:none;">
+          <div class="field">
+            <label>Titre principal</label>
+            <input type="text" id="titleMain" placeholder="ex: BIENVENUE">
+          </div>
+          <div class="field">
+            <label>Sous-titre (optionnel)</label>
+            <input type="text" id="titleSub" placeholder="ex: Que Dieu vous bénisse">
+          </div>
+          <div class="field">
+            <label>Modèle</label>
+            <div class="title-templates" id="titleTemplates"></div>
+          </div>
+          <div class="field">
+            <label>Couleur d'accent</label>
+            <div class="color-row">
+              <input type="color" id="titleAccent" value="#d4af37">
+              <input type="text" id="titleAccentHex" value="#d4af37">
+            </div>
+          </div>
+          <button class="btn btn-success btn-block" id="sendTitleBtn">▶ Diffuser le titre</button>
+
+          <div class="section" style="margin-top:16px;">
+            <div class="section-title">⚡ Présélections</div>
+            <div class="title-presets" id="titlePresets"></div>
+          </div>
+        </div>
+
+        <!-- Songs -->
+        <div class="tab-pane" data-pane="songs" style="display:none;">
+          <div class="field">
+            <input type="text" id="songSearch" placeholder="🔍 Rechercher (n°, titre, paroles)…">
+          </div>
+          <div class="songs-toolbar-row">
+            <button class="btn btn-primary btn-sm" id="newSongBtn">+ Nouveau</button>
+            <button class="btn btn-sm" id="importSongsBtn">📥 Importer</button>
+            <button class="btn btn-sm" id="exportSongsBtn">📤 Exporter</button>
+            <button class="btn btn-sm" id="loadCatalogBtn" title="Recharger le recueil 1926 (308 chants, domaine public)">📚 Recueil 1926</button>
+            <input type="file" id="importFile" accept=".json" hidden>
+          </div>
+          <div class="song-count" id="songCount"></div>
+          <div class="songs-list" id="songsList"></div>
+        </div>
+
+        <!-- Louange (chants modernes) -->
+        <div class="tab-pane" data-pane="louange" style="display:none;">
+          <div class="copyright-notice">
+            <strong>⚠ Droits d'auteur</strong>
+            <p>Les chants modernes sont protégés. Pour les importer légalement :</p>
+            <ol class="copyright-steps">
+              <li>Connecte-toi à <a href="https://songselect.ccli.com" target="_blank">songselect.ccli.com</a> avec ta licence d'église</li>
+              <li>Télécharge un chant en <strong>« Lyrics » (TEXT)</strong> ou <strong>« OpenLyrics XML »</strong></li>
+              <li>Glisse les fichiers dans le bouton <strong>📥 SongSelect</strong> ci-dessous</li>
+            </ol>
+          </div>
+          <div class="field">
+            <input type="text" id="louangeSearch" placeholder="🔍 Rechercher (titre, paroles)…">
+          </div>
+          <div class="songs-toolbar-row">
+            <button class="btn btn-primary btn-sm" id="newLouangeBtn">+ Nouveau</button>
+            <button class="btn btn-success btn-sm" id="pasteSongSelectBtn" title="Coller le texte copié depuis une page SongSelect">📋 Coller</button>
+            <button class="btn btn-sm" id="importSongSelectBtn" title="Importer fichiers TEXT/XML/ChordPro téléchargés depuis SongSelect">📁 Fichier</button>
+            <button class="btn btn-sm" id="importLouangeBtn">📥 JSON</button>
+            <button class="btn btn-sm" id="exportLouangeBtn">📤 Exporter</button>
+            <input type="file" id="louangeImportFile" accept=".json" hidden>
+            <input type="file" id="songSelectFileInput" accept=".txt,.xml,.cho,.crd,.pro,.chordpro,.opensong" multiple hidden>
+          </div>
+          <div class="song-count" id="louangeCount"></div>
+          <div class="songs-list" id="louangeList"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Poignée gauche : redimensionne le panneau Bibliothèque -->
+    <div class="resizer resizer-left" id="resizerLeft" title="Glisser pour redimensionner — double-clic pour réinitialiser"></div>
+
+    <!-- CENTER : Aperçu OBS + détail chant -->
+    <div class="preview-area">
+      <div class="preview-toolbar">
+        <div>
+          <strong id="currentRef">—</strong>
+          <span style="color:var(--text-secondary); margin-left:8px;" id="currentTrans"></span>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-sm" id="prevVerseBtn">◀ Précédent</button>
+          <button class="btn btn-sm" id="nextVerseBtn">Suivant ▶</button>
+          <button class="btn btn-sm btn-success" id="sendLiveBtn">▶ Diffuser</button>
+          <button class="btn btn-sm" id="expandBtn" title="Agrandir l'aperçu (F)">🔲 Agrandir</button>
+          <button class="btn btn-sm" id="fullscreenBtn" title="Plein écran (F11)">⛶</button>
+        </div>
+      </div>
+      <div class="preview-canvas">
+        <div class="preview-frame">
+          <iframe id="previewFrame" src="obs.html?preview=1"></iframe>
+        </div>
+      </div>
+      <!-- Détail chant (visible uniquement quand un chant est sélectionné) -->
+      <div class="song-detail-pane" id="songDetail"></div>
+    </div>
+
+    <!-- Poignée droite : redimensionne le panneau Apparence -->
+    <div class="resizer resizer-right" id="resizerRight" title="Glisser pour redimensionner — double-clic pour réinitialiser"></div>
+
+    <!-- RIGHT PANEL : Apparence + Historique -->
+    <div class="panel">
+      <div class="panel-header">🎨 Apparence & Historique</div>
+      <div class="panel-body">
+
+        <div class="section">
+          <div class="section-title">Style du texte</div>
+          <div class="field">
+            <label>Police</label>
+            <select id="fontFamily">
+              <option value="Georgia, serif">Georgia (serif)</option>
+              <option value="'Times New Roman', serif">Times New Roman</option>
+              <option value="'Playfair Display', serif">Playfair</option>
+              <option value="-apple-system, sans-serif">System</option>
+              <option value="'Helvetica Neue', sans-serif">Helvetica</option>
+              <option value="'Courier New', monospace">Courier</option>
+              <option value="'Cinzel', serif">Cinzel (élégant)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Taille du texte (vw)</label>
+            <div class="range-row">
+              <input type="range" id="fontSize" min="2" max="10" step="0.1" value="4.5">
+              <span class="range-value" id="fontSizeVal">4.5</span>
+            </div>
+          </div>
+          <div class="field">
+            <label>Couleur du texte</label>
+            <div class="color-row">
+              <input type="color" id="textColor" value="#ffffff">
+              <input type="text" id="textColorHex" value="#ffffff">
+            </div>
+          </div>
+          <div class="field">
+            <label>Ombre / contour</label>
+            <select id="textShadow">
+              <option value="none">Aucun</option>
+              <option value="soft" selected>Ombre douce</option>
+              <option value="strong">Ombre forte</option>
+              <option value="outline">Contour noir</option>
+              <option value="glow">Lueur dorée</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Alignement</label>
+            <select id="textAlign">
+              <option value="center" selected>Centre</option>
+              <option value="left">Gauche</option>
+              <option value="right">Droite</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Arrière-plan</div>
+          <div class="field">
+            <label>Type</label>
+            <select id="bgType">
+              <option value="transparent" selected>Transparent (OBS)</option>
+              <option value="solid">Couleur unie</option>
+              <option value="gradient">Dégradé</option>
+              <option value="overlay">Bandeau translucide</option>
+            </select>
+          </div>
+          <div class="field" id="bgColorField">
+            <label>Couleur fond</label>
+            <div class="color-row">
+              <input type="color" id="bgColor" value="#000000">
+              <input type="text" id="bgColorHex" value="#000000">
+            </div>
+          </div>
+          <div class="field">
+            <label>Opacité du fond</label>
+            <div class="range-row">
+              <input type="range" id="bgOpacity" min="0" max="1" step="0.05" value="0.5">
+              <span class="range-value" id="bgOpacityVal">0.5</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Affichage</div>
+          <div class="field">
+            <label>Position verticale</label>
+            <select id="vAlign">
+              <option value="center" selected>Centre</option>
+              <option value="top">Haut</option>
+              <option value="bottom">Bas (sous-titre)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Afficher la référence</label>
+            <select id="showRef">
+              <option value="below" selected>En dessous</option>
+              <option value="above">Au-dessus</option>
+              <option value="hide">Masquer</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Animation d'apparition</label>
+            <select id="animation">
+              <option value="fade" selected>Fondu</option>
+              <option value="slide-up">Glissement haut</option>
+              <option value="zoom">Zoom</option>
+              <option value="none">Aucune</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">⏱ Minuteur</div>
+          <div class="timer-display" id="timerDisplay">00:00</div>
+          <div class="timer-mode-tag" id="timerModeTag">À l'arrêt</div>
+
+          <div class="timer-controls">
+            <button class="btn btn-success btn-sm" id="timerStartBtn">▶ Démarrer</button>
+            <button class="btn btn-sm" id="timerPauseBtn">⏸ Pause</button>
+            <button class="btn btn-danger btn-sm" id="timerResetBtn">↺ Reset</button>
+          </div>
+
+          <div class="timer-section-title">Mode</div>
+          <div class="timer-mode-row">
+            <button class="timer-mode-btn active" data-mode="stopwatch">⏱ Chrono</button>
+            <button class="timer-mode-btn" data-mode="countdown">⏳ Compte à rebours</button>
+          </div>
+
+          <div class="timer-presets" id="timerPresets" hidden>
+            <div class="timer-section-title">Durée</div>
+            <div class="timer-preset-row">
+              <button class="btn btn-sm" data-min="5">5</button>
+              <button class="btn btn-sm" data-min="10">10</button>
+              <button class="btn btn-sm" data-min="15">15</button>
+              <button class="btn btn-sm" data-min="20">20</button>
+              <button class="btn btn-sm" data-min="30">30</button>
+              <button class="btn btn-sm" data-min="45">45</button>
+              <button class="btn btn-sm" data-min="60">60</button>
+              <input type="number" id="timerCustomMin" min="1" max="180" placeholder="min" style="width:60px;">
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">📜 Diffusés récemment</div>
+          <div id="historyList"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Aide OBS -->
+  <div class="modal-backdrop" id="helpModal">
+    <div class="modal">
+      <h2>📺 Comment utiliser avec OBS Studio</h2>
+      <p>VersetLive génère une page d'affichage transparente que vous pouvez ajouter comme <strong>source navigateur</strong> dans OBS.</p>
+
+      <h3>Étape 1 — Ajouter une source navigateur dans OBS</h3>
+      <ol>
+        <li>Dans OBS Studio, cliquez sur <code>+</code> sous "Sources"</li>
+        <li>Choisissez <strong>"Source du navigateur"</strong></li>
+        <li>Donnez un nom (ex: <code>Versets</code>) et validez</li>
+      </ol>
+
+      <h3>Étape 2 — Configurer l'URL</h3>
+      <p>Cliquez sur <strong>"Ouvrir vue OBS"</strong> en haut à droite : la page d'affichage s'ouvre. Copiez l'URL complète depuis la barre d'adresse de votre navigateur, puis collez-la dans le champ <strong>URL</strong> d'OBS.</p>
+      <p>Réglages recommandés dans OBS :</p>
+      <ul>
+        <li>Largeur : <code>1920</code></li>
+        <li>Hauteur : <code>1080</code></li>
+        <li>Cochez <strong>"Arrière-plan transparent"</strong> (CSS personnalisé : <code>body { background: transparent !important; }</code>)</li>
+        <li>Cochez <strong>"Rafraîchir le navigateur lorsque la scène devient active"</strong></li>
+      </ul>
+
+      <h3>Étape 3 — Diffuser un verset</h3>
+      <ol>
+        <li>Sélectionnez un verset dans le panneau gauche</li>
+        <li>Cliquez sur <strong>▶ Diffuser</strong> (ou double-clic sur un verset)</li>
+        <li>Le verset apparaît instantanément dans OBS et sur votre flux</li>
+      </ol>
+
+      <h3>Astuce</h3>
+      <p>La page OBS et ce panneau de contrôle se synchronisent automatiquement via <code>BroadcastChannel</code> et <code>localStorage</code>. Tant que les deux pages sont sur la même origine (même URL de base), tout est instantané.</p>
+
+      <h3>Hors ligne</h3>
+      <p>L'onglet <strong>Manuel</strong> permet de saisir n'importe quel verset à la main si vous n'avez pas accès à internet (l'API <code>bolls.life</code> est utilisée pour récupérer les textes en ligne).</p>
+
+      <div style="text-align:right; margin-top:20px;">
+        <button class="btn btn-primary" id="closeHelp">Compris</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- Modal éditeur de chant -->
+  <div class="modal-backdrop" id="songModal">
+    <div class="modal modal-large">
+      <div class="modal-header">
+        <h2 id="songModalTitle">Nouveau chant</h2>
+        <button class="modal-close" id="songModalClose">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="field">
+            <label>N°</label>
+            <input type="text" id="songFormNumber" placeholder="ex: 12">
+          </div>
+          <div class="field span-2">
+            <label>Titre *</label>
+            <input type="text" id="songFormTitle" placeholder="Titre du chant">
+          </div>
+          <div class="field">
+            <label>Recueil</label>
+            <select id="songFormBook"></select>
+          </div>
+          <div class="field span-3">
+            <label>Auteur (optionnel)</label>
+            <input type="text" id="songFormAuthor" placeholder="ex: Edmond Budry">
+          </div>
+        </div>
+
+        <div class="sections-editor-header">
+          <h3>Sections</h3>
+          <div class="sections-add-buttons">
+            <button class="btn btn-sm" id="songAddVerseBtn">+ Couplet</button>
+            <button class="btn btn-sm" id="songAddChorusBtn">+ Refrain</button>
+            <button class="btn btn-sm" id="songAddBridgeBtn">+ Pont</button>
+          </div>
+        </div>
+        <div id="songFormSections" class="sections-editor-list"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-danger" id="songDeleteBtn" hidden>🗑 Supprimer</button>
+        <div style="flex:1;"></div>
+        <button class="btn" id="songCancelBtn">Annuler</button>
+        <button class="btn btn-primary" id="songSaveBtn">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Coller depuis SongSelect -->
+  <div class="modal-backdrop" id="pasteModal">
+    <div class="modal modal-large">
+      <div class="modal-header">
+        <h2>📋 Coller depuis SongSelect</h2>
+        <button class="modal-close" id="pasteModalClose">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="paste-instructions">
+          <strong>Comment faire :</strong>
+          <ol>
+            <li>Sur <a href="https://songselect.ccli.com" target="_blank">songselect.ccli.com</a>, ouvre la page d'un chant (vue <strong>"Lyrics"</strong>)</li>
+            <li>Sélectionne tout le texte (<kbd>Cmd+A</kbd>) puis copie (<kbd>Cmd+C</kbd>)</li>
+            <li>Colle ici (<kbd>Cmd+V</kbd>) — l'app détecte titre, CCLI, couplets, refrains automatiquement</li>
+          </ol>
+        </div>
+        <textarea id="pasteTextarea" rows="18" placeholder="Colle ici le texte copié depuis une page SongSelect&#10;&#10;Exemple :&#10;Tu es saint&#10;CCLI Song # 5648321&#10;Brian Doerksen | Daniel Gendre&#10;&#10;Verse 1&#10;Saint, saint, saint est l'Éternel…&#10;&#10;Chorus&#10;Tu es saint, tu es saint…"></textarea>
+        <div id="pastePreview" class="paste-preview"></div>
+      </div>
+      <div class="modal-footer">
+        <div style="flex:1;"></div>
+        <button class="btn" id="pasteCancelBtn">Annuler</button>
+        <button class="btn btn-primary" id="pasteImportBtn" disabled>Importer le chant</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="bible-data.js"></script>
+  <script src="chants-cv-data.js"></script>
+  <script src="songs-data.js"></script>
+  <script src="titles-data.js"></script>
+  <script src="app.js"></script>
+  <script src="songs.js"></script>
+  <script src="songselect-import.js"></script>
+  <script src="titles.js"></script>
+  <script src="timer.js"></script>
+</body>
+</html>
