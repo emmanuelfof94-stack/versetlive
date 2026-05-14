@@ -337,20 +337,100 @@
             <button class="btn btn-sm btn-primary" id="obsConnectBtn">🔌 Connecter</button>
             <button class="btn btn-sm" id="obsSettingsBtn" title="Paramètres de connexion">⚙</button>
             <button class="btn btn-sm" id="obsRefreshBtn" title="Rafraîchir">↻</button>
+            <button class="btn btn-sm" id="obsHelpBtn" title="Raccourcis clavier">⌨</button>
           </div>
 
           <div class="obs-panel-content" id="obsPanelContent">
-            <div class="obs-subtitle">Scènes</div>
-            <div class="obs-scenes-list" id="obsScenesList">
-              <div class="obs-empty">Connectez-vous à OBS</div>
+
+            <!-- Scènes -->
+            <div class="obs-sub" data-key="scenes">
+              <div class="obs-sub-head"><span class="obs-caret">▾</span><span>📷 Scènes</span></div>
+              <div class="obs-sub-body">
+                <div class="obs-scenes-list" id="obsScenesList">
+                  <div class="obs-empty">Connectez-vous à OBS</div>
+                </div>
+              </div>
             </div>
 
-            <div class="obs-subtitle">Diffusion</div>
-            <button class="btn btn-block obs-stream-btn" id="obsStreamBtn">▶ Démarrer le stream</button>
-            <div class="obs-info" id="obsStreamInfo" style="display:none;"></div>
+            <!-- Studio mode & transitions -->
+            <div class="obs-sub" data-key="studio">
+              <div class="obs-sub-head"><span class="obs-caret">▾</span><span>🎬 Studio & transitions</span></div>
+              <div class="obs-sub-body">
+                <label class="obs-toggle-row">
+                  <span>Mode studio (PVW/PGM)</span>
+                  <input type="checkbox" id="obsStudioMode">
+                </label>
+                <div id="obsPreviewWrap" style="display:none;">
+                  <div class="obs-subtitle">Aperçu (cliquer pour pré-sélectionner)</div>
+                  <div class="obs-scenes-list" id="obsPreviewList"></div>
+                  <button class="btn btn-primary btn-block" id="obsTransitionBtn">⇆ Transition</button>
+                </div>
+                <div class="obs-row">
+                  <label>Transition</label>
+                  <select id="obsTransitionType"></select>
+                </div>
+                <div class="obs-row">
+                  <label>Durée</label>
+                  <div class="range-row">
+                    <input type="range" id="obsTransitionDuration" min="0" max="3000" step="50" value="300">
+                    <span class="range-value" id="obsTransitionDurationVal">300 ms</span>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-            <button class="btn btn-block obs-record-btn" id="obsRecordBtn" style="margin-top:8px;">⏺ Démarrer l'enreg.</button>
-            <div class="obs-info" id="obsRecordInfo" style="display:none;"></div>
+            <!-- Mixeur audio -->
+            <div class="obs-sub" data-key="audio">
+              <div class="obs-sub-head"><span class="obs-caret">▾</span><span>🎚 Mixeur audio</span></div>
+              <div class="obs-sub-body">
+                <div class="obs-mixer" id="obsMixer">
+                  <div class="obs-empty">—</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sources visibles -->
+            <div class="obs-sub" data-key="sources">
+              <div class="obs-sub-head"><span class="obs-caret">▾</span><span>👁 Sources de la scène</span></div>
+              <div class="obs-sub-body">
+                <div class="obs-sources" id="obsSources">
+                  <div class="obs-empty">—</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Diffusion & enregistrement -->
+            <div class="obs-sub" data-key="broadcast">
+              <div class="obs-sub-head"><span class="obs-caret">▾</span><span>📡 Diffusion</span></div>
+              <div class="obs-sub-body">
+                <button class="btn btn-block obs-stream-btn" id="obsStreamBtn">▶ Démarrer le stream</button>
+                <div class="obs-info" id="obsStreamInfo" style="display:none;"></div>
+
+                <div class="obs-record-row" style="margin-top:8px;">
+                  <button class="btn obs-record-btn" id="obsRecordBtn">⏺ Démarrer l'enreg.</button>
+                  <button class="btn btn-sm" id="obsRecordPauseBtn" title="Pause / Reprendre" style="display:none;">⏸</button>
+                </div>
+                <div class="obs-info" id="obsRecordInfo" style="display:none;"></div>
+
+                <div class="obs-subtitle">Replay buffer</div>
+                <div class="obs-actions-row">
+                  <button class="btn btn-sm" id="obsReplayToggleBtn">▶ Démarrer</button>
+                  <button class="btn btn-sm btn-success" id="obsReplaySaveBtn" disabled>💾 Sauver</button>
+                </div>
+                <div class="obs-info" id="obsReplayInfo" style="display:none;">Replay buffer actif</div>
+              </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="obs-sub" data-key="stats">
+              <div class="obs-sub-head"><span class="obs-caret">▾</span><span>📊 Stats</span></div>
+              <div class="obs-sub-body">
+                <div class="obs-stats" id="obsStats">
+                  <div class="obs-empty">—</div>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
 
@@ -401,6 +481,33 @@
 
       <div style="text-align:right; margin-top:20px;">
         <button class="btn btn-primary" id="closeHelp">Compris</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Raccourcis OBS -->
+  <div class="modal-backdrop" id="obsShortcutsModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>⌨ Raccourcis OBS</h2>
+        <button class="modal-close" id="obsShortcutsClose">×</button>
+      </div>
+      <div class="modal-body">
+        <p>Raccourcis actifs uniquement quand OBS est connecté et qu'aucun champ texte n'a le focus.</p>
+        <table class="shortcuts-table">
+          <tr><td><kbd>1</kbd>–<kbd>9</kbd></td><td>Basculer sur la scène n° N</td></tr>
+          <tr><td><kbd>S</kbd></td><td>Démarrer / arrêter le stream</td></tr>
+          <tr><td><kbd>R</kbd></td><td>Démarrer / arrêter l'enregistrement</td></tr>
+          <tr><td><kbd>P</kbd></td><td>Pause / reprendre l'enregistrement</td></tr>
+          <tr><td><kbd>B</kbd></td><td>Sauvegarder le replay buffer</td></tr>
+          <tr><td><kbd>M</kbd></td><td>Mute / unmute toutes les sources audio</td></tr>
+          <tr><td><kbd>T</kbd></td><td>Déclencher la transition (mode studio)</td></tr>
+          <tr><td><kbd>Esc</kbd></td><td>Effacer l'écran VersetLive</td></tr>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <div style="flex:1;"></div>
+        <button class="btn btn-primary" id="obsShortcutsOk">Fermer</button>
       </div>
     </div>
   </div>
