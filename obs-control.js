@@ -194,6 +194,9 @@ let obsCurrentTransition = null;
 let obsTransitionDuration = 300;
 let obsStatusTimer = null;
 let obsStatsTimer = null;
+let obsPreviewTimer = null;
+let obsPreviewFps = 2;
+let obsPreviewInFlight = false;
 let lastVolumeMetersAt = 0;
 
 // =================================================================
@@ -298,6 +301,7 @@ async function connectObs() {
     await initialFetch();
     startStatusPolling();
     startStatsPolling();
+    startPreviewPolling();
   } catch (err) {
     obsToast(err.message, true);
   }
@@ -364,6 +368,7 @@ async function refreshStudioMode() {
     obsStudioMode = !!res.studioModeEnabled;
     document.getElementById('obsStudioMode').checked = obsStudioMode;
     document.getElementById('obsPreviewWrap').style.display = obsStudioMode ? 'block' : 'none';
+    updatePreviewThumbsVisibility();
   } catch {}
 }
 
@@ -372,6 +377,7 @@ async function toggleStudioMode(enabled) {
     await obs.request('SetStudioModeEnabled', { studioModeEnabled: enabled });
     obsStudioMode = enabled;
     document.getElementById('obsPreviewWrap').style.display = enabled ? 'block' : 'none';
+    updatePreviewThumbsVisibility();
     if (enabled) await refreshScenes();
   } catch (err) { obsToast(err.message, true); }
 }
@@ -671,6 +677,97 @@ function stopStatsPolling() {
 }
 
 // =================================================================
+// Aperçu live (miniatures Program / Preview via GetSourceScreenshot)
+// =================================================================
+
+function isPreviewSectionCollapsed() {
+  const sub = document.querySelector('.obs-sub[data-key="preview"]');
+  return !!(sub && sub.classList.contains('collapsed'));
+}
+
+async function captureThumb(sceneName, imgEl, thumbEl) {
+  if (!sceneName || !imgEl) return;
+  try {
+    const baseWidth = Math.max(160, imgEl.clientWidth || thumbEl?.clientWidth || 240);
+    const targetWidth = Math.max(160, Math.min(640, Math.round(baseWidth * (window.devicePixelRatio || 1))));
+    const res = await obs.request('GetSourceScreenshot', {
+      sourceName: sceneName,
+      imageFormat: 'jpg',
+      imageWidth: targetWidth,
+      imageCompressionQuality: 60,
+    });
+    if (res && res.imageData) {
+      imgEl.src = res.imageData;
+      if (thumbEl) {
+        thumbEl.classList.add('has-img');
+        thumbEl.dataset.err = '';
+      }
+    }
+  } catch (err) {
+    if (thumbEl) thumbEl.dataset.err = err.message || 'erreur';
+    console.warn('[OBS preview]', sceneName, err);
+  }
+}
+
+async function previewTick() {
+  if (obsPreviewInFlight) return;
+  if (document.hidden) return;
+  if (obs.state !== 'connected') return;
+  if (isPreviewSectionCollapsed()) return;
+
+  obsPreviewInFlight = true;
+  try {
+    const programThumb = document.getElementById('obsThumbProgram');
+    const programImg = document.getElementById('obsThumbProgramImg');
+    const previewThumb = document.getElementById('obsThumbPreview');
+    const previewImg = document.getElementById('obsThumbPreviewImg');
+
+    const tasks = [];
+    if (obsCurrentScene) tasks.push(captureThumb(obsCurrentScene, programImg, programThumb));
+    if (obsStudioMode && obsPreviewScene) tasks.push(captureThumb(obsPreviewScene, previewImg, previewThumb));
+    await Promise.all(tasks);
+  } finally {
+    obsPreviewInFlight = false;
+  }
+}
+
+function startPreviewPolling() {
+  stopPreviewPolling();
+  if (!obsPreviewFps || obsPreviewFps <= 0) return;
+  const intervalMs = Math.max(100, Math.round(1000 / obsPreviewFps));
+  previewTick();
+  obsPreviewTimer = setInterval(previewTick, intervalMs);
+}
+
+function stopPreviewPolling() {
+  if (obsPreviewTimer) { clearInterval(obsPreviewTimer); obsPreviewTimer = null; }
+  obsPreviewInFlight = false;
+}
+
+function setPreviewFps(fps) {
+  obsPreviewFps = Number(fps) || 0;
+  const ui = loadUiState();
+  ui.previewFps = obsPreviewFps;
+  saveUiState(ui);
+  if (obs.state === 'connected') startPreviewPolling();
+
+  // Reset Program/Preview src when off, sinon laisse la dernière image
+  if (obsPreviewFps === 0) {
+    const p = document.getElementById('obsThumbProgramImg');
+    const v = document.getElementById('obsThumbPreviewImg');
+    if (p) p.removeAttribute('src');
+    if (v) v.removeAttribute('src');
+  }
+}
+
+function updatePreviewThumbsVisibility() {
+  const previewThumb = document.getElementById('obsThumbPreview');
+  const programThumb = document.getElementById('obsThumbProgram');
+  if (previewThumb) previewThumb.style.display = obsStudioMode ? 'block' : 'none';
+  if (programThumb) programThumb.classList.toggle('live', true);
+}
+
+// =================================================================
 // Modales
 // =================================================================
 
@@ -788,6 +885,15 @@ function bindObsUi() {
     catch (err) { obsToast(err.message, true); }
   });
 
+  // Aperçu live (FPS persisté)
+  const fpsSel = document.getElementById('obsPreviewFps');
+  const uiState = loadUiState();
+  if (typeof uiState.previewFps === 'number') {
+    obsPreviewFps = uiState.previewFps;
+    fpsSel.value = String(uiState.previewFps);
+  }
+  fpsSel.addEventListener('change', (e) => setPreviewFps(e.target.value));
+
   // Studio mode + transitions
   document.getElementById('obsStudioMode').addEventListener('change', (e) => toggleStudioMode(e.target.checked));
   document.getElementById('obsTransitionBtn').addEventListener('click', triggerTransition);
@@ -823,14 +929,26 @@ function bindObsUi() {
       await initialFetch();
       startStatusPolling();
       startStatsPolling();
+      startPreviewPolling();
     } catch (err) { obsToast(err.message, true); }
+  });
+
+  // Capture immédiate quand on déplie la section Aperçu, ou quand l'onglet redevient visible
+  const previewSub = document.querySelector('.obs-sub[data-key="preview"]');
+  if (previewSub) {
+    previewSub.querySelector('.obs-sub-head').addEventListener('click', () => {
+      if (!previewSub.classList.contains('collapsed') && obs.state === 'connected') previewTick();
+    });
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && obs.state === 'connected') previewTick();
   });
   document.getElementById('obsShortcutsClose').addEventListener('click', closeShortcuts);
   document.getElementById('obsShortcutsOk').addEventListener('click', closeShortcuts);
 
   // Events OBS
   obs.addEventListener('state-change', updateObsConnState);
-  obs.addEventListener('disconnected', () => { stopStatusPolling(); stopStatsPolling(); });
+  obs.addEventListener('disconnected', () => { stopStatusPolling(); stopStatsPolling(); stopPreviewPolling(); });
   obs.addEventListener('reconnecting', () => obsToast('Reconnexion à OBS…'));
   obs.addEventListener('obs-event', (e) => {
     const { type, data } = e.detail;
@@ -838,13 +956,16 @@ function bindObsUi() {
       obsCurrentScene = data.sceneName;
       renderScenes();
       refreshSceneItems();
+      previewTick();
     } else if (type === 'CurrentPreviewSceneChanged') {
       obsPreviewScene = data.sceneName;
       renderScenes();
+      previewTick();
     } else if (type === 'StudioModeStateChanged') {
       obsStudioMode = !!data.studioModeEnabled;
       document.getElementById('obsStudioMode').checked = obsStudioMode;
       document.getElementById('obsPreviewWrap').style.display = obsStudioMode ? 'block' : 'none';
+      updatePreviewThumbsVisibility();
       if (obsStudioMode) refreshScenes();
     } else if (type === 'SceneListChanged' || type === 'SceneCreated' || type === 'SceneRemoved' || type === 'SceneNameChanged') {
       refreshScenes();
