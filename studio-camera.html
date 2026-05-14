@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#0f172a">
+  <title>Caméra — VersetLive</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body {
+      height: 100%; width: 100%;
+      background: #000; color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      overflow: hidden; overscroll-behavior: none;
+    }
+
+    /* ÉCRAN DE CONFIG */
+    .setup {
+      position: fixed; inset: 0;
+      background: linear-gradient(160deg, #0f172a 0%, #1e293b 100%);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 24px; gap: 14px;
+    }
+    .setup-logo {
+      width: 64px; height: 64px;
+      background: linear-gradient(135deg, #6366f1, #a855f7);
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 32px; margin-bottom: 8px;
+    }
+    .setup h1 { font-size: 22px; font-weight: 700; }
+    .setup p {
+      color: #94a3b8; font-size: 14px; line-height: 1.5;
+      text-align: center; max-width: 320px;
+    }
+    .setup-field { width: 100%; max-width: 320px; }
+    .setup-field label {
+      display: block; font-size: 12px; color: #94a3b8;
+      margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .setup-field input, .setup-field select {
+      width: 100%; padding: 14px 16px; font-size: 16px;
+      background: #1e293b; border: 1px solid #334155;
+      color: #f1f5f9; border-radius: 8px;
+      text-align: center; letter-spacing: 2px; font-weight: 600;
+    }
+    .setup-field select { letter-spacing: normal; text-align: left; font-weight: normal; }
+    .setup-btn {
+      width: 100%; max-width: 320px;
+      padding: 16px 20px; font-size: 16px; font-weight: 600;
+      border: none; border-radius: 8px; cursor: pointer;
+      background: #10b981; color: white;
+      transition: opacity 0.15s;
+    }
+    .setup-btn:active { opacity: 0.8; }
+    .setup-btn[disabled] { opacity: 0.5; }
+    .setup-error {
+      color: #fecaca; background: rgba(239,68,68,0.15);
+      padding: 10px 14px; border-radius: 6px; font-size: 13px;
+      border-left: 3px solid #ef4444; max-width: 320px;
+    }
+
+    /* ÉCRAN LIVE */
+    .live { position: fixed; inset: 0; display: none; }
+    .live.show { display: block; }
+    .live video {
+      width: 100%; height: 100%; object-fit: cover;
+      background: #000;
+      transform: scaleX(1);
+    }
+    .live video.mirror { transform: scaleX(-1); }
+
+    .live-overlay {
+      position: fixed; inset: 0;
+      pointer-events: none;
+      display: flex; flex-direction: column;
+    }
+    .live-topbar {
+      pointer-events: auto;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 16px;
+      background: linear-gradient(180deg, rgba(0,0,0,0.6), transparent);
+    }
+    .live-status-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 12px; border-radius: 999px;
+      background: rgba(0,0,0,0.6); font-size: 13px; font-weight: 500;
+      backdrop-filter: blur(4px);
+    }
+    .live-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #fbbf24; box-shadow: 0 0 8px currentColor;
+    }
+    .live-dot.live { background: #10b981; animation: pulse 1.4s infinite; }
+    .live-dot.err { background: #ef4444; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .live-room-tag {
+      font-size: 12px; color: rgba(255,255,255,0.7);
+    }
+
+    .live-spacer { flex: 1; }
+
+    .live-bottombar {
+      pointer-events: auto;
+      display: flex; align-items: center; justify-content: space-around;
+      padding: 20px 16px calc(20px + env(safe-area-inset-bottom));
+      background: linear-gradient(0deg, rgba(0,0,0,0.6), transparent);
+      gap: 12px;
+    }
+    .live-btn {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      background: rgba(0,0,0,0.55); color: white;
+      border: 1px solid rgba(255,255,255,0.2);
+      padding: 12px 16px; border-radius: 12px;
+      font-size: 12px; font-weight: 500;
+      backdrop-filter: blur(6px);
+      cursor: pointer; transition: opacity 0.15s;
+      min-width: 76px;
+    }
+    .live-btn:active { opacity: 0.7; }
+    .live-btn-icon { font-size: 22px; line-height: 1; }
+    .live-btn.danger { background: rgba(239,68,68,0.85); border-color: rgba(255,255,255,0.3); }
+  </style>
+</head>
+<body>
+
+  <!-- Écran de configuration -->
+  <div class="setup" id="setupScreen">
+    <div class="setup-logo">📷</div>
+    <h1>VersetLive Caméra</h1>
+    <p>Connecte ton téléphone au Studio. Saisis le <strong>code de salle</strong> affiché sur l'ordinateur ou flashe le QR.</p>
+
+    <div class="setup-field">
+      <label>Code de salle</label>
+      <input id="roomInput" type="text" placeholder="VL-XXXXX" autocapitalize="characters" autocomplete="off" spellcheck="false" maxlength="10">
+    </div>
+
+    <div class="setup-field">
+      <label>Caméra</label>
+      <select id="facingSelect">
+        <option value="environment">Caméra arrière</option>
+        <option value="user">Caméra avant (selfie)</option>
+      </select>
+    </div>
+
+    <button class="setup-btn" id="connectBtn">▶ Se connecter</button>
+
+    <div class="setup-error" id="setupError" hidden></div>
+  </div>
+
+  <!-- Écran en direct -->
+  <div class="live" id="liveScreen">
+    <video id="preview" autoplay playsinline muted></video>
+    <div class="live-overlay">
+      <div class="live-topbar">
+        <span class="live-status-pill"><span class="live-dot" id="liveDot"></span><span id="liveStatusText">Connexion…</span></span>
+        <span class="live-room-tag" id="liveRoomTag"></span>
+      </div>
+      <div class="live-spacer"></div>
+      <div class="live-bottombar">
+        <button class="live-btn" id="switchBtn">
+          <span class="live-btn-icon">🔄</span>
+          <span>Caméra</span>
+        </button>
+        <button class="live-btn" id="muteBtn">
+          <span class="live-btn-icon">🎤</span>
+          <span id="muteLabel">Micro</span>
+        </button>
+        <button class="live-btn danger" id="stopBtn">
+          <span class="live-btn-icon">⏹</span>
+          <span>Arrêter</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="peerjs.min.js"></script>
+  <script src="studio-camera.js"></script>
+</body>
+</html>

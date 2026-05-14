@@ -19,7 +19,8 @@
       </div>
       <button class="btn" id="helpBtn">❔ Aide OBS</button>
       <button class="btn" id="openPresenterBtn" title="Vue présentateur (orateur)">👁 Présentateur</button>
-      <button class="btn btn-primary" id="openObsBtn">📺 Ouvrir vue OBS</button>
+      <a class="btn btn-primary" href="studio.html" target="_blank" title="Mixeur multi-caméras + enregistrement + sortie projecteur">🎬 Studio</a>
+      <button class="btn" id="openObsBtn">📺 Ouvrir vue OBS</button>
       <button class="btn btn-danger" id="clearLiveBtn">⏹ Effacer écran</button>
     </div>
   </div>
@@ -348,6 +349,34 @@
               <div class="obs-sub-body">
                 <div class="obs-scenes-list" id="obsScenesList">
                   <div class="obs-empty">Connectez-vous à OBS</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Aperçu live -->
+            <div class="obs-sub" data-key="preview">
+              <div class="obs-sub-head"><span class="obs-caret">▾</span><span>🖥 Aperçu live</span></div>
+              <div class="obs-sub-body">
+                <div class="obs-row">
+                  <label>Rafraîchissement</label>
+                  <select id="obsPreviewFps">
+                    <option value="0">Désactivé</option>
+                    <option value="1">1 fps</option>
+                    <option value="2" selected>2 fps</option>
+                    <option value="5">5 fps</option>
+                  </select>
+                </div>
+                <div class="obs-thumbs" id="obsThumbs">
+                  <div class="obs-thumb" id="obsThumbPreview" style="display:none;">
+                    <div class="obs-thumb-badge prv">PRV</div>
+                    <img id="obsThumbPreviewImg" alt="Aperçu Preview">
+                    <div class="obs-thumb-empty">en attente…</div>
+                  </div>
+                  <div class="obs-thumb" id="obsThumbProgram">
+                    <div class="obs-thumb-badge pgm">● LIVE</div>
+                    <img id="obsThumbProgramImg" alt="Aperçu Program">
+                    <div class="obs-thumb-empty">en attente…</div>
+                  </div>
                 </div>
               </div>
             </div>

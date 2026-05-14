@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Sortie projecteur — VersetLive</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; background: #000; overflow: hidden; cursor: none; }
+    body { display: flex; align-items: center; justify-content: center; }
+    video {
+      width: 100%; height: 100%; object-fit: contain;
+      background: #000;
+    }
+    .hint {
+      position: fixed; top: 12px; left: 12px;
+      color: rgba(255,255,255,0.5); font-family: system-ui, sans-serif;
+      font-size: 13px; padding: 8px 12px; background: rgba(0,0,0,0.4);
+      border-radius: 6px; pointer-events: none; cursor: default;
+      transition: opacity 0.5s; opacity: 1;
+    }
+    .hint.hide { opacity: 0; }
+    body:hover { cursor: default; }
+    body:hover .hint { opacity: 1; }
+  </style>
+</head>
+<body>
+  <video id="output" autoplay playsinline></video>
+  <div class="hint" id="hint">
+    Glisse cette fenêtre sur l'écran du projecteur, puis appuie sur <b>F11</b> pour plein écran.<br>
+    Ferme cette fenêtre pour arrêter la sortie.
+  </div>
+
+  <script>
+    const video = document.getElementById('output');
+    const hint = document.getElementById('hint');
+
+    // Appelé par la fenêtre parente (studio.js)
+    window.setProgramStream = function (stream) {
+      video.srcObject = stream;
+      video.play().catch(() => {});
+    };
+
+    // Masquer l'aide après 6s
+    setTimeout(() => hint.classList.add('hide'), 6000);
+    document.addEventListener('mousemove', () => {
+      hint.classList.remove('hide');
+      clearTimeout(window.__hintTimer);
+      window.__hintTimer = setTimeout(() => hint.classList.add('hide'), 3000);
+    });
+
+    // F11 pour plein écran (Mac : Cmd+Ctrl+F)
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'F11' || (e.key === 'f' && (e.metaKey || e.ctrlKey))) {
+        e.preventDefault();
+        if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+        else document.exitFullscreen();
+      }
+      if (e.key === 'Escape' && document.fullscreenElement) document.exitFullscreen();
+    });
+
+    // Si la fenêtre parente est fermée, on se ferme aussi
+    setInterval(() => {
+      if (!window.opener || window.opener.closed) window.close();
+    }, 2000);
+  </script>
+</body>
+</html>

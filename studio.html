@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Studio — VersetLive</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="studio-body">
+
+  <div class="topbar">
+    <div class="logo">
+      <div class="logo-icon">🎬</div>
+      <div>
+        <div>Studio VersetLive</div>
+        <div style="font-size:11px; color:var(--text-secondary); font-weight:400;">Mixeur caméras · Enregistrement · Projecteur</div>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <span class="studio-status" id="studioStatus">Prêt</span>
+      <button class="btn" id="openProjectorBtn" title="Ouvre une fenêtre à glisser sur le projecteur">📽 Sortie projecteur</button>
+      <button class="btn btn-danger" id="recordBtn">⏺ Enregistrer</button>
+      <a class="btn" href="index.html">← Retour panneau</a>
+    </div>
+  </div>
+
+  <div class="studio-layout">
+
+    <!-- COLONNE GAUCHE : sources caméras + audio -->
+    <div class="studio-col studio-col-left">
+
+      <div class="section">
+        <div class="section-title">
+          <span>🎥 Sources caméra</span>
+          <button class="btn btn-sm btn-primary" id="addCameraBtn">+ Ajouter caméra</button>
+        </div>
+        <div class="studio-add-row" id="addCameraRow" hidden>
+          <select id="cameraSelect"></select>
+          <button class="btn btn-sm" id="cameraAddConfirm">Ajouter</button>
+          <button class="btn btn-sm" id="cameraAddCancel">×</button>
+        </div>
+        <div class="studio-sources" id="sourcesList">
+          <div class="studio-empty">Aucune caméra ajoutée. Clique sur « + Ajouter caméra ».</div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">🎚 Audio</div>
+        <div class="field">
+          <label>Microphone</label>
+          <select id="micSelect">
+            <option value="">— Pas de micro —</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Volume micro</label>
+          <div class="range-row">
+            <input type="range" id="micGain" min="0" max="200" step="1" value="100">
+            <span class="range-value" id="micGainVal">100 %</span>
+          </div>
+        </div>
+        <div class="studio-meter">
+          <div class="studio-meter-bar" id="audioMeter"></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">
+          <span>📱 Caméras à distance</span>
+          <button class="btn btn-sm" id="remoteHelpBtn" title="Aide">?</button>
+        </div>
+        <div class="studio-remote-room">
+          <div class="studio-remote-row">
+            <span class="studio-remote-label">Code de salle</span>
+            <span class="studio-remote-code" id="roomCode">…</span>
+            <button class="btn btn-sm" id="regenRoomBtn" title="Nouveau code">↻</button>
+          </div>
+          <div class="studio-remote-qr" id="roomQr"></div>
+          <div class="studio-remote-url" id="roomUrl">…</div>
+          <div class="studio-remote-status" id="remoteStatus">Initialisation…</div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">📖 Verset (depuis panneau principal)</div>
+        <div class="studio-verse-preview" id="verseStatus">
+          <div class="studio-empty">Aucun verset affiché.<br><small>Diffuse depuis l'onglet principal.</small></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- COLONNE CENTRALE : programme + scènes -->
+    <div class="studio-col studio-col-center">
+
+      <div class="studio-program-wrap">
+        <div class="studio-program-label">
+          <span class="studio-live-dot"></span>
+          PROGRAMME — ce qui part vers le projecteur et l'enregistrement
+        </div>
+        <div class="studio-program-frame">
+          <canvas id="programCanvas" width="1920" height="1080"></canvas>
+        </div>
+        <div class="studio-program-info" id="programInfo">1920×1080 · 30 fps · Aucune caméra</div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">🎬 Scènes</div>
+        <div class="studio-scenes" id="scenesList">
+          <div class="studio-empty">Ajoute des caméras pour générer des scènes.</div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- Modal Aide caméras distantes -->
+  <div class="modal-backdrop" id="remoteHelpModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>📱 Caméras à distance</h2>
+        <button class="modal-close" id="remoteHelpClose">×</button>
+      </div>
+      <div class="modal-body">
+        <p>Tu peux utiliser n'importe quel téléphone ou autre appareil comme caméra supplémentaire :</p>
+        <ol>
+          <li>Sur le téléphone, ouvre l'URL ou flashe le QR code affiché à gauche</li>
+          <li>Le téléphone demande l'autorisation caméra/micro → accepte</li>
+          <li>Choisis la caméra (avant / arrière) puis clique <strong>Se connecter</strong></li>
+          <li>Le téléphone apparaît automatiquement comme nouvelle source dans le Studio</li>
+        </ol>
+        <p>La connexion se fait en <strong>WebRTC pair-à-pair</strong> via le service PeerJS Cloud (gratuit). Une fois établie, la vidéo passe en direct entre les deux appareils.</p>
+        <h3>Astuces</h3>
+        <ul>
+          <li>Pour le moindre délai vidéo, mets téléphone et Mac sur le <strong>même WiFi</strong></li>
+          <li>Le téléphone doit garder son écran allumé pendant la diffusion (réglages → ne pas laisser l'écran s'éteindre)</li>
+          <li>Tu peux connecter plusieurs téléphones simultanément</li>
+        </ul>
+      </div>
+      <div class="modal-footer">
+        <div style="flex:1;"></div>
+        <button class="btn btn-primary" id="remoteHelpOk">Compris</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="peerjs.min.js"></script>
+  <script src="qrcode.js"></script>
+  <script src="studio.js"></script>
+</body>
+</html>
