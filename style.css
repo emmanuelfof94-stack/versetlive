@@ -1355,3 +1355,138 @@ input[type="range"]::-webkit-slider-thumb {
   font-size: 12px;
   border-radius: 4px;
 }
+
+/* ====== CONTRÔLE OBS ====== */
+.obs-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.obs-conn-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.obs-conn-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-secondary);
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.obs-conn-dot.disconnected { background: var(--text-secondary); }
+.obs-conn-dot.connecting,
+.obs-conn-dot.authenticating {
+  background: #f59e0b;
+  animation: pulse 1.2s infinite;
+}
+.obs-conn-dot.connected {
+  background: var(--success);
+  box-shadow: 0 0 8px var(--success);
+}
+
+.obs-actions-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.obs-actions-row .btn { flex: 1; }
+.obs-actions-row .btn[id="obsSettingsBtn"],
+.obs-actions-row .btn[id="obsRefreshBtn"] {
+  flex: 0 0 auto;
+  min-width: 36px;
+}
+
+.obs-panel-content.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.obs-subtitle {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 10px 0 6px;
+}
+
+.obs-scenes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 180px;
+  overflow-y: auto;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px;
+}
+
+.obs-scene-btn {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border: 1px solid transparent;
+  padding: 7px 10px;
+  text-align: left;
+  font-size: 13px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.obs-scene-btn:hover { background: var(--bg-secondary); }
+.obs-scene-btn.active {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent-hover);
+  font-weight: 600;
+}
+
+.obs-empty {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-style: italic;
+  padding: 8px;
+  text-align: center;
+}
+
+.obs-stream-btn.active {
+  background: var(--danger);
+  color: white;
+  border-color: var(--danger);
+}
+.obs-record-btn.active {
+  background: #dc2626;
+  color: white;
+  border-color: #dc2626;
+}
+
+.obs-info {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+  font-family: "SF Mono", Menlo, monospace;
+  text-align: center;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--text-primary);
+}
+.checkbox-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}

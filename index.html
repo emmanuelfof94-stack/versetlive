@@ -325,6 +325,36 @@
         </div>
 
         <div class="section">
+          <div class="section-title obs-section-header">
+            <span>🎬 Contrôle OBS</span>
+            <div class="obs-conn-status">
+              <span class="obs-conn-dot disconnected" id="obsConnDot"></span>
+              <span id="obsConnLabel">Déconnecté</span>
+            </div>
+          </div>
+
+          <div class="obs-actions-row">
+            <button class="btn btn-sm btn-primary" id="obsConnectBtn">🔌 Connecter</button>
+            <button class="btn btn-sm" id="obsSettingsBtn" title="Paramètres de connexion">⚙</button>
+            <button class="btn btn-sm" id="obsRefreshBtn" title="Rafraîchir">↻</button>
+          </div>
+
+          <div class="obs-panel-content" id="obsPanelContent">
+            <div class="obs-subtitle">Scènes</div>
+            <div class="obs-scenes-list" id="obsScenesList">
+              <div class="obs-empty">Connectez-vous à OBS</div>
+            </div>
+
+            <div class="obs-subtitle">Diffusion</div>
+            <button class="btn btn-block obs-stream-btn" id="obsStreamBtn">▶ Démarrer le stream</button>
+            <div class="obs-info" id="obsStreamInfo" style="display:none;"></div>
+
+            <button class="btn btn-block obs-record-btn" id="obsRecordBtn" style="margin-top:8px;">⏺ Démarrer l'enreg.</button>
+            <div class="obs-info" id="obsRecordInfo" style="display:none;"></div>
+          </div>
+        </div>
+
+        <div class="section">
           <div class="section-title">📜 Diffusés récemment</div>
           <div id="historyList"></div>
         </div>
@@ -371,6 +401,51 @@
 
       <div style="text-align:right; margin-top:20px;">
         <button class="btn btn-primary" id="closeHelp">Compris</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Paramètres OBS -->
+  <div class="modal-backdrop" id="obsSettingsModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>🎬 Paramètres OBS</h2>
+        <button class="modal-close" id="obsSettingsClose">×</button>
+      </div>
+      <div class="modal-body">
+        <p>Pour piloter OBS, active d'abord le serveur WebSocket dans OBS Studio :</p>
+        <ol>
+          <li>Dans OBS : menu <strong>Outils</strong> → <strong>Paramètres du serveur WebSocket</strong></li>
+          <li>Coche <strong>« Activer le serveur WebSocket »</strong> (port par défaut : <code>4455</code>)</li>
+          <li>Coche <strong>« Activer l'authentification »</strong> et copie le mot de passe</li>
+          <li>Renseigne ces infos ci-dessous puis clique sur <strong>Enregistrer</strong></li>
+        </ol>
+
+        <div class="form-grid" style="margin-top:16px;">
+          <div class="field span-2">
+            <label>Hôte</label>
+            <input type="text" id="obsHost" value="localhost" placeholder="localhost ou adresse IP">
+          </div>
+          <div class="field">
+            <label>Port</label>
+            <input type="number" id="obsPort" value="4455" min="1" max="65535">
+          </div>
+          <div class="field span-3">
+            <label>Mot de passe</label>
+            <input type="password" id="obsPassword" placeholder="Laisser vide si auth désactivée">
+          </div>
+          <div class="field span-3">
+            <label class="checkbox-label">
+              <input type="checkbox" id="obsAutoConnect">
+              Se connecter automatiquement au démarrage
+            </label>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <div style="flex:1;"></div>
+        <button class="btn" id="obsSettingsCancel">Annuler</button>
+        <button class="btn btn-primary" id="obsSettingsSave">Enregistrer & connecter</button>
       </div>
     </div>
   </div>
@@ -459,5 +534,6 @@
   <script src="songselect-import.js"></script>
   <script src="titles.js"></script>
   <script src="timer.js"></script>
+  <script src="obs-control.js"></script>
 </body>
 </html>
