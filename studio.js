@@ -817,11 +817,7 @@ function rebuildProgramStream() {
     tvMediaCall = signalingPeer.call(tvPeerId, videoOnly);
     if (tvMediaCall) {
       tvMediaCall.on('close', () => {
-        if (tvMediaCall) {
-          tvMediaCall = null;
-          const tg = $('tvVideoToggle');
-          if (tg) tg.checked = false;
-        }
+        if (tvMediaCall) tvMediaCall = null;
       });
     }
   }
@@ -1263,10 +1259,7 @@ function setTvConnected(connected) {
   $('tvDot').classList.toggle('connected', connected);
   $('tvPairRow').hidden = connected;
   $('tvStatusRow').hidden = !connected;
-  if (!connected) {
-    const tvg = $('tvVideoToggle');
-    if (tvg) tvg.checked = false;
-  }
+  // (toggle supprimé — mode géré via radio buttons)
   // Mise à jour du panneau Sorties unifié
   const card = $('outputTvCard');
   if (card) card.classList.toggle('connected', connected);
@@ -1380,14 +1373,37 @@ function stopTvSnapshots() {
   }
 }
 
+// ============ Mode de transmission vidéo TV ============
+const TV_VIDEO_MODE_KEY = 'versetlive:tv-video-mode';
+let tvVideoMode = localStorage.getItem(TV_VIDEO_MODE_KEY) || 'snapshot'; // 'snapshot' | 'webrtc'
+
+function setTvVideoMode(mode) {
+  if (mode !== 'snapshot' && mode !== 'webrtc') return;
+  if (tvVideoMode === mode) return;
+  tvVideoMode = mode;
+  try { localStorage.setItem(TV_VIDEO_MODE_KEY, mode); } catch (e) {}
+  // Coupe l'ancien mode et applique le nouveau pour la scène en cours
+  stopTvSnapshots();
+  stopTvVideo(true);
+  autoSwitchTvForScene(programScene);
+}
+
 // Auto-switch : appelé depuis setProgramScene
 function autoSwitchTvForScene(scene) {
   if (!tvDataConn || !tvDataConn.open) return;
-  // En mode texte pur (verset plein écran ou noir), on coupe les snapshots
+  // En mode texte pur (verset plein écran ou noir), on coupe tout transport vidéo
   // et la TV retombe sur l'affichage texte via obs.js
   if (!scene || scene.kind === 'verse' || scene.kind === 'black') {
     stopTvSnapshots();
+    stopTvVideo(true);
+    return;
+  }
+  // Sinon, démarre selon le mode choisi
+  if (tvVideoMode === 'webrtc') {
+    stopTvSnapshots();
+    startTvVideo();
   } else {
+    stopTvVideo(true);
     startTvSnapshots();
   }
 }
@@ -1487,13 +1503,13 @@ function disconnectFromTv(silent) {
 function startTvVideo() {
   if (!tvPeerId || !signalingPeer || signalingPeer.disconnected) {
     toast('TV pas connectée', true);
-    $('tvVideoToggle').checked = false;
+    /* toggle supprimé — mode sélectionné via radio buttons */
     return;
   }
   if (!programStream) rebuildProgramStream();
   if (!programStream || !programStream.getVideoTracks().length) {
     toast('Aucune source vidéo dans le programme. Ajoute une caméra d\'abord.', true);
-    $('tvVideoToggle').checked = false;
+    /* toggle supprimé — mode sélectionné via radio buttons */
     return;
   }
   if (tvMediaCall) {
@@ -1506,20 +1522,20 @@ function startTvVideo() {
   tvMediaCall = signalingPeer.call(tvPeerId, videoOnly);
   if (!tvMediaCall) {
     toast('Impossible de démarrer la vidéo vers la TV', true);
-    $('tvVideoToggle').checked = false;
+    /* toggle supprimé — mode sélectionné via radio buttons */
     return;
   }
   tvMediaCall.on('close', () => {
     if (tvMediaCall) {
       tvMediaCall = null;
-      $('tvVideoToggle').checked = false;
+      /* toggle supprimé — mode sélectionné via radio buttons */
     }
   });
   tvMediaCall.on('error', (err) => {
     console.warn('TV call error', err);
     toast('Erreur vidéo TV : ' + (err.type || err.message || 'inconnue'), true);
     tvMediaCall = null;
-    $('tvVideoToggle').checked = false;
+    /* toggle supprimé — mode sélectionné via radio buttons */
   });
   toast('Mix vidéo envoyé à la TV');
 }
@@ -1553,10 +1569,15 @@ function bindTvUi() {
   $('tvConnectBtn').addEventListener('click', () => connectToTv(input.value));
   $('tvDisconnectBtn').addEventListener('click', () => disconnectFromTv(false));
 
-  $('tvVideoToggle').addEventListener('change', (e) => {
-    if (e.target.checked) startTvVideo();
-    else stopTvVideo(false);
-  });
+  // Mode de transmission vidéo (snapshot vs webrtc) — radio
+  const modeSnapshot = $('tvModeSnapshot');
+  const modeWebrtc = $('tvModeWebrtc');
+  if (modeSnapshot && modeWebrtc) {
+    if (tvVideoMode === 'webrtc') modeWebrtc.checked = true;
+    else modeSnapshot.checked = true;
+    modeSnapshot.addEventListener('change', () => modeSnapshot.checked && setTvVideoMode('snapshot'));
+    modeWebrtc.addEventListener('change', () => modeWebrtc.checked && setTvVideoMode('webrtc'));
+  }
 }
 
 // ============ Diffusion multi-plateformes (RELAIS LOCAL) ============

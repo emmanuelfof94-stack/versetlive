@@ -3276,3 +3276,51 @@ input[type="time"] {
   background: rgba(99, 102, 241, 0.04);
   border-style: dashed;
 }
+
+/* ============ TV : sélecteur de mode (snapshot vs WebRTC) ============ */
+.studio-tv-mode-title {
+  font-size: 11px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+.studio-tv-mode-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  margin-bottom: 6px;
+  transition: border-color 0.15s, background 0.15s;
+}
+.studio-tv-mode-option:hover { border-color: var(--accent); }
+.studio-tv-mode-option:has(input:checked) {
+  border-color: var(--accent-hover);
+  background: rgba(99, 102, 241, 0.08);
+}
+.studio-tv-mode-option input[type="radio"] {
+  margin-top: 3px;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+.studio-tv-mode-option strong {
+  font-size: 13px;
+  color: var(--text-primary);
+  display: block;
+  margin-bottom: 2px;
+}
+.studio-tv-mode-desc {
+  font-size: 11px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+.studio-tv-mode-desc em {
+  color: var(--warning, #f59e0b);
+  font-style: normal;
+}

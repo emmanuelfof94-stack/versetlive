@@ -456,13 +456,23 @@
           </div>
 
           <div class="studio-tv-controls">
-            <label class="studio-tv-toggle">
-              <input type="checkbox" id="tvVideoToggle">
-              <span>🎥 Envoyer le mix vidéo (caméras + verset incrusté)</span>
+            <div class="studio-tv-mode-title">Mode de transmission vidéo</div>
+            <label class="studio-tv-mode-option">
+              <input type="radio" name="tvVideoMode" value="snapshot" id="tvModeSnapshot" checked>
+              <div>
+                <strong>📸 Snapshots binaires</strong>
+                <div class="studio-tv-mode-desc">Full HD 30 fps, compatible avec tout navigateur (TV ATL, vieux smart TV, etc.). Bande passante ~80-120 Mbps.</div>
+              </div>
             </label>
-            <div class="studio-tv-hint">
-              Par défaut, la TV affiche seulement le verset/chant/titre en grand. Active ce mode pour qu'elle affiche aussi les caméras et la composition du studio.<br>
-              <em>Note : sur certaines TVs anciennes, la vidéo WebRTC peut ne pas fonctionner — auquel cas reste en mode texte.</em>
+            <label class="studio-tv-mode-option">
+              <input type="radio" name="tvVideoMode" value="webrtc" id="tvModeWebrtc">
+              <div>
+                <strong>🎥 WebRTC vidéo native</strong>
+                <div class="studio-tv-mode-desc">Vrai stream vidéo encodé VP8/VP9 30+ fps, qualité <strong>maximale absolue</strong>. Bande passante ~5-15 Mbps. <em>Ne marche pas sur les TVs trop anciennes (ATL, vieux Tizen) — autoplay bloqué.</em></div>
+              </div>
+            </label>
+            <div class="studio-tv-hint" style="margin-top:8px;">
+              Switch automatique : la TV affiche le verset texte sur les scènes « Verset plein écran » / « Noir », et l'image du studio (caméras + scènes) sur les autres scènes.
             </div>
           </div>
         </div>
