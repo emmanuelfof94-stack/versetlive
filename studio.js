@@ -1299,13 +1299,13 @@ let tvSnapshotTimer = null;
 let tvSnapshotCanvas = null;
 let tvSnapshotCtx = null;
 
-// Réglages qualité : Full HD 1920x1080, JPEG 75%, 10 fps
-// Bande passante ~30-50 Mbps — OK sur Wi-Fi 5/6 moderne. Le backpressure
-// (bufferedAmount > 1.5 MB) skip les frames si la connexion sature.
+// Réglages qualité MAX : Full HD 1920x1080, JPEG 92% (quasi lossless), 15 fps
+// Bande passante estimée ~80-130 Mbps sur Wi-Fi local — confortable en Wi-Fi 5/6.
+// Le backpressure (bufferedAmount > 3 MB) skip les frames si saturation.
 const TV_SNAPSHOT_W = 1920;
 const TV_SNAPSHOT_H = 1080;
-const TV_SNAPSHOT_QUALITY = 0.75;
-const TV_SNAPSHOT_INTERVAL_MS = 100; // 10 fps
+const TV_SNAPSHOT_QUALITY = 0.92;
+const TV_SNAPSHOT_INTERVAL_MS = 67; // ≈ 15 fps
 
 function ensureTvSnapshotCanvas() {
   if (!tvSnapshotCanvas) {
@@ -1324,7 +1324,7 @@ function captureAndSendSnapshot() {
   // Backpressure : si le buffer du data channel est trop rempli, on saute cette frame
   try {
     const dc = tvDataConn._dc || tvDataConn.dataChannel;
-    if (dc && dc.bufferedAmount > 1_500_000) {
+    if (dc && dc.bufferedAmount > 3_000_000) { // 3 MB → on patiente
       skippedFrames++;
       return;
     }
