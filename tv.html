@@ -182,9 +182,11 @@
   </div>
 
   <!-- Mix complet (caméras) en plein écran quand activé -->
-  <!-- muted obligatoire : autoplay bloqué sans interaction utilisateur tant que la vidéo a du son.
-       L'audio du service passe de toute façon par le PA, pas par la TV. -->
+  <!-- muted obligatoire : autoplay bloqué sans interaction utilisateur tant que la vidéo a du son. -->
   <video class="program-video" id="programVideo" autoplay playsinline muted></video>
+
+  <!-- Snapshot mode (image canvas envoyée toutes les 200ms) — alternative ultra-compatible -->
+  <img class="program-video" id="programSnapshot" alt="">
 
   <!-- Bouton de secours si l'autoplay est quand même bloqué (TVs très restrictives) -->
   <button class="play-fallback" id="playFallback" hidden>▶ Toucher pour démarrer la vidéo</button>
@@ -281,6 +283,27 @@
         }
       }
 
+      // ============ Snapshot mode (5 fps JPEG via data channel) ============
+      let snapshotUrl = null;
+      function showSnapshot(arrayBuffer) {
+        try {
+          const blob = new Blob([arrayBuffer], { type: 'image/jpeg' });
+          const url = URL.createObjectURL(blob);
+          const img = $('programSnapshot');
+          img.src = url;
+          img.classList.add('show');
+          // Révoquer l'ancienne URL pour ne pas faire fuir la mémoire
+          if (snapshotUrl) URL.revokeObjectURL(snapshotUrl);
+          snapshotUrl = url;
+        } catch (e) { /* ignore */ }
+      }
+      function hideSnapshot() {
+        const img = $('programSnapshot');
+        img.classList.remove('show');
+        img.removeAttribute('src');
+        if (snapshotUrl) { URL.revokeObjectURL(snapshotUrl); snapshotUrl = null; }
+      }
+
       function initPeer() {
         peer = new Peer(peerId, { debug: 1 });
 
@@ -330,6 +353,15 @@
             }
             if (msg.type === 'tv-disconnect') {
               try { conn.close(); } catch (e) {}
+              return;
+            }
+            if (msg.type === 'snapshot' && msg.data) {
+              showSnapshot(msg.data);
+              return;
+            }
+            if (msg.type === 'tv-mode') {
+              if (msg.mode === 'text') hideSnapshot();
+              // mode 'snapshot' : on attend les frames qui arrivent
               return;
             }
             // show / showTitle / clear / style → forward to obs.js via BroadcastChannel

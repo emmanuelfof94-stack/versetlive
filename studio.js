@@ -620,6 +620,8 @@ function setProgramScene(scene) {
   if (window.IntroOutro) window.IntroOutro.onSceneChange(scene);
   // Trigger lecture vidéo si applicable
   if (window.VideoLibrary) window.VideoLibrary.onSceneChange(scene);
+  // Auto-switch TV : texte si scène 'verse'/'black', snapshot canvas sinon
+  autoSwitchTvForScene(scene);
 }
 
 function setPreviewScene(scene) {
@@ -1233,6 +1235,65 @@ function sendToTv(msg) {
   try { tvDataConn.send(msg); } catch (e) {}
 }
 
+// ============ Snapshots canvas → TV (5 fps) ============
+// Approche alternative au WebRTC vidéo : envoie des JPEG via le data channel.
+// Compatible avec tout navigateur (juste <img src>), pas de blocage autoplay,
+// pas de souci de codec WebRTC. ~5 fps suffit pour de la projection en salle.
+let tvSnapshotTimer = null;
+let tvSnapshotCanvas = null;
+let tvSnapshotCtx = null;
+
+function ensureTvSnapshotCanvas() {
+  if (!tvSnapshotCanvas) {
+    tvSnapshotCanvas = document.createElement('canvas');
+    tvSnapshotCanvas.width = 1280;
+    tvSnapshotCanvas.height = 720;
+    tvSnapshotCtx = tvSnapshotCanvas.getContext('2d', { alpha: false });
+  }
+}
+
+function captureAndSendSnapshot() {
+  if (!tvDataConn || !tvDataConn.open) return;
+  if (!programCanvas) return;
+  ensureTvSnapshotCanvas();
+  // Downscale 1920x1080 → 1280x720 pour réduire la bande passante
+  tvSnapshotCtx.drawImage(programCanvas, 0, 0, tvSnapshotCanvas.width, tvSnapshotCanvas.height);
+  tvSnapshotCanvas.toBlob(async (blob) => {
+    if (!blob || !tvDataConn || !tvDataConn.open) return;
+    try {
+      const buf = await blob.arrayBuffer();
+      // PeerJS sait envoyer un ArrayBuffer directement
+      tvDataConn.send({ type: 'snapshot', data: buf });
+    } catch (e) { /* ignore */ }
+  }, 'image/jpeg', 0.55);
+}
+
+function startTvSnapshots() {
+  if (tvSnapshotTimer) return;
+  sendToTv({ type: 'tv-mode', mode: 'snapshot' });
+  tvSnapshotTimer = setInterval(captureAndSendSnapshot, 200); // 5 fps
+}
+
+function stopTvSnapshots() {
+  if (tvSnapshotTimer) {
+    clearInterval(tvSnapshotTimer);
+    tvSnapshotTimer = null;
+    sendToTv({ type: 'tv-mode', mode: 'text' });
+  }
+}
+
+// Auto-switch : appelé depuis setProgramScene
+function autoSwitchTvForScene(scene) {
+  if (!tvDataConn || !tvDataConn.open) return;
+  // En mode texte pur (verset plein écran ou noir), on coupe les snapshots
+  // et la TV retombe sur l'affichage texte via obs.js
+  if (!scene || scene.kind === 'verse' || scene.kind === 'black') {
+    stopTvSnapshots();
+  } else {
+    startTvSnapshots();
+  }
+}
+
 function sendCurrentVerseToTv() {
   if (!verseState) {
     sendToTv({ type: 'clear' });
@@ -1280,6 +1341,8 @@ function connectToTv(code) {
     toast(`TV ${c} connectée`);
     // Pousser l'état actuel
     sendCurrentVerseToTv();
+    // Démarrer le mode auto (snapshots si scène ≠ verset/noir)
+    autoSwitchTvForScene(programScene);
   });
 
   conn.on('data', (msg) => {
@@ -1297,6 +1360,7 @@ function connectToTv(code) {
       setTvConnected(false);
       setTvStatusText('Déconnecté');
       stopTvVideo(/* silent */ true);
+      if (tvSnapshotTimer) { clearInterval(tvSnapshotTimer); tvSnapshotTimer = null; }
       toast('TV déconnectée');
     }
   });
@@ -1310,6 +1374,7 @@ function connectToTv(code) {
 
 function disconnectFromTv(silent) {
   stopTvVideo(true);
+  if (tvSnapshotTimer) { clearInterval(tvSnapshotTimer); tvSnapshotTimer = null; }
   if (tvDataConn) {
     try { tvDataConn.send({ type: 'tv-disconnect' }); } catch (e) {}
     try { tvDataConn.close(); } catch (e) {}
