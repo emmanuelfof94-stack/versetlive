@@ -540,6 +540,21 @@ function rebuildProgramStream() {
   if (outputWindow && !outputWindow.closed && outputWindow.setProgramStream) {
     outputWindow.setProgramStream(programStream);
   }
+
+  // Si la TV reçoit la vidéo, refaire l'appel avec le nouveau stream
+  if (tvMediaCall && tvPeerId && signalingPeer && !signalingPeer.disconnected) {
+    try { tvMediaCall.close(); } catch (e) {}
+    tvMediaCall = signalingPeer.call(tvPeerId, programStream);
+    if (tvMediaCall) {
+      tvMediaCall.on('close', () => {
+        if (tvMediaCall) {
+          tvMediaCall = null;
+          const tg = $('tvVideoToggle');
+          if (tg) tg.checked = false;
+        }
+      });
+    }
+  }
 }
 
 // ============ Projecteur ============
@@ -669,13 +684,23 @@ try {
     else if (msg.type === 'showTitle') applyVerseState({ ...msg.payload, kind: 'title' });
     else if (msg.type === 'clear') applyVerseState({ style: verseState?.style });
     else if (msg.type === 'style') applyVerseState({ ...(verseState || {}), style: msg.payload });
+    // Forward to TV (si connectée)
+    sendToTv(msg);
   });
 } catch (e) {}
 
 // Storage fallback (autre onglet)
 window.addEventListener('storage', (e) => {
   if (e.key !== STORAGE_KEY || !e.newValue) return;
-  try { applyVerseState(JSON.parse(e.newValue)); } catch (err) {}
+  try {
+    const state = JSON.parse(e.newValue);
+    applyVerseState(state);
+    // Forward to TV
+    if (state.kind === 'title' && state.title) sendToTv({ type: 'showTitle', payload: state });
+    else if (state.text) sendToTv({ type: 'show', payload: state });
+    else sendToTv({ type: 'clear' });
+    if (state.style) sendToTv({ type: 'style', payload: state.style });
+  } catch (err) {}
 });
 
 // ============ Utilitaires ============
@@ -908,6 +933,190 @@ function bindRemoteHelp() {
     if (confirm('Générer un nouveau code de salle ? Les téléphones actuellement connectés seront déconnectés.')) {
       regenerateRoom();
     }
+  });
+}
+
+// ============ Connexion TV (PeerJS) ============
+const TV_PEER_PREFIX = 'versetlive-tv-';
+let tvDataConn = null;
+let tvMediaCall = null;
+let tvPeerId = null;
+
+function setTvConnected(connected) {
+  $('tvDot').classList.toggle('connected', connected);
+  $('tvPairRow').hidden = connected;
+  $('tvStatusRow').hidden = !connected;
+  if (!connected) {
+    $('tvVideoToggle').checked = false;
+  }
+}
+
+function setTvStatusText(text) {
+  $('tvStatusText').textContent = text;
+}
+
+function sendToTv(msg) {
+  if (!tvDataConn || !tvDataConn.open) return;
+  try { tvDataConn.send(msg); } catch (e) {}
+}
+
+function sendCurrentVerseToTv() {
+  if (!verseState) {
+    sendToTv({ type: 'clear' });
+    return;
+  }
+  if (verseState.style) sendToTv({ type: 'style', payload: verseState.style });
+  if (verseState.kind === 'title' && verseState.title) {
+    sendToTv({ type: 'showTitle', payload: verseState });
+  } else if (verseState.text) {
+    sendToTv({ type: 'show', payload: verseState });
+  } else {
+    sendToTv({ type: 'clear' });
+  }
+}
+
+function connectToTv(code) {
+  const c = code.trim().toUpperCase();
+  if (c.length !== 4) {
+    toast('Le code TV doit faire 4 caractères', true);
+    return;
+  }
+  if (!signalingPeer || signalingPeer.disconnected || signalingPeer.destroyed) {
+    toast('Signaling pas prêt, réessaie dans quelques secondes', true);
+    return;
+  }
+
+  // Fermer une éventuelle connexion existante
+  disconnectFromTv(/* silent */ true);
+
+  tvPeerId = TV_PEER_PREFIX + c;
+  const conn = signalingPeer.connect(tvPeerId, { reliable: true });
+
+  let openTimer = setTimeout(() => {
+    if (conn && !conn.open) {
+      toast(`Aucune TV ne répond avec le code ${c}. Vérifie que la TV est bien sur la page /tv.`, true);
+      try { conn.close(); } catch (e) {}
+    }
+  }, 8000);
+
+  conn.on('open', () => {
+    clearTimeout(openTimer);
+    tvDataConn = conn;
+    setTvConnected(true);
+    setTvStatusText(`Connecté à la TV ${c}`);
+    toast(`TV ${c} connectée`);
+    // Pousser l'état actuel
+    sendCurrentVerseToTv();
+  });
+
+  conn.on('data', (msg) => {
+    // Pas grand chose à recevoir pour l'instant (hello)
+    if (msg && msg.type === 'hello') {
+      console.log('TV says hello');
+    }
+  });
+
+  conn.on('close', () => {
+    clearTimeout(openTimer);
+    if (tvDataConn === conn) {
+      tvDataConn = null;
+      tvPeerId = null;
+      setTvConnected(false);
+      setTvStatusText('Déconnecté');
+      stopTvVideo(/* silent */ true);
+      toast('TV déconnectée');
+    }
+  });
+
+  conn.on('error', (err) => {
+    clearTimeout(openTimer);
+    console.warn('TV conn error', err);
+    toast('Erreur de connexion TV : ' + (err.type || err.message || 'inconnue'), true);
+  });
+}
+
+function disconnectFromTv(silent) {
+  stopTvVideo(true);
+  if (tvDataConn) {
+    try { tvDataConn.send({ type: 'tv-disconnect' }); } catch (e) {}
+    try { tvDataConn.close(); } catch (e) {}
+    tvDataConn = null;
+  }
+  tvPeerId = null;
+  setTvConnected(false);
+  setTvStatusText('Déconnecté');
+  if (!silent) toast('TV déconnectée');
+}
+
+function startTvVideo() {
+  if (!tvPeerId || !signalingPeer || signalingPeer.disconnected) {
+    toast('TV pas connectée', true);
+    $('tvVideoToggle').checked = false;
+    return;
+  }
+  if (!programStream) rebuildProgramStream();
+  if (!programStream || !programStream.getVideoTracks().length) {
+    toast('Aucune source vidéo dans le programme. Ajoute une caméra d\'abord.', true);
+    $('tvVideoToggle').checked = false;
+    return;
+  }
+  if (tvMediaCall) {
+    try { tvMediaCall.close(); } catch (e) {}
+    tvMediaCall = null;
+  }
+  tvMediaCall = signalingPeer.call(tvPeerId, programStream);
+  if (!tvMediaCall) {
+    toast('Impossible de démarrer la vidéo vers la TV', true);
+    $('tvVideoToggle').checked = false;
+    return;
+  }
+  tvMediaCall.on('close', () => {
+    if (tvMediaCall) {
+      tvMediaCall = null;
+      $('tvVideoToggle').checked = false;
+    }
+  });
+  tvMediaCall.on('error', (err) => {
+    console.warn('TV call error', err);
+    toast('Erreur vidéo TV : ' + (err.type || err.message || 'inconnue'), true);
+    tvMediaCall = null;
+    $('tvVideoToggle').checked = false;
+  });
+  toast('Mix vidéo envoyé à la TV');
+}
+
+function stopTvVideo(silent) {
+  if (tvMediaCall) {
+    try { tvMediaCall.close(); } catch (e) {}
+    tvMediaCall = null;
+  }
+  sendToTv({ type: 'video-stop' });
+  if (!silent) toast('Mix vidéo arrêté');
+}
+
+function bindTvUi() {
+  const open = () => $('tvModal').classList.add('show');
+  const close = () => $('tvModal').classList.remove('show');
+  $('openTvBtn').addEventListener('click', open);
+  $('tvModalClose').addEventListener('click', close);
+  $('tvModalOk').addEventListener('click', close);
+
+  const input = $('tvCodeInput');
+  input.addEventListener('input', (e) => {
+    e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4);
+  });
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      connectToTv(input.value);
+    }
+  });
+  $('tvConnectBtn').addEventListener('click', () => connectToTv(input.value));
+  $('tvDisconnectBtn').addEventListener('click', () => disconnectFromTv(false));
+
+  $('tvVideoToggle').addEventListener('change', (e) => {
+    if (e.target.checked) startTvVideo();
+    else stopTvVideo(false);
   });
 }
 
@@ -1308,6 +1517,7 @@ function toggleSourceAudio(sourceId) {
 async function init() {
   bindUi();
   bindRemoteHelp();
+  bindTvUi();
   bindStreaming();
   bindShortcuts();
   renderScenes();

@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VersetLive — TV</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      font-family: Georgia, serif;
+      background: linear-gradient(135deg, #1e3a8a 0%, #581c87 50%, #831843 100%);
+      color: white;
+      cursor: none;
+    }
+
+    /* Verset / Titre — copie de obs.html */
+    .stage {
+      width: 100%; height: 100%;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 5vh 6vw;
+      position: relative;
+    }
+    .stage.v-top { justify-content: flex-start; padding-top: 8vh; }
+    .stage.v-bottom { justify-content: flex-end; padding-bottom: 8vh; }
+    .bg-layer { position: absolute; inset: 0; pointer-events: none; z-index: 0; opacity: 0; transition: opacity 0.4s; }
+    .bg-layer.show { opacity: 1; }
+    .content { position: relative; z-index: 1; max-width: 90%; text-align: center; opacity: 0; transition: opacity 0.5s, transform 0.5s; }
+    .content.visible { opacity: 1; }
+    .anim-fade .content { transform: scale(1); }
+    .anim-fade .content:not(.visible) { opacity: 0; }
+    .anim-slide-up .content { transform: translateY(40px); }
+    .anim-slide-up .content.visible { transform: translateY(0); }
+    .anim-zoom .content { transform: scale(0.85); }
+    .anim-zoom .content.visible { transform: scale(1); }
+    .anim-none .content { transition: none; }
+    .verse-text { font-size: 4.5vw; line-height: 1.35; font-weight: 500; color: white; word-wrap: break-word; }
+    .verse-ref { font-size: 2.2vw; margin-top: 2vh; opacity: 0.85; font-style: italic; letter-spacing: 0.05em; }
+    .verse-ref.above { margin-top: 0; margin-bottom: 2vh; }
+    .verse-ref.hide { display: none; }
+    .shadow-soft .verse-text, .shadow-soft .verse-ref { text-shadow: 0 2px 8px rgba(0,0,0,0.6), 0 4px 18px rgba(0,0,0,0.5); }
+    .shadow-strong .verse-text, .shadow-strong .verse-ref { text-shadow: 0 3px 0 rgba(0,0,0,0.85), 0 6px 30px rgba(0,0,0,0.9); }
+    .shadow-outline .verse-text, .shadow-outline .verse-ref { -webkit-text-stroke: 1.5px rgba(0,0,0,0.95); text-shadow: 0 0 12px rgba(0,0,0,0.6); paint-order: stroke fill; }
+    .shadow-glow .verse-text, .shadow-glow .verse-ref { text-shadow: 0 0 14px rgba(255,210,90,0.85), 0 0 30px rgba(255,180,40,0.55), 0 2px 4px rgba(0,0,0,0.6); }
+
+    .title-content { position: relative; z-index: 2; max-width: 90%; text-align: center; opacity: 0; transition: opacity 0.6s, transform 0.6s; display: none; color: white; --accent: #d4af37; }
+    .title-content.active { display: block; }
+    .title-content.visible { opacity: 1; }
+    .title-main { font-size: 7vw; font-weight: 800; line-height: 1.1; letter-spacing: 0.05em; margin: 0; }
+    .title-sub { font-size: 2.6vw; font-weight: 400; margin-top: 1.5vh; opacity: 0.92; font-style: italic; line-height: 1.4; }
+    .title-sub:empty { display: none; }
+    .title-deco-top, .title-deco-mid, .title-deco-bottom { display: none; }
+    .title-tpl-classic .title-main { text-shadow: 0 4px 20px rgba(0,0,0,0.6); }
+    .title-tpl-classic .title-deco-mid { display: block; width: 30vw; height: 3px; background: var(--accent); margin: 2vh auto; border-radius: 2px; box-shadow: 0 0 12px var(--accent); }
+    .title-tpl-elegant .title-main { font-family: 'Playfair Display', Georgia, serif; font-style: italic; font-weight: 700; text-shadow: 0 4px 24px rgba(0,0,0,0.5); }
+    .title-tpl-elegant .title-main::before { content: "✦  "; color: var(--accent); }
+    .title-tpl-elegant .title-main::after { content: "  ✦"; color: var(--accent); }
+    .title-tpl-elegant .title-sub { font-family: 'Playfair Display', serif; letter-spacing: 0.15em; }
+    .title-tpl-banner { background: var(--accent); padding: 5vh 6vw; box-shadow: 0 20px 60px rgba(0,0,0,0.6); max-width: 100%; width: 100%; transform: skewY(-1deg); }
+    .title-tpl-banner > * { transform: skewY(1deg); }
+    .title-tpl-banner .title-main { color: white; text-shadow: 3px 3px 0 rgba(0,0,0,0.25); }
+    .title-tpl-banner .title-sub { color: rgba(255,255,255,0.95); }
+    .title-tpl-modern { text-align: left; padding-left: 3vw; border-left: 0.8vw solid var(--accent); }
+    .title-tpl-modern .title-main { font-family: -apple-system, "Helvetica Neue", sans-serif; font-weight: 900; text-transform: uppercase; letter-spacing: -0.01em; }
+    .title-tpl-modern .title-sub { font-style: normal; text-transform: uppercase; letter-spacing: 0.3em; font-size: 1.6vw; opacity: 0.7; }
+    .title-tpl-card { padding: 5vh 6vw; border-radius: 16px; background: linear-gradient(135deg, var(--accent), rgba(0,0,0,0.4)); box-shadow: 0 25px 60px rgba(0,0,0,0.5); backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,0.15); }
+    .title-tpl-card .title-main { text-shadow: 0 3px 12px rgba(0,0,0,0.6); }
+    .title-tpl-double .title-deco-top, .title-tpl-double .title-deco-bottom { display: block; height: 4px; background: linear-gradient(to right, transparent, var(--accent), transparent); margin: 1.5vh auto; width: 60vw; }
+    .title-tpl-double .title-deco-top { margin-bottom: 3vh; }
+    .title-tpl-double .title-deco-bottom { margin-top: 3vh; }
+    .title-tpl-ornament .title-main { font-family: 'Cinzel', 'Playfair Display', serif; font-weight: 600; letter-spacing: 0.08em; }
+    .title-tpl-ornament .title-deco-top, .title-tpl-ornament .title-deco-bottom { display: block; font-size: 3vw; color: var(--accent); margin: 1vh 0; }
+    .title-tpl-ornament .title-deco-top::before { content: "❦ ❦ ❦"; letter-spacing: 1vw; }
+    .title-tpl-ornament .title-deco-bottom::before { content: "❦ ❦ ❦"; letter-spacing: 1vw; }
+    .title-tpl-ornament .title-sub { font-family: 'Playfair Display', serif; }
+    .title-tpl-minimal .title-main { font-family: -apple-system, "Helvetica Neue", sans-serif; font-weight: 200; letter-spacing: 0.4em; text-transform: uppercase; font-size: 5vw; }
+    .title-tpl-minimal .title-sub { font-style: normal; font-weight: 300; letter-spacing: 0.2em; text-transform: uppercase; font-size: 1.4vw; margin-top: 3vh; opacity: 0.7; }
+    .stage:has(.title-tpl-lower-third) { align-items: flex-start; justify-content: flex-end; padding-bottom: 0; }
+    .title-tpl-lower-third { width: 100%; max-width: 100%; background: linear-gradient(to right, var(--accent) 0%, var(--accent) 70%, transparent 100%); padding: 3vh 6vw 3vh 5vw; text-align: left; border-left: 0.7vw solid white; box-shadow: 0 -10px 40px rgba(0,0,0,0.5); }
+    .title-tpl-lower-third .title-main { font-size: 4.5vw; font-family: -apple-system, sans-serif; font-weight: 800; text-shadow: 0 2px 8px rgba(0,0,0,0.4); }
+    .title-tpl-lower-third .title-sub { font-size: 1.9vw; font-style: normal; letter-spacing: 0.1em; margin-top: 0.5vh; }
+    .title-tpl-badge { padding: 4vh 6vw; border-radius: 999px; background: var(--accent); box-shadow: 0 15px 40px rgba(0,0,0,0.5), inset 0 -6px 12px rgba(0,0,0,0.15); }
+    .title-tpl-badge .title-main { color: white; font-weight: 800; text-shadow: 0 3px 0 rgba(0,0,0,0.2); }
+    .title-tpl-badge .title-sub { color: rgba(255,255,255,0.9); }
+
+    /* Carte de pairing (affichée tant que le studio n'est pas connecté) */
+    .pairing-card {
+      position: fixed; inset: 0;
+      background: linear-gradient(135deg, #1e3a8a 0%, #581c87 50%, #831843 100%);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      font-family: -apple-system, system-ui, sans-serif;
+      color: white; z-index: 1000;
+      text-align: center;
+      padding: 4vh;
+    }
+    .pairing-card .brand { font-size: 2.5vw; opacity: 0.8; margin-bottom: 2vh; letter-spacing: 0.1em; }
+    .pairing-card h1 { font-size: 3vw; font-weight: 400; margin-bottom: 5vh; opacity: 0.85; }
+    .pairing-code {
+      font-size: 22vw; font-weight: 900;
+      letter-spacing: 0.15em;
+      font-family: 'Cinzel', serif;
+      color: white;
+      text-shadow: 0 8px 40px rgba(0,0,0,0.5);
+      line-height: 1;
+    }
+    .pairing-card .hint { font-size: 1.8vw; margin-top: 6vh; opacity: 0.7; max-width: 70%; line-height: 1.5; }
+    .pairing-card .small { font-size: 1.2vw; margin-top: 3vh; opacity: 0.5; }
+    .pairing-card.hidden { display: none; }
+
+    /* Vidéo plein écran pour le mix complet */
+    .program-video {
+      position: fixed; inset: 0;
+      width: 100%; height: 100%; object-fit: contain;
+      background: #000; z-index: 5;
+      display: none;
+    }
+    .program-video.show { display: block; }
+
+    .play-fallback {
+      position: fixed; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 20;
+      padding: 3vh 6vw;
+      font-size: 3vw;
+      font-weight: 700;
+      background: var(--accent, #d4af37);
+      color: #000;
+      border: none; border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+      font-family: -apple-system, system-ui, sans-serif;
+    }
+    .play-fallback:hover { filter: brightness(1.1); }
+
+    /* Toast statut */
+    .toast {
+      position: fixed; bottom: 16px; left: 16px;
+      padding: 10px 16px;
+      background: rgba(0,0,0,0.7);
+      color: white; font-family: -apple-system, sans-serif;
+      font-size: 14px; border-radius: 8px;
+      z-index: 50; opacity: 0; transition: opacity 0.3s;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+
+  <!-- Carte de pairing -->
+  <div class="pairing-card" id="pairingCard">
+    <div class="brand">📺 VERSETLIVE TV</div>
+    <h1>Tape ce code dans le Studio</h1>
+    <div class="pairing-code" id="pairingCode">…</div>
+    <div class="hint">
+      Sur le Mac, ouvre le Studio → bouton « 📺 Connecter TV » → tape le code ci-dessus.
+    </div>
+    <div class="small" id="pairingStatus">Initialisation…</div>
+  </div>
+
+  <!-- Affichage verset / titre (même DOM que obs.html, géré par obs.js) -->
+  <div class="stage anim-fade" id="stage">
+    <div class="bg-layer" id="bgLayer"></div>
+    <div class="content" id="content">
+      <div class="verse-ref" id="refTop" style="display:none;"></div>
+      <div class="verse-text" id="verseText"></div>
+      <div class="verse-ref" id="refBottom"></div>
+    </div>
+    <div class="title-content" id="titleContent">
+      <div class="title-deco-top" id="titleDecoTop"></div>
+      <div class="title-main" id="titleMainEl"></div>
+      <div class="title-deco-mid" id="titleDecoMid"></div>
+      <div class="title-sub" id="titleSubEl"></div>
+      <div class="title-deco-bottom" id="titleDecoBottom"></div>
+    </div>
+  </div>
+
+  <!-- Mix complet (caméras) en plein écran quand activé -->
+  <!-- muted obligatoire : autoplay bloqué sans interaction utilisateur tant que la vidéo a du son.
+       L'audio du service passe de toute façon par le PA, pas par la TV. -->
+  <video class="program-video" id="programVideo" autoplay playsinline muted></video>
+
+  <!-- Bouton de secours si l'autoplay est quand même bloqué (TVs très restrictives) -->
+  <button class="play-fallback" id="playFallback" hidden>▶ Toucher pour démarrer la vidéo</button>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="peerjs.min.js"></script>
+  <script src="obs.js"></script>
+  <script>
+    (function () {
+      const ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      const CODE_KEY = 'versetlive:tv-code';
+
+      function genCode() {
+        let c = '';
+        for (let i = 0; i < 4; i++) c += ALPHABET[Math.floor(Math.random() * ALPHABET.length)];
+        return c;
+      }
+
+      function $(id) { return document.getElementById(id); }
+
+      function toast(msg) {
+        const el = $('toast');
+        el.textContent = msg;
+        el.classList.add('show');
+        clearTimeout(toast._t);
+        toast._t = setTimeout(() => el.classList.remove('show'), 2400);
+      }
+
+      let code = sessionStorage.getItem(CODE_KEY);
+      if (!code) {
+        code = genCode();
+        sessionStorage.setItem(CODE_KEY, code);
+      }
+      $('pairingCode').textContent = code;
+
+      const peerId = 'versetlive-tv-' + code;
+      const bc = new BroadcastChannel('versetlive');
+
+      let peer = null;
+      let dataConn = null;
+      let mediaCall = null;
+
+      function setStatus(text) { $('pairingStatus').textContent = text; }
+
+      function showPairing() {
+        $('pairingCard').classList.remove('hidden');
+      }
+      function hidePairing() {
+        $('pairingCard').classList.add('hidden');
+      }
+
+      function stopVideo() {
+        const v = $('programVideo');
+        v.classList.remove('show');
+        try { v.srcObject = null; } catch (e) {}
+        $('playFallback').hidden = true;
+        mediaCall = null;
+      }
+
+      function startVideo(stream) {
+        const v = $('programVideo');
+        const fallback = $('playFallback');
+        v.srcObject = stream;
+        v.classList.add('show');
+        fallback.hidden = true;
+        // play() peut être rejeté si autoplay strict — on montre alors un bouton de secours
+        const p = v.play();
+        if (p && p.catch) {
+          p.catch((err) => {
+            console.warn('autoplay blocked', err);
+            fallback.hidden = false;
+            fallback.onclick = () => {
+              fallback.hidden = true;
+              v.play().catch(() => {});
+            };
+          });
+        }
+      }
+
+      function initPeer() {
+        peer = new Peer(peerId, { debug: 1 });
+
+        peer.on('open', () => {
+          setStatus('Prêt — en attente du Studio…');
+        });
+
+        peer.on('error', (err) => {
+          console.warn('TV peer error', err);
+          if (err.type === 'unavailable-id') {
+            // Code déjà pris — en génère un nouveau et recharge
+            code = genCode();
+            sessionStorage.setItem(CODE_KEY, code);
+            setTimeout(() => location.reload(), 300);
+          } else if (err.type === 'network' || err.type === 'disconnected') {
+            setStatus('Hors-ligne — reconnexion…');
+            setTimeout(() => { if (peer && !peer.destroyed) peer.reconnect(); }, 2000);
+          } else {
+            setStatus('Erreur : ' + err.type);
+          }
+        });
+
+        peer.on('disconnected', () => {
+          setStatus('Déconnecté — reconnexion…');
+          setTimeout(() => { if (peer && !peer.destroyed) peer.reconnect(); }, 2000);
+        });
+
+        peer.on('connection', (conn) => {
+          // Si une autre connexion existe déjà, fermer l'ancienne
+          if (dataConn && dataConn.open) {
+            try { dataConn.close(); } catch (e) {}
+          }
+          dataConn = conn;
+          setStatus('Studio connecté');
+
+          conn.on('open', () => {
+            hidePairing();
+            toast('Studio connecté');
+            try { conn.send({ type: 'hello', from: 'tv' }); } catch (e) {}
+          });
+
+          conn.on('data', (msg) => {
+            if (!msg) return;
+            if (msg.type === 'video-stop') {
+              stopVideo();
+              return;
+            }
+            if (msg.type === 'tv-disconnect') {
+              try { conn.close(); } catch (e) {}
+              return;
+            }
+            // show / showTitle / clear / style → forward to obs.js via BroadcastChannel
+            try { bc.postMessage(msg); } catch (e) {}
+          });
+
+          conn.on('close', () => {
+            if (dataConn === conn) {
+              dataConn = null;
+              stopVideo();
+              showPairing();
+              setStatus('Studio déconnecté — en attente…');
+              toast('Studio déconnecté');
+            }
+          });
+
+          conn.on('error', (err) => {
+            console.warn('TV conn error', err);
+          });
+        });
+
+        peer.on('call', (call) => {
+          // Auto-accepter (réception seule, on n'envoie pas de retour)
+          call.answer();
+          if (mediaCall) { try { mediaCall.close(); } catch (e) {} }
+          mediaCall = call;
+          call.on('stream', (stream) => startVideo(stream));
+          call.on('close', stopVideo);
+          call.on('error', (err) => {
+            console.warn('TV call error', err);
+            stopVideo();
+          });
+        });
+      }
+
+      initPeer();
+
+      // Garder l'écran allumé si l'API est dispo (utile pendant un service long)
+      let wakeLock = null;
+      async function requestWakeLock() {
+        if ('wakeLock' in navigator) {
+          try { wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {}
+        }
+      }
+      requestWakeLock();
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible' && wakeLock === null) requestWakeLock();
+      });
+
+      // Permettre régénération du code via la touche R (sur les TVs avec clavier)
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'r' || e.key === 'R') {
+          sessionStorage.removeItem(CODE_KEY);
+          location.reload();
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

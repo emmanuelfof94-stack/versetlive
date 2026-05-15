@@ -18,6 +18,7 @@
     </div>
     <div class="topbar-actions">
       <span class="studio-status" id="studioStatus">Prêt</span>
+      <button class="btn" id="openTvBtn" title="Projette le verset ou le mix complet sur une TV via son navigateur web"><span id="tvDot" class="studio-tv-dot"></span>📺 TV</button>
       <button class="btn" id="openProjectorBtn" title="Ouvre une fenêtre à glisser sur le projecteur">📽 Sortie projecteur</button>
       <button class="btn btn-danger" id="recordBtn">⏺ Enregistrer</button>
       <a class="btn" href="index.html">← Retour panneau</a>
@@ -146,6 +147,63 @@
   </div>
 
   <div class="toast" id="toast"></div>
+
+  <!-- Modal TV -->
+  <div class="modal-backdrop" id="tvModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>📺 Connecter une TV</h2>
+        <button class="modal-close" id="tvModalClose">×</button>
+      </div>
+      <div class="modal-body">
+        <p>Affiche le verset (ou le mix complet caméras + verset) sur ta TV via son navigateur web. Pas de câble nécessaire — TV et Mac doivent juste être sur le même Wi-Fi.</p>
+
+        <h3>1. Sur la TV</h3>
+        <ol>
+          <li>Ouvre le navigateur web de la TV</li>
+          <li>Va sur : <code>versetlive.vercel.app/tv</code></li>
+          <li>La TV affiche un code à 4 caractères (ex : <code>A7B3</code>)</li>
+        </ol>
+
+        <h3>2. Sur le Mac (ici)</h3>
+        <div class="studio-tv-pair" id="tvPairRow">
+          <label>Code TV :</label>
+          <input type="text" id="tvCodeInput" maxlength="4" placeholder="A7B3" autocapitalize="characters" autocomplete="off" spellcheck="false">
+          <button class="btn btn-primary" id="tvConnectBtn">Connecter</button>
+        </div>
+
+        <div class="studio-tv-status" id="tvStatusRow" hidden>
+          <div class="studio-tv-status-row">
+            <span class="studio-tv-status-dot" id="tvStatusDot"></span>
+            <span id="tvStatusText">Connecté</span>
+            <button class="btn btn-sm" id="tvDisconnectBtn" style="margin-left:auto;">Déconnecter</button>
+          </div>
+
+          <div class="studio-tv-controls">
+            <label class="studio-tv-toggle">
+              <input type="checkbox" id="tvVideoToggle">
+              <span>🎥 Envoyer le mix vidéo (caméras + verset incrusté)</span>
+            </label>
+            <div class="studio-tv-hint">
+              Par défaut, la TV affiche seulement le verset/chant/titre en grand. Active ce mode pour qu'elle affiche aussi les caméras et la composition du studio.<br>
+              <em>Note : sur certaines TVs anciennes, la vidéo WebRTC peut ne pas fonctionner — auquel cas reste en mode texte.</em>
+            </div>
+          </div>
+        </div>
+
+        <h3>Astuces</h3>
+        <ul>
+          <li>La TV garde son code tant que tu ne la recharges pas (touche R sur télécommande pour régénérer)</li>
+          <li>Sur la TV, l'écran reste allumé automatiquement (Wake Lock API)</li>
+          <li>Tu peux connecter d'autres écrans (un autre PC, un iPad…) en parallèle — chacun aura son propre code</li>
+        </ul>
+      </div>
+      <div class="modal-footer">
+        <div style="flex:1;"></div>
+        <button class="btn" id="tvModalOk">Fermer</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Modal Aide caméras distantes -->
   <div class="modal-backdrop" id="remoteHelpModal">
