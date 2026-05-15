@@ -587,10 +587,6 @@ function resetShadow() {
   activeCtx.shadowOffsetY = 0;
 }
 
-function getSource(id) {
-  return sources.find(s => s.id === id);
-}
-
 function setScene(scene) {
   if (studioMode) {
     setPreviewScene(scene);
