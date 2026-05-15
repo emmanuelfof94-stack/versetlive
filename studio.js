@@ -26,6 +26,9 @@ let nextSourceId = 1;
 // Scène active : { kind, primaryId?, secondaryId? }
 //   kind ∈ { 'camera', 'camera+verse', 'pip', 'verse', 'black' }
 let currentScene = { kind: 'black' };
+let previousScene = null;
+let transitionStart = 0;
+const TRANSITION_MS = 300;
 
 let verseState = null;
 
@@ -132,12 +135,13 @@ function removeCamera(sourceId) {
   const idx = sources.findIndex(s => s.id === sourceId);
   if (idx < 0) return;
   const s = sources[idx];
+  disconnectSourceAudio(s);
   s.stream.getTracks().forEach(t => t.stop());
   sources.splice(idx, 1);
 
-  // Si la scène utilise cette caméra, basculer en noir
+  // Si la scène utilise cette caméra, basculer
   if (currentScene.primaryId === sourceId || currentScene.secondaryId === sourceId) {
-    currentScene = sources.length ? { kind: 'camera', primaryId: sources[0].id } : { kind: 'black' };
+    setScene(sources.length ? { kind: 'camera', primaryId: sources[0].id } : { kind: 'black' });
   }
   renderSources();
   renderScenes();
@@ -154,13 +158,20 @@ function renderSources() {
   }
   list.innerHTML = '';
   sources.forEach((s, i) => {
+    const hasAudio = s.stream.getAudioTracks().length > 0;
+    const audioBtn = hasAudio
+      ? `<button class="btn btn-sm studio-source-audio ${s.audioRouted ? 'on' : ''}" data-id="${s.id}" title="${s.audioRouted ? 'Couper l\'audio de cette source dans le mix' : 'Inclure l\'audio de cette source dans le mix'}">${s.audioRouted ? '🔊' : '🔇'}</button>`
+      : '';
     const card = document.createElement('div');
     card.className = 'studio-source-card';
     card.innerHTML = `
       <div class="studio-source-preview"></div>
       <div class="studio-source-meta">
         <span class="studio-source-name">${i + 1}. ${escapeHtml(s.label)}</span>
-        <button class="btn btn-sm btn-danger studio-source-remove" data-id="${s.id}" title="Retirer">×</button>
+        <div class="studio-source-actions">
+          ${audioBtn}
+          <button class="btn btn-sm btn-danger studio-source-remove" data-id="${s.id}" title="Retirer">×</button>
+        </div>
       </div>
     `;
     // Aperçu live : un <video> dédié partageant le même MediaStream.
@@ -174,6 +185,8 @@ function renderSources() {
     previewDiv.appendChild(liveVideo);
 
     card.querySelector('.studio-source-remove').addEventListener('click', () => removeCamera(s.id));
+    const ab = card.querySelector('.studio-source-audio');
+    if (ab) ab.addEventListener('click', () => toggleSourceAudio(s.id));
     list.appendChild(card);
   });
   updateProgramInfo();
@@ -211,10 +224,7 @@ function renderScenes() {
     btn.className = 'studio-scene-btn';
     btn.textContent = s.label;
     if (sceneKey(currentScene) === s.key) btn.classList.add('active');
-    btn.addEventListener('click', () => {
-      currentScene = s.scene;
-      renderScenes();
-    });
+    btn.addEventListener('click', () => setScene(s.scene));
     list.appendChild(btn);
   });
 }
@@ -385,11 +395,15 @@ function getSource(id) {
   return sources.find(s => s.id === id);
 }
 
-function renderFrame() {
-  ctx.fillStyle = '#000';
-  ctx.fillRect(0, 0, OUTPUT_W, OUTPUT_H);
+function setScene(scene) {
+  if (sceneKey(currentScene) === sceneKey(scene)) return;
+  previousScene = currentScene;
+  currentScene = scene;
+  transitionStart = performance.now();
+  renderScenes();
+}
 
-  const s = currentScene;
+function drawScene(s) {
   if (s.kind === 'camera' || s.kind === 'camera+verse') {
     const src = getSource(s.primaryId);
     if (src) drawVideoCover(src.videoEl, 0, 0, OUTPUT_W, OUTPUT_H);
@@ -417,6 +431,23 @@ function renderFrame() {
     drawVerseOverlay({ x: 0, y: 0, w: OUTPUT_W, h: OUTPUT_H });
   }
   // 'black' → rien à dessiner
+}
+
+function renderFrame() {
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, OUTPUT_W, OUTPUT_H);
+
+  const elapsed = performance.now() - transitionStart;
+  if (previousScene && elapsed < TRANSITION_MS) {
+    // Crossfade : ancienne scène pleine + nouvelle qui apparaît en fondu
+    drawScene(previousScene);
+    ctx.globalAlpha = elapsed / TRANSITION_MS;
+    drawScene(currentScene);
+    ctx.globalAlpha = 1;
+  } else {
+    if (previousScene) previousScene = null;
+    drawScene(currentScene);
+  }
 
   requestAnimationFrame(renderFrame);
 }
@@ -851,16 +882,18 @@ function removeRemoteCall(call) {
   if (!entry) return;
   const src = sources.find(s => s.id === entry.sourceId);
   if (src) {
+    // L'audio routé via Web Audio sera nettoyé par disconnectSourceAudio()
+    disconnectSourceAudio(src);
     src.stream.getTracks().forEach(t => t.stop());
     const idx = sources.indexOf(src);
     sources.splice(idx, 1);
-    if (currentScene.primaryId === src.id || currentScene.secondaryId === src.id) {
-      currentScene = sources.length ? { kind: 'camera', primaryId: sources[0].id } : { kind: 'black' };
-    }
   }
   remoteCalls.delete(call.peer);
   renderSources();
   renderScenes();
+  if (src && (currentScene.primaryId === src.id || currentScene.secondaryId === src.id)) {
+    setScene(sources.length ? { kind: 'camera', primaryId: sources[0].id } : { kind: 'black' });
+  }
   toast(`${src ? src.label : 'Téléphone'} déconnecté`);
 }
 
@@ -1173,11 +1206,110 @@ function bindStreaming() {
   });
 }
 
+// ============ Raccourcis clavier ============
+function isTypingField() {
+  const el = document.activeElement;
+  if (!el) return false;
+  const tag = el.tagName;
+  if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return true;
+  if (el.isContentEditable) return true;
+  return false;
+}
+
+function bindShortcuts() {
+  document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (isTypingField()) return;
+    // Aucune modale ouverte (cf. .show class)
+    if (document.querySelector('.modal-backdrop.show')) return;
+
+    const key = e.key;
+
+    // 1-9 : sélectionner la N-ième scène
+    if (/^[1-9]$/.test(key)) {
+      const idx = parseInt(key, 10) - 1;
+      const scenes = buildSceneList();
+      if (scenes[idx]) {
+        e.preventDefault();
+        setScene(scenes[idx].scene);
+      }
+      return;
+    }
+
+    // 0 : noir
+    if (key === '0') {
+      e.preventDefault();
+      setScene({ kind: 'black' });
+      return;
+    }
+
+    // Espace : démarrer/arrêter le stream
+    if (key === ' ') {
+      e.preventDefault();
+      $('streamBtn').click();
+      return;
+    }
+
+    // R : démarrer/arrêter l'enregistrement
+    if (key === 'r' || key === 'R') {
+      e.preventDefault();
+      toggleRecord();
+      return;
+    }
+
+    // V : scène verset plein écran
+    if (key === 'v' || key === 'V') {
+      e.preventDefault();
+      setScene({ kind: 'verse' });
+      return;
+    }
+  });
+}
+
+// ============ Audio des téléphones (routing optionnel) ============
+function connectSourceAudio(source) {
+  if (!source || source.audioRouted) return;
+  if (!source.stream.getAudioTracks().length) return;
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  if (!audioDest) rebuildAudioGraph();
+  try {
+    source.audioSrc = audioCtx.createMediaStreamSource(source.stream);
+    source.audioGain = audioCtx.createGain();
+    source.audioGain.gain.value = 1;
+    source.audioSrc.connect(source.audioGain);
+    source.audioGain.connect(audioDest);
+    source.audioRouted = true;
+    rebuildProgramStream();
+  } catch (e) {
+    console.warn('connectSourceAudio failed', e);
+  }
+}
+
+function disconnectSourceAudio(source) {
+  if (!source || !source.audioRouted) return;
+  try { source.audioGain && source.audioGain.disconnect(); } catch (e) {}
+  try { source.audioSrc && source.audioSrc.disconnect(); } catch (e) {}
+  source.audioGain = null;
+  source.audioSrc = null;
+  source.audioRouted = false;
+  rebuildProgramStream();
+}
+
+function toggleSourceAudio(sourceId) {
+  const src = sources.find(s => s.id === sourceId);
+  if (!src) return;
+  if (src.audioRouted) disconnectSourceAudio(src);
+  else connectSourceAudio(src);
+  renderSources();
+}
+
 // ============ Boot ============
 async function init() {
   bindUi();
   bindRemoteHelp();
   bindStreaming();
+  bindShortcuts();
   renderScenes();
   renderVerseStatus();
   renderDestinations();

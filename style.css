@@ -2247,3 +2247,34 @@ kbd {
   background: var(--bg-tertiary);
   border-radius: 4px;
 }
+
+/* Polish : raccourcis + audio par source */
+.studio-hint {
+  font-size: 10px;
+  color: var(--text-secondary);
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.studio-source-actions {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+.studio-source-audio {
+  padding: 2px 6px;
+  font-size: 13px;
+  line-height: 1;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-radius: 4px;
+  min-width: 26px;
+}
+.studio-source-audio.on {
+  background: rgba(16, 185, 129, 0.2);
+  color: var(--success);
+  border-color: var(--success);
+}
+.studio-source-audio:hover { border-color: var(--accent); }
