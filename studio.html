@@ -89,6 +89,17 @@
         </div>
       </div>
 
+      <div class="section">
+        <div class="section-title">
+          <span>🎬 Intro / Outro</span>
+          <button class="btn btn-sm" id="openIntroOutroBtn">Configurer</button>
+        </div>
+        <div class="studio-hint" style="line-height:1.5; padding:4px 0;">
+          Crée des écrans de bienvenue (avant le service) et de remerciement (après).<br>
+          Texte animé + countdown OU vidéo MP4 importée, avec musique de fond optionnelle.
+        </div>
+      </div>
+
     </div>
 
     <!-- COLONNE CENTRALE : programme + scènes -->
@@ -147,6 +158,157 @@
   </div>
 
   <div class="toast" id="toast"></div>
+
+  <!-- Modal Intro / Outro -->
+  <div class="modal-backdrop" id="ioModal">
+    <div class="modal modal-wide">
+      <div class="modal-header">
+        <h2>🎬 Intro / Outro</h2>
+        <button class="modal-close" id="ioModalClose">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="studio-io-tabs">
+          <button class="studio-io-tab active" id="ioTabIntro">▶ Intro (avant le service)</button>
+          <button class="studio-io-tab" id="ioTabOutro">■ Outro (fin du service)</button>
+        </div>
+
+        <!-- Pane Intro -->
+        <div class="studio-io-pane" id="ioPaneIntro">
+          <div class="studio-io-mode">
+            <label><input type="radio" name="ioInMode" id="ioInModeText" checked> Texte animé</label>
+            <label><input type="radio" name="ioInMode" id="ioInModeVideo"> Vidéo importée (MP4)</label>
+          </div>
+
+          <div id="ioInTextOptions">
+            <div class="field"><label>Titre principal</label><input type="text" id="ioInTitle" placeholder="Bienvenue"></div>
+            <div class="field"><label>Sous-titre</label><input type="text" id="ioInSubtitle" placeholder="Le service va bientôt commencer"></div>
+
+            <div class="studio-io-grid-2">
+              <div class="field"><label>Couleur fond (haut)</label><input type="color" id="ioInBgColor"></div>
+              <div class="field"><label>Couleur fond (bas)</label><input type="color" id="ioInBgColor2"></div>
+              <div class="field"><label>Couleur accent (titre, countdown)</label><input type="color" id="ioInAccentColor"></div>
+              <div class="field"><label>Couleur texte</label><input type="color" id="ioInTextColor"></div>
+            </div>
+
+            <div class="field">
+              <label>Logo (PNG/SVG, optionnel)</label>
+              <div class="studio-io-file">
+                <input type="file" id="ioInLogoInput" accept="image/png,image/svg+xml,image/jpeg">
+                <span class="studio-io-file-status" id="ioInLogoStatus">Aucun logo</span>
+                <button class="btn btn-sm" id="ioInLogoRemove" hidden>Retirer</button>
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Countdown (heure de début du service)</label>
+              <input type="time" id="ioInCountdown">
+              <small style="color:var(--text-secondary); display:block; margin-top:4px;">Laisse vide pour ne pas afficher de countdown. Format 24h (ex 09:00).</small>
+            </div>
+          </div>
+
+          <div id="ioInVideoOptions" hidden>
+            <div class="field">
+              <label>Vidéo MP4</label>
+              <div class="studio-io-file">
+                <input type="file" id="ioInVideoInput" accept="video/mp4,video/webm">
+                <span class="studio-io-file-status" id="ioInVideoStatus">Aucune vidéo</span>
+                <button class="btn btn-sm" id="ioInVideoRemove" hidden>Retirer</button>
+              </div>
+              <small style="color:var(--text-secondary); display:block; margin-top:4px;">Stockée en local sur cet appareil (IndexedDB). Pas uploadée sur Vercel. La vidéo boucle automatiquement.</small>
+            </div>
+          </div>
+
+          <h3>Audio de fond (optionnel)</h3>
+          <div class="field">
+            <label>Fichier MP3</label>
+            <div class="studio-io-file">
+              <input type="file" id="ioInAudioInput" accept="audio/mpeg,audio/mp3,audio/wav,audio/ogg">
+              <span class="studio-io-file-status" id="ioInAudioStatus">Aucun audio</span>
+              <button class="btn btn-sm" id="ioInAudioRemove" hidden>Retirer</button>
+            </div>
+          </div>
+          <div class="field">
+            <label>Volume</label>
+            <div class="range-row">
+              <input type="range" id="ioInAudioVolume" min="0" max="100" step="1" value="60">
+              <span class="range-value" id="ioInAudioVolumeVal">60 %</span>
+            </div>
+          </div>
+          <div class="field">
+            <label><input type="checkbox" id="ioInAudioLoop" checked> Lecture en boucle</label>
+          </div>
+        </div>
+
+        <!-- Pane Outro -->
+        <div class="studio-io-pane" id="ioPaneOutro" hidden>
+          <div class="studio-io-mode">
+            <label><input type="radio" name="ioOutMode" id="ioOutModeText" checked> Texte animé</label>
+            <label><input type="radio" name="ioOutMode" id="ioOutModeVideo"> Vidéo importée (MP4)</label>
+          </div>
+
+          <div id="ioOutTextOptions">
+            <div class="field"><label>Titre principal</label><input type="text" id="ioOutTitle" placeholder="Merci"></div>
+            <div class="field"><label>Sous-titre</label><input type="text" id="ioOutSubtitle" placeholder="Que Dieu vous bénisse"></div>
+
+            <div class="studio-io-grid-2">
+              <div class="field"><label>Couleur fond (haut)</label><input type="color" id="ioOutBgColor"></div>
+              <div class="field"><label>Couleur fond (bas)</label><input type="color" id="ioOutBgColor2"></div>
+              <div class="field"><label>Couleur accent</label><input type="color" id="ioOutAccentColor"></div>
+              <div class="field"><label>Couleur texte</label><input type="color" id="ioOutTextColor"></div>
+            </div>
+
+            <div class="field">
+              <label>Logo (PNG/SVG, optionnel)</label>
+              <div class="studio-io-file">
+                <input type="file" id="ioOutLogoInput" accept="image/png,image/svg+xml,image/jpeg">
+                <span class="studio-io-file-status" id="ioOutLogoStatus">Aucun logo</span>
+                <button class="btn btn-sm" id="ioOutLogoRemove" hidden>Retirer</button>
+              </div>
+            </div>
+          </div>
+
+          <div id="ioOutVideoOptions" hidden>
+            <div class="field">
+              <label>Vidéo MP4</label>
+              <div class="studio-io-file">
+                <input type="file" id="ioOutVideoInput" accept="video/mp4,video/webm">
+                <span class="studio-io-file-status" id="ioOutVideoStatus">Aucune vidéo</span>
+                <button class="btn btn-sm" id="ioOutVideoRemove" hidden>Retirer</button>
+              </div>
+            </div>
+          </div>
+
+          <h3>Audio de fond (optionnel)</h3>
+          <div class="field">
+            <label>Fichier MP3</label>
+            <div class="studio-io-file">
+              <input type="file" id="ioOutAudioInput" accept="audio/mpeg,audio/mp3,audio/wav,audio/ogg">
+              <span class="studio-io-file-status" id="ioOutAudioStatus">Aucun audio</span>
+              <button class="btn btn-sm" id="ioOutAudioRemove" hidden>Retirer</button>
+            </div>
+          </div>
+          <div class="field">
+            <label>Volume</label>
+            <div class="range-row">
+              <input type="range" id="ioOutAudioVolume" min="0" max="100" step="1" value="60">
+              <span class="range-value" id="ioOutAudioVolumeVal">60 %</span>
+            </div>
+          </div>
+          <div class="field">
+            <label><input type="checkbox" id="ioOutAudioLoop" checked> Lecture en boucle</label>
+          </div>
+        </div>
+
+        <div class="studio-io-tip">
+          💡 Une fois configurés, deux nouveaux boutons « 🎬 Intro » et « 🎬 Outro » apparaîtront dans la liste des scènes du studio. Clique dessus pour les activer comme n'importe quelle autre scène.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <div style="flex:1;"></div>
+        <button class="btn btn-primary" id="ioModalOk">Enregistrer</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Modal TV -->
   <div class="modal-backdrop" id="tvModal">
@@ -237,6 +399,7 @@
 
   <script src="peerjs.min.js"></script>
   <script src="qrcode.js"></script>
+  <script src="intro-outro.js"></script>
   <script src="studio.js"></script>
 </body>
 </html>

@@ -207,6 +207,12 @@ function buildSceneList() {
     });
   }
   list.push({ key: 'verse', label: 'Verset plein écran', scene: { kind: 'verse' } });
+  if (window.IntroOutro && window.IntroOutro.isConfigured('intro')) {
+    list.push({ key: 'intro', label: '🎬 Intro', scene: { kind: 'intro' } });
+  }
+  if (window.IntroOutro && window.IntroOutro.isConfigured('outro')) {
+    list.push({ key: 'outro', label: '🎬 Outro', scene: { kind: 'outro' } });
+  }
   list.push({ key: 'black', label: 'Noir', scene: { kind: 'black' } });
   return list;
 }
@@ -234,6 +240,8 @@ function sceneKey(scene) {
   if (scene.kind === 'camera+verse') return `cam-verse-${scene.primaryId}`;
   if (scene.kind === 'pip') return 'pip';
   if (scene.kind === 'verse') return 'verse';
+  if (scene.kind === 'intro') return 'intro';
+  if (scene.kind === 'outro') return 'outro';
   return 'black';
 }
 
@@ -401,6 +409,8 @@ function setScene(scene) {
   currentScene = scene;
   transitionStart = performance.now();
   renderScenes();
+  // Trigger audio MP3 de l'intro/outro si applicable
+  if (window.IntroOutro) window.IntroOutro.onSceneChange(scene);
 }
 
 function drawScene(s) {
@@ -429,6 +439,8 @@ function drawScene(s) {
     }
   } else if (s.kind === 'verse') {
     drawVerseOverlay({ x: 0, y: 0, w: OUTPUT_W, h: OUTPUT_H });
+  } else if (s.kind === 'intro' || s.kind === 'outro') {
+    if (window.IntroOutro) window.IntroOutro.draw(ctx, s.kind, OUTPUT_W, OUTPUT_H);
   }
   // 'black' → rien à dessiner
 }
@@ -490,6 +502,8 @@ function rebuildAudioGraph() {
   if (audioDest) try { audioDest.disconnect(); } catch (e) {}
   audioDest = audioCtx.createMediaStreamDestination();
   programAudioStream = audioDest.stream;
+  // Exposé pour intro-outro.js (audio MP3 de fond mixé dans le programme)
+  window.__studioAudio = { audioCtx, audioDest };
 
   if (micStream) {
     const src = audioCtx.createMediaStreamSource(micStream);
@@ -1520,6 +1534,10 @@ async function init() {
   bindTvUi();
   bindStreaming();
   bindShortcuts();
+  // Init module intro/outro (chargement assets IndexedDB + bind modal)
+  if (window.IntroOutro) {
+    window.IntroOutro.init({ onChange: () => renderScenes() });
+  }
   renderScenes();
   renderVerseStatus();
   renderDestinations();
