@@ -808,10 +808,11 @@ function rebuildProgramStream() {
     outputWindow.setProgramStream(programStream);
   }
 
-  // Si la TV reçoit la vidéo, refaire l'appel avec le nouveau stream
+  // Si la TV reçoit la vidéo, refaire l'appel avec le nouveau stream (vidéo seule)
   if (tvMediaCall && tvPeerId && signalingPeer && !signalingPeer.disconnected) {
     try { tvMediaCall.close(); } catch (e) {}
-    tvMediaCall = signalingPeer.call(tvPeerId, programStream);
+    const videoOnly = new MediaStream(programStream.getVideoTracks());
+    tvMediaCall = signalingPeer.call(tvPeerId, videoOnly);
     if (tvMediaCall) {
       tvMediaCall.on('close', () => {
         if (tvMediaCall) {
@@ -1336,7 +1337,10 @@ function startTvVideo() {
     try { tvMediaCall.close(); } catch (e) {}
     tvMediaCall = null;
   }
-  tvMediaCall = signalingPeer.call(tvPeerId, programStream);
+  // Stream vidéo-seul pour la TV (pas d'audio = pas de blocage autoplay sur les Smart TV)
+  // L'audio passe de toute façon par la sono de la salle, pas la TV.
+  const videoOnly = new MediaStream(programStream.getVideoTracks());
+  tvMediaCall = signalingPeer.call(tvPeerId, videoOnly);
   if (!tvMediaCall) {
     toast('Impossible de démarrer la vidéo vers la TV', true);
     $('tvVideoToggle').checked = false;
