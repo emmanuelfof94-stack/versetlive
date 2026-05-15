@@ -1302,36 +1302,38 @@ let tvSnapshotCtx = null;
 function ensureTvSnapshotCanvas() {
   if (!tvSnapshotCanvas) {
     tvSnapshotCanvas = document.createElement('canvas');
-    tvSnapshotCanvas.width = 960;
-    tvSnapshotCanvas.height = 540;
+    tvSnapshotCanvas.width = 800;
+    tvSnapshotCanvas.height = 450;
     tvSnapshotCtx = tvSnapshotCanvas.getContext('2d', { alpha: false });
   }
 }
 
 let snapshotSeq = 0;
+let snapshotInflight = false;
 function captureAndSendSnapshot() {
   if (!tvDataConn || !tvDataConn.open) return;
   if (!programCanvas) return;
+  if (snapshotInflight) return; // évite l'empilement si le précédent prend trop de temps
+  snapshotInflight = true;
   ensureTvSnapshotCanvas();
-  // Downscale 1920x1080 → 960x540 (KB plus petits → moins de chunks → plus fiable)
   tvSnapshotCtx.drawImage(programCanvas, 0, 0, tvSnapshotCanvas.width, tvSnapshotCanvas.height);
-  tvSnapshotCanvas.toBlob(async (blob) => {
-    if (!blob || !tvDataConn || !tvDataConn.open) return;
-    try {
-      const buf = await blob.arrayBuffer();
-      // Envoie l'ArrayBuffer brut : PeerJS le gère nativement et le TV-side l'identifie via instanceof
-      tvDataConn.send(buf);
-      snapshotSeq++;
-      // Affiche un compteur dans le statut TV du studio (utile pour vérifier que ça envoie)
-      const el = $('tvStatusText');
-      if (el && tvDataConn && tvDataConn.open) {
-        const kb = Math.round(buf.byteLength / 1024);
-        el.textContent = `Connecté (snapshots envoyés: ${snapshotSeq}, ${kb} Ko)`;
-      }
-    } catch (e) {
-      console.warn('snapshot send failed', e);
+  // toDataURL → base64 — passe via JSON, pas de risque de sérialisation binaire
+  try {
+    const dataUrl = tvSnapshotCanvas.toDataURL('image/jpeg', 0.4);
+    tvDataConn.send({ type: 'snapshot', dataUrl });
+    snapshotSeq++;
+    const el = $('tvStatusText');
+    if (el) {
+      const kb = Math.round(dataUrl.length / 1024);
+      el.textContent = `Connecté (envoyés: ${snapshotSeq}, ${kb} Ko)`;
     }
-  }, 'image/jpeg', 0.4);
+    const statusEl = $('outputTvStatus');
+    if (statusEl) statusEl.textContent = `✓ Snapshots envoyés : ${snapshotSeq}`;
+  } catch (e) {
+    console.warn('snapshot send failed', e);
+  } finally {
+    snapshotInflight = false;
+  }
 }
 
 function startTvSnapshots() {
