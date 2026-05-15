@@ -22,6 +22,7 @@
       <button class="btn" id="openTvBtn" title="Projette le verset ou le mix complet sur une TV via son navigateur web"><span id="tvDot" class="studio-tv-dot"></span>📺 TV</button>
       <button class="btn" id="openProjectorBtn" title="Ouvre une fenêtre à glisser sur le projecteur">📽 Sortie projecteur</button>
       <button class="btn btn-danger" id="recordBtn">⏺ Enregistrer</button>
+      <button class="btn" id="openScheduleBtn" title="Planifier un live YouTube à l'avance">📅 Planifier</button>
       <button class="btn" id="helpStudioBtn" title="Aide — premiers pas, raccourcis, dépannage (touche ?)">❔ Aide</button>
       <a class="btn" href="index.html">← Retour panneau</a>
     </div>
@@ -117,6 +118,20 @@
         <div class="studio-hint" style="line-height:1.5; padding:4px 0;">
           Crée des écrans de bienvenue (avant le service) et de remerciement (après).<br>
           Texte animé + countdown OU vidéo MP4 importée, avec musique de fond optionnelle.
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">
+          <span>🎥 Vidéothèque</span>
+          <label class="btn btn-sm btn-primary" for="videoUploadInput" style="cursor:pointer;">+ Importer</label>
+          <input type="file" id="videoUploadInput" accept="video/mp4,video/webm,video/quicktime" multiple hidden>
+        </div>
+        <div class="studio-hint" style="line-height:1.5; padding:4px 0 8px;">
+          Tes clips importés et tes enregistrements. Clic = mettre en scène. Lecture une fois puis retour automatique à la scène précédente (ou en boucle si activé 🔁).
+        </div>
+        <div class="studio-videos-list" id="videosList">
+          <div class="studio-empty">Aucune vidéo. Importe un MP4 ou démarre un enregistrement.</div>
         </div>
       </div>
 
@@ -440,6 +455,74 @@
     </div>
   </div>
 
+  <!-- Modal Planification YouTube -->
+  <div class="modal-backdrop" id="scheduleModal">
+    <div class="modal modal-wide">
+      <div class="modal-header">
+        <h2>📅 Planifier un live YouTube</h2>
+        <button class="modal-close" id="scheduleModalClose">×</button>
+      </div>
+      <div class="modal-body">
+        <!-- Étape 1 : Configuration Google (si pas encore fait) -->
+        <div id="scheduleSetupBlock">
+          <h3>1. Connexion Google</h3>
+          <div id="scheduleSetupHint" class="studio-io-tip">
+            Pour utiliser le planificateur, tu dois créer un <strong>Client ID OAuth</strong> dans Google Cloud Console (une seule fois).
+            <a href="#" id="scheduleSetupHelp">Voir les étapes →</a>
+          </div>
+          <div class="field">
+            <label>Client ID OAuth Google</label>
+            <input type="text" id="scheduleClientId" placeholder="123456789-abcdef.apps.googleusercontent.com">
+          </div>
+          <div class="studio-schedule-actions">
+            <button class="btn" id="scheduleClientSave">Enregistrer</button>
+            <button class="btn btn-primary" id="scheduleConnectBtn" hidden>🔐 Se connecter à Google</button>
+            <button class="btn" id="scheduleDisconnectBtn" hidden>Déconnexion</button>
+            <span class="studio-schedule-status" id="scheduleAuthStatus"></span>
+          </div>
+        </div>
+
+        <hr class="studio-schedule-sep">
+
+        <!-- Étape 2 : Nouveau live -->
+        <div id="scheduleNewBlock" hidden>
+          <h3>2. Nouveau live programmé</h3>
+          <div class="field"><label>Titre</label><input type="text" id="scheduleTitle" placeholder="Culte du dimanche"></div>
+          <div class="field"><label>Description</label><textarea id="scheduleDescription" rows="2" placeholder="(optionnel)"></textarea></div>
+          <div class="studio-io-grid-2">
+            <div class="field"><label>Date et heure de début</label><input type="datetime-local" id="scheduleStartTime"></div>
+            <div class="field">
+              <label>Visibilité</label>
+              <select id="schedulePrivacy">
+                <option value="unlisted">Non répertorié</option>
+                <option value="public">Public</option>
+                <option value="private">Privé</option>
+              </select>
+            </div>
+          </div>
+          <div class="studio-schedule-actions">
+            <button class="btn btn-primary" id="scheduleCreateBtn">Créer le live YouTube</button>
+            <span class="studio-schedule-status" id="scheduleCreateStatus"></span>
+          </div>
+        </div>
+
+        <hr class="studio-schedule-sep">
+
+        <!-- Étape 3 : Liste des broadcasts -->
+        <div id="scheduleListBlock" hidden>
+          <h3>3. Lives programmés <button class="btn btn-sm" id="scheduleRefreshBtn" title="Rafraîchir depuis YouTube">↻</button></h3>
+          <div id="scheduleList" class="studio-schedule-list">
+            <div class="studio-empty">Aucun live programmé.</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <div style="flex:1;"></div>
+        <button class="btn" id="scheduleModalOk">Fermer</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal Aide générale -->
   <div class="modal-backdrop" id="helpStudioModal">
     <div class="modal modal-wide">
@@ -454,6 +537,7 @@
           <button class="studio-help-tab" data-help-tab="streaming">📡 Streaming</button>
           <button class="studio-help-tab" data-help-tab="tv">📺 TV</button>
           <button class="studio-help-tab" data-help-tab="introoutro">🎬 Intro / Outro</button>
+          <button class="studio-help-tab" data-help-tab="youtube">📅 YouTube</button>
           <button class="studio-help-tab" data-help-tab="trouble">🛠 Dépannage</button>
         </div>
 
@@ -566,6 +650,44 @@
           <p>Tous les assets (logo, vidéo, MP3) sont stockés en <strong>IndexedDB</strong> sur ta machine. Rien n'est uploadé. Si tu changes d'ordinateur, il faudra ré-importer.</p>
         </div>
 
+        <!-- YouTube (Planification) -->
+        <div class="studio-help-pane" data-help-pane="youtube">
+          <h3>Setup Google Cloud (une seule fois)</h3>
+          <p>Le planificateur appelle l'API YouTube depuis ton navigateur. Pour ça, Google demande un <strong>Client ID OAuth</strong> à toi (pas le mien) — ça prend 5 minutes.</p>
+
+          <ol>
+            <li>Va sur <a href="https://console.cloud.google.com/" target="_blank">console.cloud.google.com</a> et connecte-toi avec le compte Google de la chaîne YouTube de ton église.</li>
+            <li><strong>Crée un projet</strong> — barre du haut → « Nouveau projet ». Nomme-le par exemple <code>VersetLive</code>.</li>
+            <li><strong>Active YouTube Data API v3</strong> — menu ☰ → « API et services » → « Bibliothèque » → cherche <em>YouTube Data API v3</em> → clique <strong>Activer</strong>.</li>
+            <li><strong>Configure l'écran de consentement OAuth</strong> — « API et services » → « Écran de consentement OAuth » → <em>Externe</em> → remplis nom de l'app, email, etc. → ajoute le scope <code>https://www.googleapis.com/auth/youtube</code>. Ajoute ton compte Google dans « Utilisateurs de test ».</li>
+            <li><strong>Crée le Client ID OAuth</strong> — « API et services » → « Identifiants » → <em>Créer des identifiants → ID client OAuth</em>. Type : <strong>Application Web</strong>.
+              <ul>
+                <li>Origines JavaScript autorisées : <code>https://versetlive.vercel.app</code> et <code>http://localhost:8765</code></li>
+                <li>URI de redirection : laisse vide (on utilise le flow implicit)</li>
+              </ul>
+            </li>
+            <li>Copie le <strong>Client ID</strong> qui s'affiche (forme <code>123…-abcdef.apps.googleusercontent.com</code>) et colle-le dans le studio (bouton <kbd>📅 Planifier</kbd>).</li>
+          </ol>
+
+          <h3>Workflow planification</h3>
+          <ol>
+            <li>Clique <kbd>📅 Planifier</kbd> dans la topbar du studio.</li>
+            <li>Saisis ton Client ID (1ère fois seulement), clique <strong>Enregistrer</strong> puis <strong>Se connecter à Google</strong>. Une popup Google s'ouvre, accepte les autorisations.</li>
+            <li>Remplis titre, description, date/heure de début, visibilité. Clique <strong>Créer le live YouTube</strong>.</li>
+            <li>La destination RTMP est <strong>automatiquement ajoutée</strong> dans le studio (mais désactivée par défaut).</li>
+            <li>Le jour J, ouvre le studio → clique <kbd>📅 Planifier</kbd> → ton live apparaît avec un countdown. À H–0, le bouton <strong>▶ Démarrer maintenant</strong> clignote.</li>
+            <li>Clique <strong>Démarrer</strong> : active la destination, lance le stream RTMP, passe le broadcast YouTube en direct.</li>
+            <li>À la fin : clique <strong>■ Terminer le live</strong> dans la liste.</li>
+          </ol>
+
+          <h3>Limites</h3>
+          <ul>
+            <li>YouTube limite le quota d'API à 10 000 unités/jour par projet (largement suffisant pour un usage normal d'église).</li>
+            <li>Tant que ton appli est en « mode test » dans Google Cloud, le token expire après 7 jours et tu dois te reconnecter. Pour éviter ça, soumets l'app pour vérification (long) ou utilise toujours le même compte test.</li>
+            <li>La clé RTMP YouTube générée par broadcast est <strong>non réutilisable</strong> — chaque live a sa propre clé.</li>
+          </ul>
+        </div>
+
         <!-- Dépannage -->
         <div class="studio-help-pane" data-help-pane="trouble">
           <h3>« La caméra du téléphone ne se connecte pas »</h3>
@@ -617,6 +739,8 @@
   <script src="peerjs.min.js"></script>
   <script src="qrcode.js"></script>
   <script src="intro-outro.js"></script>
+  <script src="videos.js"></script>
+  <script src="youtube-scheduler.js"></script>
   <script src="studio.js"></script>
   <script>
     // Modal d'aide : ouverture/fermeture + navigation onglets + raccourci ?
@@ -657,6 +781,250 @@
           close();
         }
       });
+    })();
+
+    // ============ Modal Planification YouTube ============
+    (function () {
+      const YT = window.YouTubeScheduler;
+      if (!YT) return;
+      const modal = document.getElementById('scheduleModal');
+      const openBtn = document.getElementById('openScheduleBtn');
+      const closeBtn = document.getElementById('scheduleModalClose');
+      const okBtn = document.getElementById('scheduleModalOk');
+
+      const clientIdInput = document.getElementById('scheduleClientId');
+      const clientSaveBtn = document.getElementById('scheduleClientSave');
+      const connectBtn = document.getElementById('scheduleConnectBtn');
+      const disconnectBtn = document.getElementById('scheduleDisconnectBtn');
+      const authStatus = document.getElementById('scheduleAuthStatus');
+      const setupHelp = document.getElementById('scheduleSetupHelp');
+
+      const newBlock = document.getElementById('scheduleNewBlock');
+      const titleInput = document.getElementById('scheduleTitle');
+      const descInput = document.getElementById('scheduleDescription');
+      const startInput = document.getElementById('scheduleStartTime');
+      const privacySelect = document.getElementById('schedulePrivacy');
+      const createBtn = document.getElementById('scheduleCreateBtn');
+      const createStatus = document.getElementById('scheduleCreateStatus');
+
+      const listBlock = document.getElementById('scheduleListBlock');
+      const listEl = document.getElementById('scheduleList');
+      const refreshBtn = document.getElementById('scheduleRefreshBtn');
+
+      function open() { modal.classList.add('show'); render(); }
+      function close() { modal.classList.remove('show'); }
+
+      openBtn.addEventListener('click', open);
+      closeBtn.addEventListener('click', close);
+      okBtn.addEventListener('click', close);
+      modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
+
+      function setStatus(el, msg, isError) {
+        el.textContent = msg || '';
+        el.style.color = isError ? 'var(--accent-danger, #ef4444)' : 'var(--text-secondary)';
+      }
+
+      // Initialise les valeurs UI
+      clientIdInput.value = YT.getClientId();
+      // Valeur par défaut datetime-local : dans 30 minutes, arrondi
+      function defaultStart() {
+        const d = new Date(Date.now() + 30 * 60 * 1000);
+        d.setSeconds(0); d.setMilliseconds(0);
+        const pad = (n) => String(n).padStart(2, '0');
+        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+      }
+      startInput.value = defaultStart();
+
+      clientSaveBtn.addEventListener('click', () => {
+        YT.setClientId(clientIdInput.value);
+        setStatus(authStatus, 'Client ID enregistré', false);
+        render();
+      });
+
+      connectBtn.addEventListener('click', async () => {
+        try {
+          setStatus(authStatus, 'Connexion en cours…', false);
+          await YT.connect();
+          setStatus(authStatus, 'Connecté à Google ✓', false);
+          render();
+          await safeRefresh();
+        } catch (e) {
+          setStatus(authStatus, e.message, true);
+        }
+      });
+
+      disconnectBtn.addEventListener('click', () => {
+        YT.disconnect();
+        setStatus(authStatus, 'Déconnecté', false);
+        render();
+      });
+
+      setupHelp.addEventListener('click', (e) => {
+        e.preventDefault();
+        // Ouvre la modale d'aide à l'onglet YouTube si elle existe, sinon ouvre la doc Google
+        const helpModal = document.getElementById('helpStudioModal');
+        const ytTab = document.querySelector('.studio-help-tab[data-help-tab="youtube"]');
+        if (helpModal && ytTab) {
+          ytTab.click();
+          helpModal.classList.add('show');
+        } else {
+          window.open('https://console.cloud.google.com/apis/credentials', '_blank');
+        }
+      });
+
+      createBtn.addEventListener('click', async () => {
+        const title = titleInput.value.trim();
+        const description = descInput.value.trim();
+        const localTime = startInput.value;
+        const privacy = privacySelect.value;
+        if (!title) { setStatus(createStatus, 'Titre requis', true); return; }
+        if (!localTime) { setStatus(createStatus, 'Date/heure requise', true); return; }
+        const scheduledStartTime = new Date(localTime).toISOString();
+        if (new Date(scheduledStartTime).getTime() < Date.now() - 60_000) {
+          setStatus(createStatus, 'La date doit être dans le futur', true); return;
+        }
+        try {
+          setStatus(createStatus, 'Création du live YouTube…', false);
+          createBtn.disabled = true;
+          const entry = await YT.createBroadcast({ title, description, scheduledStartTime, privacy });
+          // Auto-ajout comme destination RTMP du studio
+          if (window.VL && !window.VL.hasDestination(entry.broadcastId)) {
+            window.VL.addDestination({
+              name: `YouTube — ${title}`,
+              url: entry.rtmpUrl,
+              key: entry.rtmpKey,
+              enabled: false,
+              ytBroadcastId: entry.broadcastId,
+            });
+          }
+          setStatus(createStatus, `Live « ${title} » créé ✓ — destination RTMP ajoutée`, false);
+          titleInput.value = '';
+          descInput.value = '';
+          startInput.value = defaultStart();
+          render();
+        } catch (e) {
+          setStatus(createStatus, e.message, true);
+        } finally {
+          createBtn.disabled = false;
+        }
+      });
+
+      refreshBtn.addEventListener('click', async () => {
+        await safeRefresh();
+        render();
+      });
+
+      async function safeRefresh() {
+        try { await YT.refreshFromYouTube(); }
+        catch (e) { console.warn('YT refresh', e); }
+      }
+
+      function render() {
+        const configured = YT.isConfigured();
+        const connected = YT.isConnected();
+
+        connectBtn.hidden = !configured || connected;
+        disconnectBtn.hidden = !connected;
+        newBlock.hidden = !connected;
+        listBlock.hidden = !connected;
+
+        if (!configured) {
+          setStatus(authStatus, 'Saisis ton Client ID pour démarrer');
+        } else if (!connected) {
+          setStatus(authStatus, 'Client ID OK — clique « Se connecter à Google »');
+        } else {
+          setStatus(authStatus, 'Connecté à Google ✓');
+        }
+
+        // Liste broadcasts
+        const upcoming = YT.getUpcoming();
+        if (!upcoming.length) {
+          listEl.innerHTML = '<div class="studio-empty">Aucun live programmé.</div>';
+          return;
+        }
+        listEl.innerHTML = '';
+        upcoming.forEach((b) => {
+          const row = document.createElement('div');
+          row.className = 'studio-schedule-item';
+          const startDate = new Date(b.scheduledStartTime);
+          const inMs = startDate - Date.now();
+          const countdownText = formatCountdown(inMs);
+          const statusBadge = b.status === 'live'
+            ? '<span class="studio-schedule-badge live">🔴 EN DIRECT</span>'
+            : (inMs <= 60_000 ? '<span class="studio-schedule-badge ready">⏰ Prêt à démarrer</span>'
+                              : `<span class="studio-schedule-badge">${countdownText}</span>`);
+
+          row.innerHTML = `
+            <div class="studio-schedule-item-head">
+              <div class="studio-schedule-item-title">${escapeHtml(b.title)}</div>
+              ${statusBadge}
+            </div>
+            <div class="studio-schedule-item-meta">
+              ${startDate.toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' })}
+              · ${b.privacy === 'public' ? 'Public' : b.privacy === 'private' ? 'Privé' : 'Non répertorié'}
+              · <a href="https://studio.youtube.com/video/${encodeURIComponent(b.broadcastId)}/livestreaming" target="_blank">Ouvrir dans YouTube Studio ↗</a>
+            </div>
+            <div class="studio-schedule-item-actions">
+              ${b.status !== 'live'
+                ? `<button class="btn btn-primary ${inMs <= 60_000 ? 'studio-schedule-btn-pulse' : ''}" data-act="start" data-id="${b.broadcastId}">▶ Démarrer maintenant</button>`
+                : `<button class="btn btn-danger" data-act="finalize" data-id="${b.broadcastId}">■ Terminer le live</button>`}
+              <button class="btn" data-act="delete" data-id="${b.broadcastId}">🗑 Supprimer</button>
+            </div>
+          `;
+          listEl.appendChild(row);
+        });
+
+        listEl.querySelectorAll('button[data-act]').forEach(btn => {
+          btn.addEventListener('click', () => handleAction(btn.dataset.act, btn.dataset.id));
+        });
+      }
+
+      function escapeHtml(s) {
+        return String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+      }
+
+      function formatCountdown(ms) {
+        if (ms < 0) return 'Heure dépassée';
+        const totalMin = Math.floor(ms / 60_000);
+        const days = Math.floor(totalMin / 1440);
+        const hours = Math.floor((totalMin % 1440) / 60);
+        const mins = totalMin % 60;
+        if (days > 0) return `dans ${days}j ${hours}h`;
+        if (hours > 0) return `dans ${hours}h ${mins}min`;
+        return `dans ${mins} min`;
+      }
+
+      async function handleAction(act, broadcastId) {
+        const b = YT.getBroadcasts().find(x => x.broadcastId === broadcastId);
+        if (!b) return;
+        try {
+          if (act === 'start') {
+            // 1. Active la destination, 2. Démarre le stream RTMP, 3. Transition broadcast → live
+            window.VL?.enableDestination(broadcastId);
+            window.VL?.startStream();
+            // Donne au relais quelques secondes pour ouvrir la connexion
+            await new Promise(r => setTimeout(r, 3000));
+            await YT.transitionToLive(broadcastId);
+            render();
+          } else if (act === 'finalize') {
+            await YT.finalize(broadcastId);
+            render();
+          } else if (act === 'delete') {
+            if (!confirm(`Supprimer le live « ${b.title} » ? (Cette action est définitive sur YouTube)`)) return;
+            await YT.deleteBroadcast(broadcastId);
+            render();
+          }
+        } catch (e) {
+          alert('Erreur : ' + e.message);
+        }
+      }
+
+      // Init module
+      YT.init({ onChange: render });
+      render();
+
+      // Refresh countdowns toutes les 30s pendant que la modal est ouverte
+      setInterval(() => { if (modal.classList.contains('show')) render(); }, 30_000);
     })();
   </script>
   <script defer src="/_vercel/insights/script.js"></script>

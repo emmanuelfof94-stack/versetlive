@@ -360,6 +360,9 @@ function buildSceneList() {
   if (window.IntroOutro && window.IntroOutro.isConfigured('outro')) {
     list.push({ key: 'outro', label: '🎬 Outro', scene: { kind: 'outro' } });
   }
+  if (window.VideoLibrary && window.VideoLibrary.listScenes) {
+    window.VideoLibrary.listScenes().forEach(v => list.push(v));
+  }
   list.push({ key: 'black', label: 'Noir', scene: { kind: 'black' } });
   return list;
 }
@@ -391,6 +394,7 @@ function sceneKey(scene) {
   if (scene.kind === 'camera+verse') return `cam-verse-${scene.primaryId}`;
   if (scene.kind === 'image') return `img-${scene.imageId}`;
   if (scene.kind === 'image+verse') return `img-verse-${scene.imageId}`;
+  if (scene.kind === 'video') return `vid-${scene.videoId}`;
   if (scene.kind === 'pip') return 'pip';
   if (scene.kind === 'verse') return 'verse';
   if (scene.kind === 'intro') return 'intro';
@@ -595,14 +599,27 @@ function setScene(scene) {
   }
 }
 
+// Mémorise la scène à laquelle revenir quand une vidéo se termine
+let preVideoScene = null;
+
 function setProgramScene(scene) {
   if (sceneKey(programScene) === sceneKey(scene)) return;
+  // Si on passe à une vidéo, mémoriser la scène précédente (pour retour auto)
+  if (scene.kind === 'video' && programScene.kind !== 'video') {
+    preVideoScene = programScene;
+  }
+  // Si on quitte une vidéo manuellement (pas par fin de vidéo), oublier le retour auto
+  if (programScene.kind === 'video' && scene.kind !== 'video') {
+    preVideoScene = null;
+  }
   previousProgramScene = programScene;
   programScene = scene;
   transitionStart = performance.now();
   renderScenes();
   // Trigger audio MP3 de l'intro/outro si applicable
   if (window.IntroOutro) window.IntroOutro.onSceneChange(scene);
+  // Trigger lecture vidéo si applicable
+  if (window.VideoLibrary) window.VideoLibrary.onSceneChange(scene);
 }
 
 function setPreviewScene(scene) {
@@ -664,6 +681,8 @@ function drawScene(s) {
     drawVerseOverlay({ x: 0, y: 0, w: OUTPUT_W, h: OUTPUT_H });
   } else if (s.kind === 'intro' || s.kind === 'outro') {
     if (window.IntroOutro) window.IntroOutro.draw(activeCtx, s.kind, OUTPUT_W, OUTPUT_H);
+  } else if (s.kind === 'video') {
+    if (window.VideoLibrary) window.VideoLibrary.draw(activeCtx, s.videoId, OUTPUT_W, OUTPUT_H);
   }
   // 'black' → rien à dessiner
 }
@@ -857,6 +876,11 @@ function toggleRecord() {
     document.body.appendChild(a);
     a.click();
     setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000);
+    // Sauvegarder aussi dans la vidéothèque locale (en plus du téléchargement)
+    if (window.VideoLibrary) {
+      const niceName = `Enregistrement ${new Date().toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}`;
+      window.VideoLibrary.addRecording(blob, niceName).catch(err => console.warn('save recording to lib failed', err));
+    }
     updateRecordBtn(false);
     setStatus('Prêt');
     toast('Enregistrement sauvegardé');
@@ -2079,6 +2103,23 @@ async function init() {
   if (window.IntroOutro) {
     window.IntroOutro.init({ onChange: () => renderScenes() });
   }
+  // Init vidéothèque : expose une mini API setScene pour que videos.js trigger les scènes
+  window.__studioApi = { setScene };
+  if (window.VideoLibrary) {
+    await window.VideoLibrary.init({
+      onChange: () => renderScenes(),
+      onVideoEnded: () => {
+        // Retour automatique à la scène avant la vidéo
+        if (preVideoScene) {
+          const back = preVideoScene;
+          preVideoScene = null;
+          setProgramScene(back);
+        } else {
+          setProgramScene({ kind: 'black' });
+        }
+      }
+    });
+  }
   renderScenes();
   renderVerseStatus();
   renderDestinations();
@@ -2092,3 +2133,40 @@ async function init() {
   connectRelay();
 }
 init();
+
+// Pont public pour modules externes (ex: youtube-scheduler)
+window.VL = {
+  addDestination(d) {
+    if (!d?.url || !d?.key) return false;
+    destinations.push({
+      name: d.name || 'Destination',
+      url: d.url,
+      key: d.key,
+      enabled: d.enabled !== false,
+      ytBroadcastId: d.ytBroadcastId || undefined,
+    });
+    saveDestinations();
+    renderDestinations();
+    updateStreamBtnState();
+    return true;
+  },
+  hasDestination(broadcastId) {
+    return destinations.some(d => d.ytBroadcastId === broadcastId);
+  },
+  enableDestination(broadcastId) {
+    const d = destinations.find(x => x.ytBroadcastId === broadcastId);
+    if (!d) return false;
+    d.enabled = true;
+    saveDestinations();
+    renderDestinations();
+    updateStreamBtnState();
+    return true;
+  },
+  startStream() {
+    if (!relayStreaming) startStreaming();
+  },
+  stopStream() {
+    if (relayStreaming) stopStreaming('user');
+  },
+  isStreaming() { return !!relayStreaming; },
+};
