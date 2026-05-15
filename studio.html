@@ -111,6 +111,33 @@
         </div>
       </div>
 
+      <div class="section">
+        <div class="section-title">
+          <span>📡 Diffusion multi-plateformes</span>
+          <span class="studio-relay-pill" id="relayPill">
+            <span class="studio-relay-dot" id="relayDot"></span>
+            <span id="relayLabel">Relais hors-ligne</span>
+          </span>
+        </div>
+
+        <div class="studio-relay-help" id="relayHelp">
+          Lance le relais local : double-clique <code>relay/start.command</code>, puis ouvre une fois
+          <a href="https://localhost:8766/" target="_blank">https://localhost:8766/</a> et accepte le certificat.
+        </div>
+
+        <div class="studio-destinations" id="destinationsList"></div>
+        <button class="btn btn-sm" id="addDestBtn" style="margin-top:8px;">+ Ajouter une destination</button>
+
+        <div class="studio-stream-controls">
+          <button class="btn btn-primary btn-block studio-stream-btn" id="streamBtn" disabled>▶ Démarrer le stream</button>
+          <div class="studio-stream-stats" id="streamStats" hidden>
+            <span id="streamElapsed">00:00:00</span>
+            <span id="streamFps">— fps</span>
+            <span id="streamBitrate">— kbps</span>
+          </div>
+        </div>
+      </div>
+
     </div>
 
   </div>

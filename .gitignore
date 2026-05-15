@@ -12,3 +12,7 @@
 __pycache__/
 *.pyc
 .vercel
+
+# Node.js relay (relay/)
+relay/node_modules/
+relay/.certs/

@@ -878,16 +878,314 @@ function bindRemoteHelp() {
   });
 }
 
+// ============ Diffusion multi-plateformes (RELAIS LOCAL) ============
+const RELAY_URL = 'wss://localhost:8766';
+const RELAY_HEALTH_URL = 'https://localhost:8766/health';
+const DEST_STORAGE_KEY = 'versetlive:destinations';
+
+const DEST_PRESETS = [
+  { name: 'YouTube',  url: 'rtmp://a.rtmp.youtube.com/live2',          key: '', placeholderKey: 'xxxx-xxxx-xxxx-xxxx-xxxx' },
+  { name: 'Facebook', url: 'rtmps://live-api-s.facebook.com:443/rtmp', key: '', placeholderKey: 'FB-XXXXXXXXX-X' },
+  { name: 'Twitch',   url: 'rtmp://live.twitch.tv/app',                key: '', placeholderKey: 'live_XXXXXXXXX_XXXXXXX' }
+];
+
+let relayWs = null;
+let relayStreaming = false;
+let streamRecorder = null;
+let streamStartedAt = 0;
+let streamStatsTimer = null;
+let destinations = loadDestinations();
+
+function loadDestinations() {
+  try {
+    const raw = localStorage.getItem(DEST_STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return DEST_PRESETS.map(p => ({ ...p, enabled: false }));
+}
+
+function saveDestinations() {
+  // Ne pas sauvegarder les clés sensibles si l'utilisateur préfère
+  localStorage.setItem(DEST_STORAGE_KEY, JSON.stringify(destinations));
+}
+
+function renderDestinations() {
+  const list = $('destinationsList');
+  list.innerHTML = '';
+  destinations.forEach((d, i) => {
+    const row = document.createElement('div');
+    row.className = 'studio-destination';
+    row.innerHTML = `
+      <div class="studio-destination-head">
+        <label class="studio-destination-toggle">
+          <input type="checkbox" data-i="${i}" data-field="enabled" ${d.enabled ? 'checked' : ''}>
+          <span class="studio-destination-name">${escapeHtml(d.name)}</span>
+        </label>
+        <button class="btn btn-sm studio-destination-remove" data-i="${i}" title="Supprimer">×</button>
+      </div>
+      <div class="studio-destination-fields">
+        <input type="text" placeholder="rtmp://…" value="${escapeHtml(d.url)}" data-i="${i}" data-field="url">
+        <input type="password" placeholder="${escapeHtml(d.placeholderKey || 'Clé de stream')}" value="${escapeHtml(d.key)}" data-i="${i}" data-field="key">
+      </div>
+    `;
+    list.appendChild(row);
+  });
+
+  // Bind inputs
+  list.querySelectorAll('input').forEach(inp => {
+    inp.addEventListener('change', (e) => {
+      const i = parseInt(e.target.dataset.i, 10);
+      const f = e.target.dataset.field;
+      destinations[i][f] = (f === 'enabled') ? e.target.checked : e.target.value;
+      saveDestinations();
+      updateStreamBtnState();
+    });
+    inp.addEventListener('input', (e) => {
+      if (e.target.dataset.field !== 'enabled') {
+        const i = parseInt(e.target.dataset.i, 10);
+        destinations[i][e.target.dataset.field] = e.target.value;
+        saveDestinations();
+        updateStreamBtnState();
+      }
+    });
+  });
+  list.querySelectorAll('.studio-destination-remove').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const i = parseInt(e.target.dataset.i, 10);
+      if (confirm(`Supprimer la destination « ${destinations[i].name} » ?`)) {
+        destinations.splice(i, 1);
+        saveDestinations();
+        renderDestinations();
+        updateStreamBtnState();
+      }
+    });
+  });
+}
+
+function addDestination() {
+  // Propose un preset non encore présent, sinon vide
+  const usedNames = new Set(destinations.map(d => d.name));
+  const preset = DEST_PRESETS.find(p => !usedNames.has(p.name));
+  destinations.push(preset ? { ...preset, enabled: false } : { name: 'Personnalisé', url: '', key: '', enabled: false });
+  saveDestinations();
+  renderDestinations();
+  updateStreamBtnState();
+}
+
+function activeDestinations() {
+  return destinations.filter(d => d.enabled && d.url && d.key);
+}
+
+function updateStreamBtnState() {
+  const btn = $('streamBtn');
+  if (relayStreaming) {
+    btn.disabled = false;
+    btn.textContent = '⏹ Arrêter le stream';
+    btn.classList.remove('btn-primary');
+    btn.classList.add('btn-danger');
+    return;
+  }
+  const relayOk = relayWs && relayWs.readyState === WebSocket.OPEN;
+  const dests = activeDestinations();
+  if (!relayOk) {
+    btn.disabled = true;
+    btn.textContent = '▶ Démarrer le stream (relais hors-ligne)';
+  } else if (!dests.length) {
+    btn.disabled = true;
+    btn.textContent = '▶ Démarrer le stream (aucune destination active)';
+  } else {
+    btn.disabled = false;
+    btn.textContent = `▶ Démarrer le stream (${dests.length} destination${dests.length > 1 ? 's' : ''})`;
+  }
+  btn.classList.add('btn-primary');
+  btn.classList.remove('btn-danger');
+}
+
+function setRelayStatus(state, label) {
+  const pill = $('relayPill');
+  const dot = $('relayDot');
+  const lbl = $('relayLabel');
+  pill.classList.remove('ok', 'err', 'warn');
+  dot.classList.remove('ok', 'err', 'warn');
+  if (state === 'ok') { pill.classList.add('ok'); dot.classList.add('ok'); }
+  else if (state === 'warn') { pill.classList.add('warn'); dot.classList.add('warn'); }
+  else if (state === 'err') { pill.classList.add('err'); dot.classList.add('err'); }
+  lbl.textContent = label;
+  $('relayHelp').style.display = (state === 'ok') ? 'none' : '';
+}
+
+function connectRelay() {
+  setRelayStatus('warn', 'Connexion au relais…');
+  try {
+    relayWs = new WebSocket(RELAY_URL);
+  } catch (e) {
+    setRelayStatus('err', 'Relais hors-ligne');
+    updateStreamBtnState();
+    return;
+  }
+
+  relayWs.binaryType = 'arraybuffer';
+
+  relayWs.onopen = () => {
+    setRelayStatus('ok', 'Relais en ligne');
+    updateStreamBtnState();
+  };
+  relayWs.onclose = () => {
+    setRelayStatus('err', 'Relais déconnecté');
+    if (relayStreaming) stopStreaming('relay-disconnect');
+    updateStreamBtnState();
+    // Retry doux après 5s
+    setTimeout(connectRelay, 5000);
+  };
+  relayWs.onerror = () => {
+    setRelayStatus('err', 'Relais hors-ligne');
+    updateStreamBtnState();
+  };
+  relayWs.onmessage = (evt) => {
+    if (typeof evt.data !== 'string') return;
+    try { handleRelayMessage(JSON.parse(evt.data)); } catch (e) {}
+  };
+}
+
+function handleRelayMessage(msg) {
+  if (msg.type === 'hello') {
+    console.log('Relay hello', msg);
+  } else if (msg.type === 'started') {
+    toast(`Stream démarré (${msg.destinations.length} destination(s))`);
+  } else if (msg.type === 'stopped') {
+    if (relayStreaming) finalizeStop();
+  } else if (msg.type === 'error') {
+    toast('Relais: ' + msg.message, true);
+  } else if (msg.type === 'ffmpeg-log' && msg.level === 'error') {
+    toast('ffmpeg: ' + msg.line, true);
+  } else if (msg.type === 'stats') {
+    if (msg.fps) $('streamFps').textContent = `${msg.fps.toFixed(0)} fps`;
+    if (msg.bitrate) $('streamBitrate').textContent = msg.bitrate;
+  }
+}
+
+function startStreaming() {
+  if (!relayWs || relayWs.readyState !== WebSocket.OPEN) {
+    toast('Relais hors-ligne', true);
+    return;
+  }
+  const dests = activeDestinations();
+  if (!dests.length) {
+    toast('Aucune destination active', true);
+    return;
+  }
+  if (!programStream) rebuildProgramStream();
+
+  // Préparer MediaRecorder sur le stream du programme
+  const mime = pickStreamMime();
+  if (!mime) {
+    toast('Aucun codec compatible', true);
+    return;
+  }
+
+  try {
+    streamRecorder = new MediaRecorder(programStream, {
+      mimeType: mime,
+      videoBitsPerSecond: 4_500_000,
+      audioBitsPerSecond: 128_000
+    });
+  } catch (e) {
+    toast('MediaRecorder: ' + e.message, true);
+    return;
+  }
+
+  streamRecorder.ondataavailable = async (e) => {
+    if (e.data.size > 0 && relayWs?.readyState === WebSocket.OPEN) {
+      const buf = await e.data.arrayBuffer();
+      relayWs.send(buf);
+    }
+  };
+  streamRecorder.onerror = (e) => {
+    toast('Enregistrement: ' + (e.error?.message || 'erreur'), true);
+    stopStreaming('recorder-error');
+  };
+
+  // Envoyer la commande start au relais
+  relayWs.send(JSON.stringify({
+    type: 'start',
+    destinations: dests.map(d => ({ name: d.name, url: d.url, key: d.key }))
+  }));
+
+  // Démarrer le recorder avec timeslice de 250ms (faible latence)
+  streamRecorder.start(250);
+  relayStreaming = true;
+  streamStartedAt = Date.now();
+  $('streamStats').hidden = false;
+  startStreamElapsedTimer();
+  updateStreamBtnState();
+  setStatus('● Diffusion en direct');
+}
+
+function stopStreaming(reason = 'user') {
+  if (!relayStreaming) return;
+  try { if (streamRecorder?.state !== 'inactive') streamRecorder.stop(); } catch (e) {}
+  if (relayWs?.readyState === WebSocket.OPEN) {
+    relayWs.send(JSON.stringify({ type: 'stop' }));
+  }
+  finalizeStop();
+}
+
+function finalizeStop() {
+  relayStreaming = false;
+  streamRecorder = null;
+  if (streamStatsTimer) { clearInterval(streamStatsTimer); streamStatsTimer = null; }
+  $('streamStats').hidden = true;
+  $('streamFps').textContent = '— fps';
+  $('streamBitrate').textContent = '— kbps';
+  updateStreamBtnState();
+  setStatus('Prêt');
+}
+
+function startStreamElapsedTimer() {
+  if (streamStatsTimer) clearInterval(streamStatsTimer);
+  streamStatsTimer = setInterval(() => {
+    const s = Math.floor((Date.now() - streamStartedAt) / 1000);
+    const h = String(Math.floor(s / 3600)).padStart(2, '0');
+    const m = String(Math.floor((s % 3600) / 60)).padStart(2, '0');
+    const sec = String(s % 60).padStart(2, '0');
+    $('streamElapsed').textContent = `${h}:${m}:${sec}`;
+  }, 1000);
+}
+
+function pickStreamMime() {
+  const candidates = [
+    'video/webm;codecs=vp8,opus',  // VP8 plus rapide à décoder côté ffmpeg
+    'video/webm;codecs=vp9,opus',
+    'video/webm'
+  ];
+  for (const m of candidates) if (MediaRecorder.isTypeSupported(m)) return m;
+  return '';
+}
+
+function bindStreaming() {
+  $('addDestBtn').addEventListener('click', addDestination);
+  $('streamBtn').addEventListener('click', () => {
+    if (relayStreaming) {
+      if (confirm('Arrêter la diffusion en direct ?')) stopStreaming('user');
+    } else {
+      startStreaming();
+    }
+  });
+}
+
 // ============ Boot ============
 async function init() {
   bindUi();
   bindRemoteHelp();
+  bindStreaming();
   renderScenes();
   renderVerseStatus();
+  renderDestinations();
   startAudioMeter();
   requestAnimationFrame(renderFrame);
   rebuildProgramStream();
   await refreshDeviceList();
   initSignaling();
+  connectRelay();
 }
 init();

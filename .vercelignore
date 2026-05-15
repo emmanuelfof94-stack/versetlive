@@ -1,0 +1,11 @@
+# Le relais Node.js tourne en local sur la machine de l'utilisateur,
+# pas sur Vercel. On l'exclut du deploy.
+relay/
+
+# Scripts Python utilitaires (offline, jamais appelés en prod)
+fetch-all-chants.py
+parse-chants.py
+.cv-cache/
+
+# macOS
+.DS_Store
