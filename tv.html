@@ -286,9 +286,39 @@
         }
       }
 
-      // ============ Snapshot mode (5 fps JPEG via data channel) ============
+      // ============ Snapshot mode (binaire Full HD, jusqu'à 30 fps) ============
       let snapshotCount = 0;
       let snapshotImgInit = false;
+      let snapshotPrevUrl = null;
+
+      function showSnapshotFromBlob(blob) {
+        try {
+          const img = $('programSnapshot');
+          const vid = $('programVideo');
+          if (vid && vid.classList.contains('show')) {
+            vid.classList.remove('show');
+            try { vid.srcObject = null; } catch (e) {}
+          }
+          const url = URL.createObjectURL(blob);
+          if (snapshotPrevUrl) URL.revokeObjectURL(snapshotPrevUrl);
+          snapshotPrevUrl = url;
+          img.src = url;
+          img.classList.add('show');
+          snapshotCount++;
+          let badge = document.getElementById('snapshotBadge');
+          if (!badge) {
+            badge = document.createElement('div');
+            badge.id = 'snapshotBadge';
+            badge.style.cssText = 'position:fixed; top:8px; right:8px; background:rgba(16,185,129,0.85); color:white; padding:4px 10px; font:bold 12px monospace; border-radius:4px; z-index:50;';
+            document.body.appendChild(badge);
+          }
+          badge.textContent = '📡 ' + snapshotCount + ' (' + (blob.size / 1024 | 0) + 'k)';
+        } catch (e) {
+          var box = document.getElementById('tvDebugBox');
+          if (box) { box.style.display = 'block'; box.textContent += '⚠ showSnapshotFromBlob: ' + (e.message || e) + '\n\n'; }
+        }
+      }
+
       function showSnapshotFromDataUrl(dataUrl) {
         try {
           const img = $('programSnapshot');
@@ -331,6 +361,7 @@
         const img = $('programSnapshot');
         img.classList.remove('show');
         img.removeAttribute('src');
+        if (snapshotPrevUrl) { URL.revokeObjectURL(snapshotPrevUrl); snapshotPrevUrl = null; }
         const badge = document.getElementById('snapshotBadge');
         if (badge) badge.remove();
       }
@@ -378,7 +409,20 @@
 
           conn.on('data', (msg) => {
             if (!msg) return;
-            // Snapshot data URL (base64 dans une string)
+            // Snapshot binaire (Blob ou ArrayBuffer)
+            if (msg instanceof Blob) {
+              showSnapshotFromBlob(msg);
+              return;
+            }
+            if (msg instanceof ArrayBuffer) {
+              showSnapshotFromBlob(new Blob([msg], { type: 'image/jpeg' }));
+              return;
+            }
+            if (msg && msg.buffer instanceof ArrayBuffer && msg.byteLength) {
+              showSnapshotFromBlob(new Blob([msg.buffer], { type: 'image/jpeg' }));
+              return;
+            }
+            // Snapshot data URL (rétrocompatibilité base64)
             if (msg.type === 'snapshot' && msg.dataUrl) {
               showSnapshotFromDataUrl(msg.dataUrl);
               return;

@@ -1299,13 +1299,14 @@ let tvSnapshotTimer = null;
 let tvSnapshotCanvas = null;
 let tvSnapshotCtx = null;
 
-// Réglages qualité MAX : Full HD 1920x1080, JPEG 92% (quasi lossless), 15 fps
-// Bande passante estimée ~80-130 Mbps sur Wi-Fi local — confortable en Wi-Fi 5/6.
-// Le backpressure (bufferedAmount > 3 MB) skip les frames si saturation.
+// Réglages qualité MAX réseau local : Full HD 1920x1080, JPEG 92%, ~25 fps
+// Transport binaire pur (Blob) pour éviter l'overhead base64.
+// Encodage async (toBlob) → l'UI ne bloque plus, on peut tenir une cadence haute.
+// Bande passante estimée ~60-100 Mbps. Backpressure à 4 MB.
 const TV_SNAPSHOT_W = 1920;
 const TV_SNAPSHOT_H = 1080;
 const TV_SNAPSHOT_QUALITY = 0.92;
-const TV_SNAPSHOT_INTERVAL_MS = 67; // ≈ 15 fps
+const TV_SNAPSHOT_INTERVAL_MS = 33; // ≈ 30 fps (max raisonnable, limite œil/canvas)
 
 function ensureTvSnapshotCanvas() {
   if (!tvSnapshotCanvas) {
@@ -1318,40 +1319,51 @@ function ensureTvSnapshotCanvas() {
 
 let snapshotSeq = 0;
 let skippedFrames = 0;
+let snapshotInflight = 0;
 function captureAndSendSnapshot() {
   if (!tvDataConn || !tvDataConn.open) return;
   if (!programCanvas) return;
   // Backpressure : si le buffer du data channel est trop rempli, on saute cette frame
   try {
     const dc = tvDataConn._dc || tvDataConn.dataChannel;
-    if (dc && dc.bufferedAmount > 3_000_000) { // 3 MB → on patiente
+    if (dc && dc.bufferedAmount > 4_000_000) {
       skippedFrames++;
       return;
     }
   } catch (e) {}
-
-  try {
-    // Le programCanvas est déjà en 1920x1080 — on évite une copie inutile en
-    // l'utilisant directement comme source pour toDataURL.
-    let sourceCanvas = programCanvas;
-    if (programCanvas.width !== TV_SNAPSHOT_W || programCanvas.height !== TV_SNAPSHOT_H) {
-      ensureTvSnapshotCanvas();
-      tvSnapshotCtx.drawImage(programCanvas, 0, 0, tvSnapshotCanvas.width, tvSnapshotCanvas.height);
-      sourceCanvas = tvSnapshotCanvas;
-    }
-    const dataUrl = sourceCanvas.toDataURL('image/jpeg', TV_SNAPSHOT_QUALITY);
-    tvDataConn.send({ type: 'snapshot', dataUrl });
-    snapshotSeq++;
-    const el = $('tvStatusText');
-    if (el) {
-      const kb = Math.round(dataUrl.length / 1024);
-      el.textContent = `Connecté (Full HD ${snapshotSeq}f · ${kb} Ko/f${skippedFrames ? ` · ${skippedFrames} sautées` : ''})`;
-    }
-    const statusEl = $('outputTvStatus');
-    if (statusEl) statusEl.textContent = `✓ Full HD 1920×1080 · ${snapshotSeq} frames`;
-  } catch (e) {
-    console.warn('snapshot send failed', e);
+  // Empêche plus de 3 captures en vol simultanées (pipeline async)
+  if (snapshotInflight > 3) {
+    skippedFrames++;
+    return;
   }
+
+  let sourceCanvas = programCanvas;
+  if (programCanvas.width !== TV_SNAPSHOT_W || programCanvas.height !== TV_SNAPSHOT_H) {
+    ensureTvSnapshotCanvas();
+    tvSnapshotCtx.drawImage(programCanvas, 0, 0, tvSnapshotCanvas.width, tvSnapshotCanvas.height);
+    sourceCanvas = tvSnapshotCanvas;
+  }
+
+  snapshotInflight++;
+  // toBlob ASYNC → l'encodage JPEG ne bloque plus le main thread (peut tenir 25-30 fps)
+  sourceCanvas.toBlob((blob) => {
+    snapshotInflight--;
+    if (!blob || !tvDataConn || !tvDataConn.open) return;
+    try {
+      // Envoie le Blob brut : PeerJS le sérialise nativement en binaire (pas de base64)
+      tvDataConn.send(blob);
+      snapshotSeq++;
+      const el = $('tvStatusText');
+      if (el) {
+        const kb = Math.round(blob.size / 1024);
+        el.textContent = `Connecté (Full HD ${snapshotSeq}f · ${kb} Ko${skippedFrames ? ` · ${skippedFrames}↓` : ''})`;
+      }
+      const statusEl = $('outputTvStatus');
+      if (statusEl) statusEl.textContent = `✓ Full HD 1920×1080 · ${snapshotSeq} frames`;
+    } catch (e) {
+      console.warn('snapshot send failed', e);
+    }
+  }, 'image/jpeg', TV_SNAPSHOT_QUALITY);
 }
 
 function startTvSnapshots() {
