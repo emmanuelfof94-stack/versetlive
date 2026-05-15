@@ -122,6 +122,9 @@
     }
     .program-video.show { display: block; }
 
+    /* Snapshot img : z-index plus élevé pour passer au-dessus du verset et de la vidéo */
+    #programSnapshot { z-index: 8; }
+
     .play-fallback {
       position: fixed; top: 50%; left: 50%;
       transform: translate(-50%, -50%);
@@ -285,9 +288,28 @@
 
       // ============ Snapshot mode (5 fps JPEG via data channel) ============
       let snapshotCount = 0;
+      let snapshotImgInit = false;
       function showSnapshotFromDataUrl(dataUrl) {
         try {
           const img = $('programSnapshot');
+          // Coupe la vidéo WebRTC si elle traîne (peut masquer le snapshot)
+          const vid = $('programVideo');
+          if (vid && vid.classList.contains('show')) {
+            vid.classList.remove('show');
+            try { vid.srcObject = null; } catch (e) {}
+          }
+          if (!snapshotImgInit) {
+            snapshotImgInit = true;
+            img.onerror = function () {
+              var box = document.getElementById('tvDebugBox');
+              if (box) { box.style.display = 'block'; box.textContent += '⚠ img onerror (data URL invalide ?). Taille: ' + (dataUrl ? dataUrl.length : 0) + '\n\n'; }
+            };
+            img.onload = function () {
+              // Première frame réussie : on peut le signaler
+              var badge = document.getElementById('snapshotBadge');
+              if (badge) badge.style.background = 'rgba(16,185,129,0.95)';
+            };
+          }
           img.src = dataUrl;
           img.classList.add('show');
           snapshotCount++;
@@ -299,7 +321,7 @@
             badge.style.cssText = 'position:fixed; top:8px; right:8px; background:rgba(16,185,129,0.85); color:white; padding:4px 10px; font:bold 12px monospace; border-radius:4px; z-index:50;';
             document.body.appendChild(badge);
           }
-          badge.textContent = '📡 ' + snapshotCount;
+          badge.textContent = '📡 ' + snapshotCount + ' (' + (dataUrl.length / 1024 | 0) + 'k)';
         } catch (e) {
           var box = document.getElementById('tvDebugBox');
           if (box) { box.style.display = 'block'; box.textContent += '⚠ showSnapshot: ' + (e.message || e) + '\n\n'; }
