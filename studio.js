@@ -1299,10 +1299,12 @@ let tvSnapshotTimer = null;
 let tvSnapshotCanvas = null;
 let tvSnapshotCtx = null;
 
-// Réglages qualité : HD 1280x720, JPEG 70%, 10 fps
-const TV_SNAPSHOT_W = 1280;
-const TV_SNAPSHOT_H = 720;
-const TV_SNAPSHOT_QUALITY = 0.7;
+// Réglages qualité : Full HD 1920x1080, JPEG 75%, 10 fps
+// Bande passante ~30-50 Mbps — OK sur Wi-Fi 5/6 moderne. Le backpressure
+// (bufferedAmount > 1.5 MB) skip les frames si la connexion sature.
+const TV_SNAPSHOT_W = 1920;
+const TV_SNAPSHOT_H = 1080;
+const TV_SNAPSHOT_QUALITY = 0.75;
 const TV_SNAPSHOT_INTERVAL_MS = 100; // 10 fps
 
 function ensureTvSnapshotCanvas() {
@@ -1315,28 +1317,38 @@ function ensureTvSnapshotCanvas() {
 }
 
 let snapshotSeq = 0;
+let skippedFrames = 0;
 function captureAndSendSnapshot() {
   if (!tvDataConn || !tvDataConn.open) return;
   if (!programCanvas) return;
   // Backpressure : si le buffer du data channel est trop rempli, on saute cette frame
-  // (l'ancien lot finira de partir avant qu'on enchaîne)
   try {
     const dc = tvDataConn._dc || tvDataConn.dataChannel;
-    if (dc && dc.bufferedAmount > 1_500_000) return; // 1.5 MB en attente → on patiente
+    if (dc && dc.bufferedAmount > 1_500_000) {
+      skippedFrames++;
+      return;
+    }
   } catch (e) {}
-  ensureTvSnapshotCanvas();
-  tvSnapshotCtx.drawImage(programCanvas, 0, 0, tvSnapshotCanvas.width, tvSnapshotCanvas.height);
+
   try {
-    const dataUrl = tvSnapshotCanvas.toDataURL('image/jpeg', TV_SNAPSHOT_QUALITY);
+    // Le programCanvas est déjà en 1920x1080 — on évite une copie inutile en
+    // l'utilisant directement comme source pour toDataURL.
+    let sourceCanvas = programCanvas;
+    if (programCanvas.width !== TV_SNAPSHOT_W || programCanvas.height !== TV_SNAPSHOT_H) {
+      ensureTvSnapshotCanvas();
+      tvSnapshotCtx.drawImage(programCanvas, 0, 0, tvSnapshotCanvas.width, tvSnapshotCanvas.height);
+      sourceCanvas = tvSnapshotCanvas;
+    }
+    const dataUrl = sourceCanvas.toDataURL('image/jpeg', TV_SNAPSHOT_QUALITY);
     tvDataConn.send({ type: 'snapshot', dataUrl });
     snapshotSeq++;
     const el = $('tvStatusText');
     if (el) {
       const kb = Math.round(dataUrl.length / 1024);
-      el.textContent = `Connecté (HD ${snapshotSeq}f, ${kb} Ko/f)`;
+      el.textContent = `Connecté (Full HD ${snapshotSeq}f · ${kb} Ko/f${skippedFrames ? ` · ${skippedFrames} sautées` : ''})`;
     }
     const statusEl = $('outputTvStatus');
-    if (statusEl) statusEl.textContent = `✓ HD 1280×720 · ${snapshotSeq} frames envoyées`;
+    if (statusEl) statusEl.textContent = `✓ Full HD 1920×1080 · ${snapshotSeq} frames`;
   } catch (e) {
     console.warn('snapshot send failed', e);
   }
