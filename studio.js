@@ -23,19 +23,77 @@ let recordedChunks = [];
 let outputWindow = null;
 let nextSourceId = 1;
 
+// Sources image (logo, photo prédicateur, annonces...)
+const imageSources = []; // [{ id, name, dataUrl, imgEl }]
+let nextImageId = 1;
+let logoOverlayId = null; // image id utilisée en overlay coin
+let logoOverlayEnabled = false;
+
 // Scène active : { kind, primaryId?, secondaryId? }
-//   kind ∈ { 'camera', 'camera+verse', 'pip', 'verse', 'black' }
-let currentScene = { kind: 'black' };
-let previousScene = null;
+//   kind ∈ { 'camera', 'camera+verse', 'pip', 'image', 'image+verse', 'verse', 'intro', 'outro', 'black' }
+let programScene = { kind: 'black' };
+let previewScene = { kind: 'black' };
+let previousProgramScene = null;
 let transitionStart = 0;
-const TRANSITION_MS = 300;
+
+// Configuration transition (persistée)
+const TRANSITION_KEY = 'versetlive:transition';
+let transitionCfg = loadTransitionCfg();
+
+// Studio Mode (Preview/Program). Off par défaut = clic scène → direct.
+const STUDIO_MODE_KEY = 'versetlive:studio-mode';
+let studioMode = localStorage.getItem(STUDIO_MODE_KEY) === '1';
+
+// Filtres par source (persistés par deviceId)
+const FILTERS_KEY = 'versetlive:filters';
+let filtersStore = loadFiltersStore(); // { [deviceId]: { mirror, brightness, contrast, saturation } }
+const openFilterPanels = new Set(); // sourceIds dont le panneau filtres est ouvert
 
 let verseState = null;
+
+function loadTransitionCfg() {
+  try {
+    const raw = localStorage.getItem(TRANSITION_KEY);
+    if (raw) {
+      const c = JSON.parse(raw);
+      return { kind: c.kind === 'cut' ? 'cut' : 'fade', durationMs: Math.max(0, Math.min(2000, c.durationMs ?? 300)) };
+    }
+  } catch (e) {}
+  return { kind: 'fade', durationMs: 300 };
+}
+function saveTransitionCfg() {
+  try { localStorage.setItem(TRANSITION_KEY, JSON.stringify(transitionCfg)); } catch (e) {}
+}
+function loadFiltersStore() {
+  try {
+    const raw = localStorage.getItem(FILTERS_KEY);
+    if (raw) return JSON.parse(raw) || {};
+  } catch (e) {}
+  return {};
+}
+function saveFiltersStore() {
+  try { localStorage.setItem(FILTERS_KEY, JSON.stringify(filtersStore)); } catch (e) {}
+}
+function defaultFilters() {
+  return { mirror: false, brightness: 100, contrast: 100, saturation: 100 };
+}
+function getFiltersFor(source) {
+  const key = source.deviceId || source.id;
+  if (!filtersStore[key]) filtersStore[key] = defaultFilters();
+  return filtersStore[key];
+}
+function hasNonDefaultFilter(f) {
+  return f.mirror || f.brightness !== 100 || f.contrast !== 100 || f.saturation !== 100;
+}
 
 // ============ DOM ============
 const $ = id => document.getElementById(id);
 const programCanvas = $('programCanvas');
 const ctx = programCanvas.getContext('2d', { alpha: false });
+const previewCanvas = $('previewCanvas');
+const previewCtx = previewCanvas.getContext('2d', { alpha: false });
+// Ctx actif pour les helpers de dessin — pivoté entre program et preview à chaque frame.
+let activeCtx = ctx;
 
 // ============ Toast ============
 function toast(msg, isError) {
@@ -140,7 +198,7 @@ function removeCamera(sourceId) {
   sources.splice(idx, 1);
 
   // Si la scène utilise cette caméra, basculer
-  if (currentScene.primaryId === sourceId || currentScene.secondaryId === sourceId) {
+  if (programScene.primaryId === sourceId || programScene.secondaryId === sourceId) {
     setScene(sources.length ? { kind: 'camera', primaryId: sources[0].id } : { kind: 'black' });
   }
   renderSources();
@@ -159,9 +217,10 @@ function renderSources() {
   list.innerHTML = '';
   sources.forEach((s, i) => {
     const hasAudio = s.stream.getAudioTracks().length > 0;
-    const audioBtn = hasAudio
-      ? `<button class="btn btn-sm studio-source-audio ${s.audioRouted ? 'on' : ''}" data-id="${s.id}" title="${s.audioRouted ? 'Couper l\'audio de cette source dans le mix' : 'Inclure l\'audio de cette source dans le mix'}">${s.audioRouted ? '🔊' : '🔇'}</button>`
-      : '';
+    const filters = getFiltersFor(s);
+    const filtersOpen = openFilterPanels.has(s.id);
+    const filtersActive = hasNonDefaultFilter(filters);
+
     const card = document.createElement('div');
     card.className = 'studio-source-card';
     card.innerHTML = `
@@ -169,24 +228,108 @@ function renderSources() {
       <div class="studio-source-meta">
         <span class="studio-source-name">${i + 1}. ${escapeHtml(s.label)}</span>
         <div class="studio-source-actions">
-          ${audioBtn}
-          <button class="btn btn-sm btn-danger studio-source-remove" data-id="${s.id}" title="Retirer">×</button>
+          ${hasAudio ? `<button class="btn btn-sm studio-source-audio ${s.audioRouted ? 'on' : ''}" data-action="audio-toggle" title="${s.audioRouted ? 'Couper l\'audio de cette source dans le mix' : 'Inclure l\'audio de cette source dans le mix'}">${s.audioRouted ? '🔊' : '🔇'}</button>` : ''}
+          <button class="btn btn-sm studio-source-filter-btn ${filtersActive || filtersOpen ? 'on' : ''}" data-action="filters" title="Filtres caméra (miroir, lumière)">⚙</button>
+          <button class="btn btn-sm btn-danger studio-source-remove" data-action="remove" title="Retirer">×</button>
         </div>
       </div>
     `;
     // Aperçu live : un <video> dédié partageant le même MediaStream.
-    // (Le s.videoEl maître reste détaché du DOM, utilisé uniquement par le canvas.)
     const previewDiv = card.querySelector('.studio-source-preview');
     const liveVideo = document.createElement('video');
     liveVideo.srcObject = s.stream;
     liveVideo.autoplay = true;
     liveVideo.muted = true;
     liveVideo.playsInline = true;
+    if (filters.mirror) liveVideo.classList.add('mirror');
+    liveVideo.style.filter = `brightness(${filters.brightness}%) contrast(${filters.contrast}%) saturate(${filters.saturation}%)`;
     previewDiv.appendChild(liveVideo);
 
-    card.querySelector('.studio-source-remove').addEventListener('click', () => removeCamera(s.id));
-    const ab = card.querySelector('.studio-source-audio');
-    if (ab) ab.addEventListener('click', () => toggleSourceAudio(s.id));
+    // Audio routé → volume slider + VU
+    if (hasAudio && s.audioRouted) {
+      const vol = (s.audioGainValue ?? 1.0);
+      const audioRow = document.createElement('div');
+      audioRow.className = 'studio-source-audio-row routed';
+      audioRow.innerHTML = `
+        <input type="range" class="studio-source-volume" min="0" max="150" step="1" value="${Math.round(vol * 100)}" data-action="volume">
+        <span class="studio-source-volume-val">${Math.round(vol * 100)} %</span>
+      `;
+      card.appendChild(audioRow);
+      const vu = document.createElement('div');
+      vu.className = 'studio-source-vu';
+      vu.id = `vu-${s.id}`;
+      vu.innerHTML = '<div class="studio-source-vu-bar"></div>';
+      card.appendChild(vu);
+    }
+
+    // Panneau filtres (replié par défaut)
+    if (filtersOpen) {
+      const panel = document.createElement('div');
+      panel.className = 'studio-source-filters';
+      panel.innerHTML = `
+        <label class="studio-source-filter-mirror">
+          <input type="checkbox" data-filter="mirror" ${filters.mirror ? 'checked' : ''}>
+          <span>Miroir (flip horizontal)</span>
+        </label>
+        <div class="studio-source-filter-row">
+          <label>Luminosité</label>
+          <input type="range" data-filter="brightness" min="0" max="200" step="1" value="${filters.brightness}">
+          <span class="studio-source-filter-val">${filters.brightness} %</span>
+        </div>
+        <div class="studio-source-filter-row">
+          <label>Contraste</label>
+          <input type="range" data-filter="contrast" min="0" max="200" step="1" value="${filters.contrast}">
+          <span class="studio-source-filter-val">${filters.contrast} %</span>
+        </div>
+        <div class="studio-source-filter-row">
+          <label>Saturation</label>
+          <input type="range" data-filter="saturation" min="0" max="200" step="1" value="${filters.saturation}">
+          <span class="studio-source-filter-val">${filters.saturation} %</span>
+        </div>
+        <div class="studio-source-filter-actions">
+          <button class="btn btn-sm" data-action="filter-reset">Réinitialiser</button>
+        </div>
+      `;
+      card.appendChild(panel);
+    }
+
+    // Délégation : un seul listener par carte
+    card.addEventListener('click', (e) => {
+      const t = e.target.closest('[data-action]');
+      if (!t) return;
+      const action = t.dataset.action;
+      if (action === 'remove') removeCamera(s.id);
+      else if (action === 'audio-toggle') toggleSourceAudio(s.id);
+      else if (action === 'filters') {
+        if (openFilterPanels.has(s.id)) openFilterPanels.delete(s.id);
+        else openFilterPanels.add(s.id);
+        renderSources();
+      } else if (action === 'filter-reset') {
+        filtersStore[s.deviceId || s.id] = defaultFilters();
+        saveFiltersStore();
+        renderSources();
+      }
+    });
+    card.addEventListener('input', (e) => {
+      const t = e.target;
+      if (t.dataset.filter) {
+        if (t.dataset.filter === 'mirror') filters.mirror = t.checked;
+        else filters[t.dataset.filter] = parseInt(t.value, 10);
+        saveFiltersStore();
+        const valEl = t.parentElement.querySelector('.studio-source-filter-val');
+        if (valEl && t.dataset.filter !== 'mirror') valEl.textContent = t.value + ' %';
+        // Sync CSS preview live
+        liveVideo.classList.toggle('mirror', !!filters.mirror);
+        liveVideo.style.filter = `brightness(${filters.brightness}%) contrast(${filters.contrast}%) saturate(${filters.saturation}%)`;
+      } else if (t.dataset.action === 'volume') {
+        const v = parseInt(t.value, 10);
+        s.audioGainValue = v / 100;
+        if (s.audioGain) s.audioGain.gain.value = s.audioGainValue;
+        const valEl = card.querySelector('.studio-source-volume-val');
+        if (valEl) valEl.textContent = v + ' %';
+      }
+    });
+
     list.appendChild(card);
   });
   updateProgramInfo();
@@ -198,6 +341,10 @@ function buildSceneList() {
   sources.forEach((s, i) => {
     list.push({ key: `cam-${s.id}`, label: `Cam ${i + 1} plein`, scene: { kind: 'camera', primaryId: s.id } });
     list.push({ key: `cam-verse-${s.id}`, label: `Cam ${i + 1} + verset`, scene: { kind: 'camera+verse', primaryId: s.id } });
+  });
+  imageSources.forEach(img => {
+    list.push({ key: `img-${img.id}`, label: `🖼 ${img.name}`, scene: { kind: 'image', imageId: img.id } });
+    list.push({ key: `img-verse-${img.id}`, label: `🖼 ${img.name} + verset`, scene: { kind: 'image+verse', imageId: img.id } });
   });
   if (sources.length >= 2) {
     list.push({
@@ -224,20 +371,26 @@ function renderScenes() {
     list.innerHTML = '<div class="studio-empty">Ajoute des caméras pour générer des scènes.</div>';
     return;
   }
+  const progKey = sceneKey(programScene);
+  const prevKey = sceneKey(previewScene);
   list.innerHTML = '';
   scenes.forEach(s => {
     const btn = document.createElement('button');
     btn.className = 'studio-scene-btn';
     btn.textContent = s.label;
-    if (sceneKey(currentScene) === s.key) btn.classList.add('active');
+    if (progKey === s.key) btn.classList.add('active');
+    if (studioMode && prevKey === s.key && progKey !== s.key) btn.classList.add('preview-active');
     btn.addEventListener('click', () => setScene(s.scene));
     list.appendChild(btn);
   });
 }
 
 function sceneKey(scene) {
+  if (!scene) return 'black';
   if (scene.kind === 'camera') return `cam-${scene.primaryId}`;
   if (scene.kind === 'camera+verse') return `cam-verse-${scene.primaryId}`;
+  if (scene.kind === 'image') return `img-${scene.imageId}`;
+  if (scene.kind === 'image+verse') return `img-verse-${scene.imageId}`;
   if (scene.kind === 'pip') return 'pip';
   if (scene.kind === 'verse') return 'verse';
   if (scene.kind === 'intro') return 'intro';
@@ -246,7 +399,7 @@ function sceneKey(scene) {
 }
 
 // ============ Boucle de rendu programme ============
-function drawVideoCover(video, x, y, w, h) {
+function drawVideoCover(video, x, y, w, h, source) {
   if (!video.videoWidth) return;
   const sAR = video.videoWidth / video.videoHeight;
   const dAR = w / h;
@@ -263,7 +416,42 @@ function drawVideoCover(video, x, y, w, h) {
     sx = 0;
     sy = (video.videoHeight - sh) / 2;
   }
-  ctx.drawImage(video, sx, sy, sw, sh, x, y, w, h);
+  const filters = source ? getFiltersFor(source) : null;
+  if (filters && hasNonDefaultFilter(filters)) {
+    activeCtx.save();
+    activeCtx.filter = `brightness(${filters.brightness}%) contrast(${filters.contrast}%) saturate(${filters.saturation}%)`;
+    if (filters.mirror) {
+      activeCtx.translate(x + w, y);
+      activeCtx.scale(-1, 1);
+      activeCtx.drawImage(video, sx, sy, sw, sh, 0, 0, w, h);
+    } else {
+      activeCtx.drawImage(video, sx, sy, sw, sh, x, y, w, h);
+    }
+    activeCtx.restore();
+  } else {
+    activeCtx.drawImage(video, sx, sy, sw, sh, x, y, w, h);
+  }
+}
+
+function drawImageContain(imgEl, x, y, w, h) {
+  if (!imgEl || !imgEl.complete || !imgEl.naturalWidth) return;
+  const sAR = imgEl.naturalWidth / imgEl.naturalHeight;
+  const dAR = w / h;
+  let dw, dh;
+  if (sAR > dAR) { dw = w; dh = w / sAR; }
+  else           { dh = h; dw = h * sAR; }
+  activeCtx.drawImage(imgEl, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh);
+}
+
+function drawLogoOverlay() {
+  if (!logoOverlayEnabled || !logoOverlayId) return;
+  const img = imageSources.find(i => i.id === logoOverlayId);
+  if (!img || !img.imgEl || !img.imgEl.complete) return;
+  const logoW = OUTPUT_W * 0.12;
+  const ar = img.imgEl.naturalWidth / (img.imgEl.naturalHeight || 1);
+  const logoH = logoW / (ar || 1);
+  const pad = 40;
+  drawImageContain(img.imgEl, OUTPUT_W - logoW - pad, pad, logoW, logoH);
 }
 
 function drawVerseOverlay(area) {
@@ -276,14 +464,14 @@ function drawVerseOverlay(area) {
   if (bgType !== 'transparent') {
     const bgColor = style.bgColor || '#000000';
     const bgOpacity = style.bgOpacity != null ? style.bgOpacity : 0.5;
-    ctx.fillStyle = hexWithAlpha(bgColor, bgOpacity);
+    activeCtx.fillStyle = hexWithAlpha(bgColor, bgOpacity);
     if (bgType === 'overlay') {
       // bandeau centré
       const bw = w * 0.85;
       const bh = h * 0.6;
-      ctx.fillRect(x + (w - bw) / 2, y + (h - bh) / 2, bw, bh);
+      activeCtx.fillRect(x + (w - bw) / 2, y + (h - bh) / 2, bw, bh);
     } else {
-      ctx.fillRect(x, y, w, h);
+      activeCtx.fillRect(x, y, w, h);
     }
   }
 
@@ -300,9 +488,9 @@ function drawVerseOverlay(area) {
   const color = style.textColor || '#ffffff';
   const align = style.textAlign || 'center';
 
-  ctx.fillStyle = color;
-  ctx.textAlign = align;
-  ctx.textBaseline = 'middle';
+  activeCtx.fillStyle = color;
+  activeCtx.textAlign = align;
+  activeCtx.textBaseline = 'middle';
 
   // Position alignement
   const padX = w * 0.05;
@@ -325,16 +513,16 @@ function drawVerseOverlay(area) {
     else if (vAlign === 'bottom') startY = y + h - padY - totalH + lineHeight / 2;
     else startY = y + (h - totalH) / 2 + lineHeight / 2;
 
-    ctx.font = `${fontSizePx}px ${fontFamily}`;
-    lines.forEach((line, i) => ctx.fillText(line, textX, startY + i * lineHeight));
+    activeCtx.font = `${fontSizePx}px ${fontFamily}`;
+    lines.forEach((line, i) => activeCtx.fillText(line, textX, startY + i * lineHeight));
 
     // Référence
     if (ref && (style.showRef || 'below') !== 'hide') {
-      ctx.font = `italic ${refSizePx}px ${fontFamily}`;
+      activeCtx.font = `italic ${refSizePx}px ${fontFamily}`;
       const refY = (style.showRef === 'above')
         ? startY - lineHeight
         : startY + lines.length * lineHeight + refSizePx * 0.3;
-      ctx.fillText(ref, textX, refY);
+      activeCtx.fillText(ref, textX, refY);
     }
   }
 
@@ -347,26 +535,26 @@ function drawTitle(state, x, y, w, h, baseFont, fontFamily, color, align) {
   const mainSize = Math.round(baseFont * 1.4);
   const subSize = Math.round(baseFont * 0.55);
   const mx = align === 'left' ? x + w * 0.05 : align === 'right' ? x + w - w * 0.05 : x + w / 2;
-  ctx.fillStyle = color;
-  ctx.textAlign = align;
-  ctx.textBaseline = 'middle';
-  ctx.font = `bold ${mainSize}px ${fontFamily}`;
-  ctx.fillText(main, mx, y + h / 2 - subSize);
+  activeCtx.fillStyle = color;
+  activeCtx.textAlign = align;
+  activeCtx.textBaseline = 'middle';
+  activeCtx.font = `bold ${mainSize}px ${fontFamily}`;
+  activeCtx.fillText(main, mx, y + h / 2 - subSize);
   if (sub) {
-    ctx.font = `${subSize}px ${fontFamily}`;
-    ctx.fillStyle = state.accent || '#d4af37';
-    ctx.fillText(sub, mx, y + h / 2 + mainSize * 0.6);
+    activeCtx.font = `${subSize}px ${fontFamily}`;
+    activeCtx.fillStyle = state.accent || '#d4af37';
+    activeCtx.fillText(sub, mx, y + h / 2 + mainSize * 0.6);
   }
 }
 
 function wrapText(text, maxWidth, fontSize, fontFamily) {
-  ctx.font = `${fontSize}px ${fontFamily}`;
+  activeCtx.font = `${fontSize}px ${fontFamily}`;
   const words = text.split(/\s+/);
   const lines = [];
   let line = '';
   for (const word of words) {
     const test = line ? line + ' ' + word : word;
-    if (ctx.measureText(test).width > maxWidth && line) {
+    if (activeCtx.measureText(test).width > maxWidth && line) {
       lines.push(line);
       line = word;
     } else {
@@ -379,24 +567,24 @@ function wrapText(text, maxWidth, fontSize, fontFamily) {
 
 function applyShadow(kind) {
   if (kind === 'none') {
-    ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0;
+    activeCtx.shadowColor = 'transparent'; activeCtx.shadowBlur = 0;
   } else if (kind === 'strong') {
-    ctx.shadowColor = 'rgba(0,0,0,0.9)'; ctx.shadowBlur = 14;
-    ctx.shadowOffsetX = 4; ctx.shadowOffsetY = 4;
+    activeCtx.shadowColor = 'rgba(0,0,0,0.9)'; activeCtx.shadowBlur = 14;
+    activeCtx.shadowOffsetX = 4; activeCtx.shadowOffsetY = 4;
   } else if (kind === 'outline') {
-    ctx.shadowColor = 'rgba(0,0,0,1)'; ctx.shadowBlur = 6;
+    activeCtx.shadowColor = 'rgba(0,0,0,1)'; activeCtx.shadowBlur = 6;
   } else if (kind === 'glow') {
-    ctx.shadowColor = 'rgba(212,175,55,0.85)'; ctx.shadowBlur = 24;
+    activeCtx.shadowColor = 'rgba(212,175,55,0.85)'; activeCtx.shadowBlur = 24;
   } else { // soft
-    ctx.shadowColor = 'rgba(0,0,0,0.7)'; ctx.shadowBlur = 8;
-    ctx.shadowOffsetX = 2; ctx.shadowOffsetY = 2;
+    activeCtx.shadowColor = 'rgba(0,0,0,0.7)'; activeCtx.shadowBlur = 8;
+    activeCtx.shadowOffsetX = 2; activeCtx.shadowOffsetY = 2;
   }
 }
 function resetShadow() {
-  ctx.shadowColor = 'transparent';
-  ctx.shadowBlur = 0;
-  ctx.shadowOffsetX = 0;
-  ctx.shadowOffsetY = 0;
+  activeCtx.shadowColor = 'transparent';
+  activeCtx.shadowBlur = 0;
+  activeCtx.shadowOffsetX = 0;
+  activeCtx.shadowOffsetY = 0;
 }
 
 function getSource(id) {
@@ -404,61 +592,111 @@ function getSource(id) {
 }
 
 function setScene(scene) {
-  if (sceneKey(currentScene) === sceneKey(scene)) return;
-  previousScene = currentScene;
-  currentScene = scene;
+  if (studioMode) {
+    setPreviewScene(scene);
+  } else {
+    setProgramScene(scene);
+  }
+}
+
+function setProgramScene(scene) {
+  if (sceneKey(programScene) === sceneKey(scene)) return;
+  previousProgramScene = programScene;
+  programScene = scene;
   transitionStart = performance.now();
   renderScenes();
   // Trigger audio MP3 de l'intro/outro si applicable
   if (window.IntroOutro) window.IntroOutro.onSceneChange(scene);
 }
 
+function setPreviewScene(scene) {
+  previewScene = scene;
+  renderScenes();
+}
+
+function takeProgram() {
+  if (!studioMode) return;
+  // Bascule la scène preview vers le program, avec la transition configurée
+  setProgramScene(previewScene);
+}
+
+function getSourceForScene(scene, role) {
+  // role: 'primary' | 'secondary'
+  const id = role === 'primary' ? scene.primaryId : scene.secondaryId;
+  return sources.find(s => s.id === id);
+}
+function getImageForScene(scene) {
+  return imageSources.find(i => i.id === scene.imageId);
+}
+
 function drawScene(s) {
   if (s.kind === 'camera' || s.kind === 'camera+verse') {
-    const src = getSource(s.primaryId);
-    if (src) drawVideoCover(src.videoEl, 0, 0, OUTPUT_W, OUTPUT_H);
+    const src = getSourceForScene(s, 'primary');
+    if (src) drawVideoCover(src.videoEl, 0, 0, OUTPUT_W, OUTPUT_H, src);
+    drawLogoOverlay();
     if (s.kind === 'camera+verse') {
       // Verset en bas, sur le tiers inférieur, fond translucide
       const h = OUTPUT_H * 0.30;
-      ctx.fillStyle = 'rgba(0,0,0,0.55)';
-      ctx.fillRect(0, OUTPUT_H - h, OUTPUT_W, h);
+      activeCtx.fillStyle = 'rgba(0,0,0,0.55)';
+      activeCtx.fillRect(0, OUTPUT_H - h, OUTPUT_W, h);
       drawVerseOverlay({ x: 0, y: OUTPUT_H - h, w: OUTPUT_W, h });
     }
   } else if (s.kind === 'pip') {
-    const main = getSource(s.primaryId);
-    const corner = getSource(s.secondaryId);
-    if (main) drawVideoCover(main.videoEl, 0, 0, OUTPUT_W, OUTPUT_H);
+    const main = getSourceForScene(s, 'primary');
+    const corner = getSourceForScene(s, 'secondary');
+    if (main) drawVideoCover(main.videoEl, 0, 0, OUTPUT_W, OUTPUT_H, main);
     if (corner) {
       const pipW = OUTPUT_W * 0.28;
       const pipH = pipW * 9 / 16;
       const pipX = OUTPUT_W - pipW - 40;
       const pipY = 40;
-      ctx.fillStyle = '#fff';
-      ctx.fillRect(pipX - 4, pipY - 4, pipW + 8, pipH + 8);
-      drawVideoCover(corner.videoEl, pipX, pipY, pipW, pipH);
+      activeCtx.fillStyle = '#fff';
+      activeCtx.fillRect(pipX - 4, pipY - 4, pipW + 8, pipH + 8);
+      drawVideoCover(corner.videoEl, pipX, pipY, pipW, pipH, corner);
+    }
+    drawLogoOverlay();
+  } else if (s.kind === 'image' || s.kind === 'image+verse') {
+    const img = getImageForScene(s);
+    if (img && img.imgEl) drawImageContain(img.imgEl, 0, 0, OUTPUT_W, OUTPUT_H);
+    if (s.kind === 'image+verse') {
+      const h = OUTPUT_H * 0.30;
+      activeCtx.fillStyle = 'rgba(0,0,0,0.55)';
+      activeCtx.fillRect(0, OUTPUT_H - h, OUTPUT_W, h);
+      drawVerseOverlay({ x: 0, y: OUTPUT_H - h, w: OUTPUT_W, h });
     }
   } else if (s.kind === 'verse') {
     drawVerseOverlay({ x: 0, y: 0, w: OUTPUT_W, h: OUTPUT_H });
   } else if (s.kind === 'intro' || s.kind === 'outro') {
-    if (window.IntroOutro) window.IntroOutro.draw(ctx, s.kind, OUTPUT_W, OUTPUT_H);
+    if (window.IntroOutro) window.IntroOutro.draw(activeCtx, s.kind, OUTPUT_W, OUTPUT_H);
   }
   // 'black' → rien à dessiner
 }
 
 function renderFrame() {
+  // ---------- Program ----------
+  activeCtx = ctx;
   ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, OUTPUT_W, OUTPUT_H);
 
   const elapsed = performance.now() - transitionStart;
-  if (previousScene && elapsed < TRANSITION_MS) {
-    // Crossfade : ancienne scène pleine + nouvelle qui apparaît en fondu
-    drawScene(previousScene);
-    ctx.globalAlpha = elapsed / TRANSITION_MS;
-    drawScene(currentScene);
+  const transDur = transitionCfg.kind === 'cut' ? 0 : transitionCfg.durationMs;
+  if (previousProgramScene && transDur > 0 && elapsed < transDur) {
+    drawScene(previousProgramScene);
+    ctx.globalAlpha = elapsed / transDur;
+    drawScene(programScene);
     ctx.globalAlpha = 1;
   } else {
-    if (previousScene) previousScene = null;
-    drawScene(currentScene);
+    if (previousProgramScene) previousProgramScene = null;
+    drawScene(programScene);
+  }
+
+  // ---------- Preview (uniquement si studio mode actif) ----------
+  if (studioMode) {
+    activeCtx = previewCtx;
+    previewCtx.fillStyle = '#000';
+    previewCtx.fillRect(0, 0, OUTPUT_W, OUTPUT_H);
+    drawScene(previewScene);
+    activeCtx = ctx;
   }
 
   requestAnimationFrame(renderFrame);
@@ -930,7 +1168,7 @@ function removeRemoteCall(call) {
   remoteCalls.delete(call.peer);
   renderSources();
   renderScenes();
-  if (src && (currentScene.primaryId === src.id || currentScene.secondaryId === src.id)) {
+  if (src && (programScene.primaryId === src.id || programScene.secondaryId === src.id)) {
     setScene(sources.length ? { kind: 'camera', primaryId: sources[0].id } : { kind: 'black' });
   }
   toast(`${src ? src.label : 'Téléphone'} déconnecté`);
@@ -1486,6 +1724,13 @@ function bindShortcuts() {
       setScene({ kind: 'verse' });
       return;
     }
+
+    // Entrée : Take (envoyer preview → program) — seulement en mode Preview/Program
+    if (key === 'Enter' && studioMode) {
+      e.preventDefault();
+      takeProgram();
+      return;
+    }
   });
 }
 
@@ -1497,11 +1742,15 @@ function connectSourceAudio(source) {
   if (audioCtx.state === 'suspended') audioCtx.resume();
   if (!audioDest) rebuildAudioGraph();
   try {
+    if (source.audioGainValue == null) source.audioGainValue = 1.0;
     source.audioSrc = audioCtx.createMediaStreamSource(source.stream);
     source.audioGain = audioCtx.createGain();
-    source.audioGain.gain.value = 1;
+    source.audioGain.gain.value = source.audioGainValue;
+    source.audioAnalyser = audioCtx.createAnalyser();
+    source.audioAnalyser.fftSize = 256;
     source.audioSrc.connect(source.audioGain);
     source.audioGain.connect(audioDest);
+    source.audioGain.connect(source.audioAnalyser);
     source.audioRouted = true;
     rebuildProgramStream();
   } catch (e) {
@@ -1513,8 +1762,10 @@ function disconnectSourceAudio(source) {
   if (!source || !source.audioRouted) return;
   try { source.audioGain && source.audioGain.disconnect(); } catch (e) {}
   try { source.audioSrc && source.audioSrc.disconnect(); } catch (e) {}
+  try { source.audioAnalyser && source.audioAnalyser.disconnect(); } catch (e) {}
   source.audioGain = null;
   source.audioSrc = null;
+  source.audioAnalyser = null;
   source.audioRouted = false;
   rebuildProgramStream();
 }
@@ -1527,6 +1778,295 @@ function toggleSourceAudio(sourceId) {
   renderSources();
 }
 
+// VU mètres par source — boucle unique partagée.
+function startSourceVuLoop() {
+  const data = new Uint8Array(128);
+  function loop() {
+    sources.forEach(s => {
+      if (!s.audioRouted || !s.audioAnalyser) return;
+      const vu = document.getElementById('vu-' + s.id);
+      if (!vu) return;
+      s.audioAnalyser.getByteFrequencyData(data);
+      let sum = 0;
+      for (let i = 0; i < data.length; i++) sum += data[i];
+      const avg = sum / data.length;
+      const pct = Math.min(100, Math.round((avg / 255) * 220));
+      const bar = vu.querySelector('.studio-source-vu-bar');
+      if (bar) bar.style.width = pct + '%';
+      vu.classList.toggle('hot', pct > 85);
+    });
+    requestAnimationFrame(loop);
+  }
+  loop();
+}
+
+// ============ Images / Logos ============
+const IMG_DB = 'versetlive-images';
+const IMG_STORE = 'images';
+const IMG_INDEX_KEY = 'versetlive:images-index';
+const IMG_LOGO_KEY = 'versetlive:logo-overlay';
+let imgDbPromise = null;
+
+function openImgDb() {
+  if (imgDbPromise) return imgDbPromise;
+  imgDbPromise = new Promise((resolve, reject) => {
+    const req = indexedDB.open(IMG_DB, 1);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains(IMG_STORE)) db.createObjectStore(IMG_STORE);
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+  return imgDbPromise;
+}
+async function imgIdbPut(key, blob) {
+  const db = await openImgDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(IMG_STORE, 'readwrite');
+    tx.objectStore(IMG_STORE).put(blob, key);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+async function imgIdbGet(key) {
+  const db = await openImgDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(IMG_STORE, 'readonly');
+    const req = tx.objectStore(IMG_STORE).get(key);
+    req.onsuccess = () => resolve(req.result || null);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function imgIdbDel(key) {
+  const db = await openImgDb();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(IMG_STORE, 'readwrite');
+    tx.objectStore(IMG_STORE).delete(key);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+function loadImgIndex() {
+  try { return JSON.parse(localStorage.getItem(IMG_INDEX_KEY) || '[]'); }
+  catch (e) { return []; }
+}
+function saveImgIndex() {
+  const idx = imageSources.map(i => ({ id: i.id, name: i.name }));
+  localStorage.setItem(IMG_INDEX_KEY, JSON.stringify(idx));
+}
+function loadLogoCfg() {
+  try {
+    const raw = localStorage.getItem(IMG_LOGO_KEY);
+    if (raw) {
+      const c = JSON.parse(raw);
+      logoOverlayId = c.id || null;
+      logoOverlayEnabled = !!c.enabled;
+    }
+  } catch (e) {}
+}
+function saveLogoCfg() {
+  localStorage.setItem(IMG_LOGO_KEY, JSON.stringify({ id: logoOverlayId, enabled: logoOverlayEnabled }));
+}
+
+async function loadStoredImages() {
+  const idx = loadImgIndex();
+  let maxId = 0;
+  for (const meta of idx) {
+    try {
+      const blob = await imgIdbGet('img-' + meta.id);
+      if (!blob) continue;
+      const dataUrl = await blobToDataUrl(blob);
+      const img = await loadImageElement(dataUrl);
+      imageSources.push({ id: meta.id, name: meta.name, dataUrl, imgEl: img });
+      const n = parseInt(meta.id.replace(/^im/, ''), 10);
+      if (!isNaN(n) && n > maxId) maxId = n;
+    } catch (e) { console.warn('Image load failed', meta, e); }
+  }
+  nextImageId = maxId + 1;
+  loadLogoCfg();
+  renderImages();
+  renderLogoOverlayUi();
+  renderScenes();
+}
+
+function blobToDataUrl(blob) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(r.result);
+    r.onerror = () => reject(r.error);
+    r.readAsDataURL(blob);
+  });
+}
+function loadImageElement(src) {
+  return new Promise((resolve, reject) => {
+    const im = new Image();
+    im.onload = () => resolve(im);
+    im.onerror = () => reject(new Error('image decode failed'));
+    im.src = src;
+  });
+}
+
+async function addImageFromFile(file) {
+  if (!file) return;
+  if (file.size > 8 * 1024 * 1024) {
+    toast('Image trop lourde (>8 Mo). Compresse-la avant.', true);
+    return;
+  }
+  const id = 'im' + (nextImageId++);
+  const dataUrl = await blobToDataUrl(file);
+  const imgEl = await loadImageElement(dataUrl);
+  const name = (file.name || 'Image').replace(/\.[^.]+$/, '').slice(0, 30);
+  imageSources.push({ id, name, dataUrl, imgEl });
+  try { await imgIdbPut('img-' + id, file); } catch (e) { console.warn('IDB put failed', e); }
+  saveImgIndex();
+  renderImages();
+  renderLogoOverlayUi();
+  renderScenes();
+  toast(`Image ajoutée : ${name}`);
+}
+
+async function removeImage(id) {
+  const idx = imageSources.findIndex(i => i.id === id);
+  if (idx < 0) return;
+  const removed = imageSources[idx];
+  imageSources.splice(idx, 1);
+  try { await imgIdbDel('img-' + id); } catch (e) {}
+  saveImgIndex();
+  // Si la scène active utilise cette image → bascule noir
+  if (programScene.imageId === id) setProgramScene({ kind: 'black' });
+  if (previewScene.imageId === id) setPreviewScene({ kind: 'black' });
+  // Si c'était le logo overlay actif → nettoyer
+  if (logoOverlayId === id) {
+    logoOverlayId = null;
+    logoOverlayEnabled = false;
+    saveLogoCfg();
+  }
+  renderImages();
+  renderLogoOverlayUi();
+  renderScenes();
+  toast(`Image retirée : ${removed.name}`);
+}
+
+function renderImages() {
+  const list = $('imagesList');
+  if (!imageSources.length) {
+    list.innerHTML = '<div class="studio-empty">Ajoute logo, photos, annonces. Chaque image devient une scène.</div>';
+    return;
+  }
+  list.innerHTML = '';
+  imageSources.forEach(img => {
+    const card = document.createElement('div');
+    card.className = 'studio-image-card';
+    card.innerHTML = `
+      <div class="studio-image-thumb"><img src="${img.dataUrl}" alt=""></div>
+      <div class="studio-image-meta">
+        <span class="studio-image-name" title="${escapeHtml(img.name)}">${escapeHtml(img.name)}</span>
+        <button class="btn btn-sm btn-danger studio-image-remove" data-id="${img.id}" title="Retirer">×</button>
+      </div>
+    `;
+    card.querySelector('.studio-image-remove').addEventListener('click', () => {
+      if (confirm(`Retirer l'image « ${img.name} » ?`)) removeImage(img.id);
+    });
+    list.appendChild(card);
+  });
+}
+
+function renderLogoOverlayUi() {
+  const row = $('logoRow');
+  if (!imageSources.length) { row.hidden = true; return; }
+  row.hidden = false;
+  const sel = $('logoOverlaySelect');
+  sel.innerHTML = '';
+  imageSources.forEach(img => {
+    const opt = document.createElement('option');
+    opt.value = img.id;
+    opt.textContent = img.name;
+    sel.appendChild(opt);
+  });
+  if (!logoOverlayId || !imageSources.some(i => i.id === logoOverlayId)) {
+    logoOverlayId = imageSources[0].id;
+    saveLogoCfg();
+  }
+  sel.value = logoOverlayId;
+  $('logoOverlayToggle').checked = logoOverlayEnabled;
+}
+
+function bindImagesUi() {
+  $('addImageBtn').addEventListener('click', () => $('imageFileInput').click());
+  $('imageFileInput').addEventListener('change', async (e) => {
+    const files = Array.from(e.target.files || []);
+    for (const f of files) await addImageFromFile(f);
+    e.target.value = '';
+  });
+  $('logoOverlayToggle').addEventListener('change', (e) => {
+    logoOverlayEnabled = e.target.checked;
+    saveLogoCfg();
+  });
+  $('logoOverlaySelect').addEventListener('change', (e) => {
+    logoOverlayId = e.target.value;
+    saveLogoCfg();
+  });
+}
+
+// ============ Studio Mode (Preview / Program) — bindings ============
+function applyStudioModeUi() {
+  const monitors = $('studioMonitors');
+  const previewWrap = $('previewWrap');
+  const btn = $('studioModeBtn');
+  if (studioMode) {
+    monitors.classList.add('has-preview');
+    previewWrap.hidden = false;
+    btn.classList.add('active');
+    btn.textContent = '🟡 Studio (preview)';
+  } else {
+    monitors.classList.remove('has-preview');
+    previewWrap.hidden = true;
+    btn.classList.remove('active');
+    btn.textContent = '🔴 Direct';
+  }
+  renderScenes();
+}
+function toggleStudioMode() {
+  studioMode = !studioMode;
+  localStorage.setItem(STUDIO_MODE_KEY, studioMode ? '1' : '0');
+  if (studioMode) {
+    // Initialiser la preview avec la scène actuelle pour éviter le flash noir
+    previewScene = programScene;
+  }
+  applyStudioModeUi();
+}
+
+function bindStudioModeUi() {
+  $('studioModeBtn').addEventListener('click', toggleStudioMode);
+  $('takeBtn').addEventListener('click', takeProgram);
+}
+
+// ============ Transition controls — bindings ============
+function applyTransitionUi() {
+  document.querySelectorAll('#transitionModes .studio-transition-mode').forEach(b => {
+    b.classList.toggle('active', b.dataset.kind === transitionCfg.kind);
+  });
+  $('transitionDuration').value = transitionCfg.durationMs;
+  $('transitionDurationVal').textContent = transitionCfg.durationMs + ' ms';
+  $('transitionDurationWrap').classList.toggle('disabled', transitionCfg.kind === 'cut');
+}
+function bindTransitionUi() {
+  document.querySelectorAll('#transitionModes .studio-transition-mode').forEach(b => {
+    b.addEventListener('click', () => {
+      transitionCfg.kind = b.dataset.kind === 'cut' ? 'cut' : 'fade';
+      saveTransitionCfg();
+      applyTransitionUi();
+    });
+  });
+  $('transitionDuration').addEventListener('input', (e) => {
+    transitionCfg.durationMs = parseInt(e.target.value, 10);
+    saveTransitionCfg();
+    $('transitionDurationVal').textContent = transitionCfg.durationMs + ' ms';
+  });
+}
+
 // ============ Boot ============
 async function init() {
   bindUi();
@@ -1534,6 +2074,11 @@ async function init() {
   bindTvUi();
   bindStreaming();
   bindShortcuts();
+  bindImagesUi();
+  bindStudioModeUi();
+  bindTransitionUi();
+  applyStudioModeUi();
+  applyTransitionUi();
   // Init module intro/outro (chargement assets IndexedDB + bind modal)
   if (window.IntroOutro) {
     window.IntroOutro.init({ onChange: () => renderScenes() });
@@ -1542,9 +2087,11 @@ async function init() {
   renderVerseStatus();
   renderDestinations();
   startAudioMeter();
+  startSourceVuLoop();
   requestAnimationFrame(renderFrame);
   rebuildProgramStream();
   await refreshDeviceList();
+  loadStoredImages();
   initSignaling();
   connectRelay();
 }

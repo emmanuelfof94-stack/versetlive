@@ -18,9 +18,11 @@
     </div>
     <div class="topbar-actions">
       <span class="studio-status" id="studioStatus">Prêt</span>
+      <button class="btn" id="studioModeBtn" title="Activer le mode Preview/Program (sélectionner avant d'envoyer en direct)">🔴 Direct</button>
       <button class="btn" id="openTvBtn" title="Projette le verset ou le mix complet sur une TV via son navigateur web"><span id="tvDot" class="studio-tv-dot"></span>📺 TV</button>
       <button class="btn" id="openProjectorBtn" title="Ouvre une fenêtre à glisser sur le projecteur">📽 Sortie projecteur</button>
       <button class="btn btn-danger" id="recordBtn">⏺ Enregistrer</button>
+      <button class="btn" id="helpStudioBtn" title="Aide — premiers pas, raccourcis, dépannage (touche ?)">❔ Aide</button>
       <a class="btn" href="index.html">← Retour panneau</a>
     </div>
   </div>
@@ -67,6 +69,24 @@
 
       <div class="section">
         <div class="section-title">
+          <span>🖼 Images / Logos</span>
+          <button class="btn btn-sm btn-primary" id="addImageBtn">+ Ajouter</button>
+        </div>
+        <input type="file" id="imageFileInput" accept="image/png,image/jpeg,image/webp,image/svg+xml" hidden>
+        <div class="studio-images" id="imagesList">
+          <div class="studio-empty">Ajoute logo, photos, annonces. Chaque image devient une scène.</div>
+        </div>
+        <div class="studio-logo-row" id="logoRow" hidden>
+          <label class="studio-logo-label">
+            <input type="checkbox" id="logoOverlayToggle">
+            <span>Logo en coin sur les scènes caméra</span>
+          </label>
+          <select id="logoOverlaySelect"></select>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">
           <span>📱 Caméras à distance</span>
           <button class="btn btn-sm" id="remoteHelpBtn" title="Aide">?</button>
         </div>
@@ -105,21 +125,44 @@
     <!-- COLONNE CENTRALE : programme + scènes -->
     <div class="studio-col studio-col-center">
 
-      <div class="studio-program-wrap">
-        <div class="studio-program-label">
-          <span class="studio-live-dot"></span>
-          PROGRAMME — ce qui part vers le projecteur et l'enregistrement
+      <div class="studio-monitors" id="studioMonitors">
+        <div class="studio-monitor studio-monitor-preview" id="previewWrap" hidden>
+          <div class="studio-monitor-label studio-preview-label">
+            <span class="studio-preview-dot"></span>
+            PREVIEW — prochaine scène
+          </div>
+          <div class="studio-monitor-frame">
+            <canvas id="previewCanvas" width="1920" height="1080"></canvas>
+          </div>
+          <button class="btn btn-primary studio-take-btn" id="takeBtn" title="Envoie la preview vers le programme (Entrée)">▶ Envoyer en direct (Entrée)</button>
         </div>
-        <div class="studio-program-frame">
-          <canvas id="programCanvas" width="1920" height="1080"></canvas>
+        <div class="studio-monitor studio-monitor-program">
+          <div class="studio-monitor-label studio-program-label">
+            <span class="studio-live-dot"></span>
+            PROGRAMME — en direct
+          </div>
+          <div class="studio-monitor-frame">
+            <canvas id="programCanvas" width="1920" height="1080"></canvas>
+          </div>
+          <div class="studio-program-info" id="programInfo">1920×1080 · 30 fps · Aucune caméra</div>
         </div>
-        <div class="studio-program-info" id="programInfo">1920×1080 · 30 fps · Aucune caméra</div>
       </div>
 
       <div class="section">
         <div class="section-title">
           <span>🎬 Scènes</span>
-          <span class="studio-hint">Raccourcis : 1-9 scènes · 0 noir · V verset · Espace stream · R record</span>
+          <span class="studio-hint">Raccourcis : 1-9 scènes · 0 noir · V verset · Espace stream · R record · Entrée Take</span>
+        </div>
+        <div class="studio-transition-bar">
+          <span class="studio-transition-label">Transition</span>
+          <div class="studio-transition-modes" id="transitionModes">
+            <button class="studio-transition-mode active" data-kind="fade">Fade</button>
+            <button class="studio-transition-mode" data-kind="cut">Cut</button>
+          </div>
+          <div class="studio-transition-duration" id="transitionDurationWrap">
+            <input type="range" id="transitionDuration" min="0" max="2000" step="50" value="300">
+            <span class="studio-transition-value" id="transitionDurationVal">300 ms</span>
+          </div>
         </div>
         <div class="studio-scenes" id="scenesList">
           <div class="studio-empty">Ajoute des caméras pour générer des scènes.</div>
@@ -397,9 +440,224 @@
     </div>
   </div>
 
+  <!-- Modal Aide générale -->
+  <div class="modal-backdrop" id="helpStudioModal">
+    <div class="modal modal-wide">
+      <div class="modal-header">
+        <h2>❔ Aide — Studio VersetLive</h2>
+        <button class="modal-close" id="helpStudioModalClose">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="studio-help-tabs">
+          <button class="studio-help-tab active" data-help-tab="start">🚀 Premiers pas</button>
+          <button class="studio-help-tab" data-help-tab="shortcuts">⌨ Raccourcis</button>
+          <button class="studio-help-tab" data-help-tab="streaming">📡 Streaming</button>
+          <button class="studio-help-tab" data-help-tab="tv">📺 TV</button>
+          <button class="studio-help-tab" data-help-tab="introoutro">🎬 Intro / Outro</button>
+          <button class="studio-help-tab" data-help-tab="trouble">🛠 Dépannage</button>
+        </div>
+
+        <!-- Premiers pas -->
+        <div class="studio-help-pane active" data-help-pane="start">
+          <h3>Qu'est-ce que le studio ?</h3>
+          <p>Le studio est une régie complète dans ton navigateur : il mixe plusieurs caméras (USB et téléphones), incruste le verset en direct, enregistre localement et diffuse en RTMP vers YouTube/Facebook/Twitch via le relais local.</p>
+
+          <h3>En 5 minutes</h3>
+          <ol>
+            <li><strong>Ajoute une caméra</strong> — clique « + Ajouter caméra » en haut à gauche, choisis ta webcam.</li>
+            <li><strong>Ajoute un téléphone (optionnel)</strong> — clique l'icône QR code, flashe avec le téléphone, accepte l'autorisation caméra.</li>
+            <li><strong>Choisis une scène</strong> — colonne centrale, clique sur la scène (caméra seule, caméra + verset, verset plein écran, etc.). Tu peux aussi appuyer sur les touches <kbd>1</kbd>–<kbd>9</kbd>.</li>
+            <li><strong>Affiche un verset</strong> — depuis l'onglet principal (panneau retour), sélectionne un verset → il apparaît automatiquement dans le studio.</li>
+            <li><strong>Lance le stream ou enregistre</strong> — boutons <kbd>⏺ Enregistrer</kbd> ou « Démarrer » dans la section Streaming.</li>
+          </ol>
+
+          <h3>Conseils</h3>
+          <ul>
+            <li>Active le mode <kbd>🔴 Direct</kbd> (Preview/Program) pour préparer la scène suivante avant de l'envoyer en direct.</li>
+            <li>La sortie projecteur (<kbd>📽</kbd>) ouvre une fenêtre à glisser sur ton second écran ou à diriger vers un câble HDMI.</li>
+            <li>Pour une TV sans câble, utilise <kbd>📺 TV</kbd> — voir l'onglet TV.</li>
+          </ul>
+        </div>
+
+        <!-- Raccourcis -->
+        <div class="studio-help-pane" data-help-pane="shortcuts">
+          <h3>Raccourcis clavier</h3>
+          <p>Les raccourcis sont désactivés quand un champ texte est focus ou qu'une fenêtre modale est ouverte.</p>
+          <table class="studio-help-kbd-table">
+            <thead><tr><th>Touche</th><th>Action</th></tr></thead>
+            <tbody>
+              <tr><td><kbd>1</kbd> – <kbd>9</kbd></td><td>Sélectionner la scène N</td></tr>
+              <tr><td><kbd>0</kbd></td><td>Scène noire (rideau)</td></tr>
+              <tr><td><kbd>V</kbd></td><td>Verset plein écran</td></tr>
+              <tr><td><kbd>Espace</kbd></td><td>Démarrer / arrêter le stream RTMP</td></tr>
+              <tr><td><kbd>R</kbd></td><td>Démarrer / arrêter l'enregistrement local</td></tr>
+              <tr><td><kbd>Entrée</kbd></td><td>Envoyer la preview en direct (Take) — mode Studio uniquement</td></tr>
+              <tr><td><kbd>?</kbd></td><td>Ouvrir cette aide</td></tr>
+              <tr><td><kbd>Esc</kbd></td><td>Fermer la modale active</td></tr>
+            </tbody>
+          </table>
+          <p><em>Note :</em> les touches numériques suivent l'ordre des scènes dans la liste centrale. Si tu réorganises ou supprimes une scène, l'ordre change.</p>
+        </div>
+
+        <!-- Streaming -->
+        <div class="studio-help-pane" data-help-pane="streaming">
+          <h3>Diffuser vers YouTube / Facebook / Twitch</h3>
+          <p>Le streaming RTMP passe par un <strong>relais Node.js local</strong> qui tourne sur ta machine (pas sur Vercel). Il diffuse simultanément vers toutes les destinations configurées.</p>
+
+          <h3>Première fois</h3>
+          <ol>
+            <li>Lance <code>start-versetlive.command</code> (double-clic dans le Finder) — il démarre le relais et ouvre le studio.</li>
+            <li>Le navigateur peut afficher un avertissement <em>« certificat non sécurisé »</em> sur <code>https://localhost:8766</code>. C'est normal (cert auto-signé). Accepte une fois.</li>
+            <li>Dans la section Streaming du studio, ajoute une destination : nom, URL RTMP (ex. <code>rtmp://a.rtmp.youtube.com/live2</code>), clé de stream.</li>
+            <li>Clique « Démarrer » → le stream passe en direct sur toutes les destinations cochées.</li>
+          </ol>
+
+          <h3>Où trouver l'URL et la clé RTMP</h3>
+          <ul>
+            <li><strong>YouTube</strong> : Studio YouTube → Direct → Stream → « URL du serveur de diffusion » et « Clé de diffusion ».</li>
+            <li><strong>Facebook</strong> : Live Producer → Configuration de la diffusion → « URL du serveur » et « Clé de diffusion ».</li>
+            <li><strong>Twitch</strong> : Tableau de bord créateur → Paramètres → Diffusion → « Clé principale de diffusion ».</li>
+          </ul>
+
+          <h3>Conseils</h3>
+          <ul>
+            <li>Les clés sont stockées en <code>localStorage</code> sur ta machine, jamais envoyées sur internet (sauf au relais local).</li>
+            <li>Tu peux désactiver/réactiver chaque destination à la volée via la case à cocher.</li>
+            <li>Le débit dépend du nombre de destinations × résolution. Sur fibre, 3 destinations en 1080p passent largement.</li>
+          </ul>
+        </div>
+
+        <!-- TV -->
+        <div class="studio-help-pane" data-help-pane="tv">
+          <h3>Affichage sans-fil sur une TV</h3>
+          <p>Permet d'afficher le verset (ou le mix vidéo complet) sur n'importe quel écran avec un navigateur — Smart TV, Mac, iPad, console, Apple TV en mode web…</p>
+
+          <ol>
+            <li>Sur la TV, ouvre le navigateur et va sur <code>versetlive.vercel.app/tv</code>.</li>
+            <li>La TV affiche un code à 4 caractères (ex. <code>K3M9</code>).</li>
+            <li>Dans le studio, clique <kbd>📺 TV</kbd> et saisis ce code.</li>
+            <li>Choisis le mode : <strong>verset seul</strong> (ultra-léger, data only) ou <strong>mix vidéo complet</strong> (WebRTC).</li>
+          </ol>
+
+          <h3>Astuces</h3>
+          <ul>
+            <li>L'écran de la TV reste allumé automatiquement (Wake Lock API — Smart TV récentes).</li>
+            <li>Touche <kbd>R</kbd> sur la télécommande de la TV pour régénérer le code.</li>
+            <li>Tu peux connecter plusieurs écrans en parallèle (chacun avec son propre code).</li>
+            <li>Si le mode vidéo affiche une image figée, recharge la page TV — le navigateur peut bloquer l'autoplay au premier chargement.</li>
+          </ul>
+        </div>
+
+        <!-- Intro / Outro -->
+        <div class="studio-help-pane" data-help-pane="introoutro">
+          <h3>Écrans de bienvenue et de remerciement</h3>
+          <p>Configure une <strong>intro</strong> (avant le service) et une <strong>outro</strong> (après) avec animation et musique de fond. Une fois configurées, elles apparaissent comme scènes à part entière dans la liste.</p>
+
+          <h3>Deux modes par écran</h3>
+          <ul>
+            <li><strong>Texte animé</strong> — titre + sous-titre + logo + countdown jusqu'à l'heure de début du service. Couleurs personnalisables.</li>
+            <li><strong>Vidéo importée</strong> — fichier MP4 ou WebM qui tourne en boucle.</li>
+          </ul>
+
+          <h3>Audio de fond</h3>
+          <p>Tu peux ajouter un fichier MP3 qui se joue automatiquement quand la scène intro/outro est active. L'audio est <strong>mixé dans le flux RTMP</strong> — il sera entendu par les spectateurs.</p>
+
+          <h3>Où sont stockés les fichiers ?</h3>
+          <p>Tous les assets (logo, vidéo, MP3) sont stockés en <strong>IndexedDB</strong> sur ta machine. Rien n'est uploadé. Si tu changes d'ordinateur, il faudra ré-importer.</p>
+        </div>
+
+        <!-- Dépannage -->
+        <div class="studio-help-pane" data-help-pane="trouble">
+          <h3>« La caméra du téléphone ne se connecte pas »</h3>
+          <ul>
+            <li>Vérifie que téléphone et Mac sont sur le <strong>même WiFi</strong>.</li>
+            <li>Sur le téléphone, accepte bien l'autorisation caméra/micro (icône cadenas dans Safari/Chrome).</li>
+            <li>Recharge la page caméra du téléphone et reflashe le QR code.</li>
+            <li>Vérifie que ton firewall n'empêche pas la connexion WebRTC.</li>
+          </ul>
+
+          <h3>« Le stream ne démarre pas »</h3>
+          <ul>
+            <li>Le relais local tourne-t-il ? Vérifie l'indicateur « Relais : connecté » en bas de la section Streaming.</li>
+            <li>Si non : relance <code>start-versetlive.command</code> ou <code>relay/start.command</code>.</li>
+            <li>Accepte le certificat auto-signé : visite <code>https://localhost:8766</code> une fois et clique « Continuer ».</li>
+            <li>Vérifie la clé RTMP — un caractère manquant et la plateforme refuse silencieusement.</li>
+          </ul>
+
+          <h3>« Le son est en double / en écho »</h3>
+          <ul>
+            <li>L'audio des téléphones est <strong>désactivé par défaut</strong> (anti-feedback). Active-le source par source via le bouton 🔇/🔊 si tu en as besoin.</li>
+            <li>Si ton mic est aussi capté par un téléphone, coupe l'un des deux.</li>
+          </ul>
+
+          <h3>« L'image gèle sur la TV en mode vidéo »</h3>
+          <ul>
+            <li>Le navigateur de la TV bloque parfois l'autoplay vidéo avec son.</li>
+            <li>Touche le bouton « ▶ Toucher pour démarrer » s'il apparaît sur la TV.</li>
+            <li>Ouvre la console JS de la TV pour voir les erreurs (la plupart des Smart TV ne le permettent pas, mais sur Mac/iPad oui).</li>
+          </ul>
+
+          <h3>« Vercel ou GitHub semble en panne »</h3>
+          <ul>
+            <li>L'app fonctionne en local sans internet (sauf streaming/TV). Lance <code>python3 -m http.server 8765</code> dans le dossier et ouvre <code>http://localhost:8765</code>.</li>
+          </ul>
+
+          <h3>Pour aller plus loin</h3>
+          <p>Ouvre une issue sur <a href="https://github.com/emmanuelfof94-stack/versetlive/issues" target="_blank">GitHub</a> avec captures d'écran et logs de la console.</p>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <div style="flex:1;"></div>
+        <button class="btn btn-primary" id="helpStudioOk">Compris</button>
+      </div>
+    </div>
+  </div>
+
   <script src="peerjs.min.js"></script>
   <script src="qrcode.js"></script>
   <script src="intro-outro.js"></script>
   <script src="studio.js"></script>
+  <script>
+    // Modal d'aide : ouverture/fermeture + navigation onglets + raccourci ?
+    (function () {
+      const modal = document.getElementById('helpStudioModal');
+      const openBtn = document.getElementById('helpStudioBtn');
+      const closeBtn = document.getElementById('helpStudioModalClose');
+      const okBtn = document.getElementById('helpStudioOk');
+      const tabs = modal.querySelectorAll('.studio-help-tab');
+      const panes = modal.querySelectorAll('.studio-help-pane');
+
+      function open() { modal.classList.add('show'); }
+      function close() { modal.classList.remove('show'); }
+
+      openBtn.addEventListener('click', open);
+      closeBtn.addEventListener('click', close);
+      okBtn.addEventListener('click', close);
+      modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
+
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          const target = tab.dataset.helpTab;
+          tabs.forEach(t => t.classList.toggle('active', t === tab));
+          panes.forEach(p => p.classList.toggle('active', p.dataset.helpPane === target));
+        });
+      });
+
+      // Raccourci ? (Shift+/) et Esc
+      document.addEventListener('keydown', (e) => {
+        if (e.ctrlKey || e.metaKey || e.altKey) return;
+        const typing = ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName);
+        const otherModalOpen = document.querySelector('.modal-backdrop.show:not(#helpStudioModal)');
+        if (e.key === '?' && !typing && !otherModalOpen) {
+          e.preventDefault();
+          open();
+        } else if (e.key === 'Escape' && modal.classList.contains('show')) {
+          e.preventDefault();
+          close();
+        }
+      });
+    })();
+  </script>
 </body>
 </html>
