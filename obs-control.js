@@ -14,8 +14,11 @@ const OP = {
   REQUEST_RESPONSE: 7,
 };
 
-// eventSubscriptions = standard (2047) + InputVolumeMeters (65536)
-const EVENT_SUBSCRIPTIONS = 2047 | 65536;
+// eventSubscriptions : standard (2047) sans vu-mètres ; les InputVolumeMeters (65536)
+// sont abonnés à la demande (uniquement quand la section Mixeur est dépliée)
+// pour limiter le trafic WebSocket et la charge OBS pendant les diffusions.
+const SUB_BASE = 2047;
+const SUB_AUDIO_METERS = 65536;
 
 class ObsClient extends EventTarget {
   constructor() {
@@ -107,13 +110,18 @@ class ObsClient extends EventTarget {
   async _handleHello(d) {
     const identifyMsg = {
       op: OP.IDENTIFY,
-      d: { rpcVersion: d.rpcVersion, eventSubscriptions: EVENT_SUBSCRIPTIONS },
+      d: { rpcVersion: d.rpcVersion, eventSubscriptions: SUB_BASE },
     };
     if (d.authentication) {
       if (!this.password) throw new Error('OBS demande un mot de passe mais aucun n\'est configuré');
       identifyMsg.d.authentication = await this._authString(this.password, d.authentication.salt, d.authentication.challenge);
     }
     this.ws.send(JSON.stringify(identifyMsg));
+  }
+
+  reidentify(eventSubscriptions) {
+    if (!this.identified || !this.ws) return;
+    this.ws.send(JSON.stringify({ op: OP.REIDENTIFY, d: { eventSubscriptions } }));
   }
 
   async _authString(password, salt, challenge) {
@@ -270,8 +278,20 @@ function bindCollapsibles() {
       state.collapsed = state.collapsed || {};
       state.collapsed[key] = sub.classList.contains('collapsed');
       saveUiState(state);
+      if (key === 'audio') syncAudioMetersSubscription();
     });
   });
+}
+
+function isAudioSectionVisible() {
+  const sub = document.querySelector('.obs-sub[data-key="audio"]');
+  return !!(sub && !sub.classList.contains('collapsed'));
+}
+
+function syncAudioMetersSubscription() {
+  if (obs.state !== 'connected') return;
+  const want = SUB_BASE | (isAudioSectionVisible() ? SUB_AUDIO_METERS : 0);
+  obs.reidentify(want);
 }
 
 // =================================================================
@@ -299,6 +319,7 @@ async function connectObs() {
     await obs.connect(s.host, s.port, s.password);
     obsToast('Connecté à OBS');
     await initialFetch();
+    syncAudioMetersSubscription();
     startStatusPolling();
     startStatsPolling();
     startPreviewPolling();
@@ -637,7 +658,7 @@ async function refreshReplayStatus() {
 function startStatusPolling() {
   stopStatusPolling();
   refreshStreamStatus();
-  obsStatusTimer = setInterval(refreshStreamStatus, 1500);
+  obsStatusTimer = setInterval(refreshStreamStatus, 3000);
 }
 function stopStatusPolling() {
   if (obsStatusTimer) { clearInterval(obsStatusTimer); obsStatusTimer = null; }
@@ -670,7 +691,7 @@ async function refreshStats() {
 function startStatsPolling() {
   stopStatsPolling();
   refreshStats();
-  obsStatsTimer = setInterval(refreshStats, 2000);
+  obsStatsTimer = setInterval(refreshStats, 4000);
 }
 function stopStatsPolling() {
   if (obsStatsTimer) { clearInterval(obsStatsTimer); obsStatsTimer = null; }
@@ -927,6 +948,7 @@ function bindObsUi() {
       await obs.connect(settings.host, settings.port, settings.password);
       obsToast('Connecté à OBS');
       await initialFetch();
+      syncAudioMetersSubscription();
       startStatusPolling();
       startStatsPolling();
       startPreviewPolling();
