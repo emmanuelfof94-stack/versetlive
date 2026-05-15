@@ -191,6 +191,22 @@
 
   <div class="toast" id="toast"></div>
 
+  <!-- Affichage des erreurs JS directement sur l'écran TV (pas de console accessible) -->
+  <div id="tvDebugBox" style="position:fixed; top:8px; left:8px; right:8px; max-height:50vh; overflow:auto; background:rgba(220,38,38,0.92); color:white; padding:12px; border-radius:8px; font-family:monospace; font-size:14px; z-index:9999; display:none; white-space:pre-wrap; word-break:break-word;"></div>
+  <script>
+    window.addEventListener('error', function (e) {
+      var box = document.getElementById('tvDebugBox');
+      if (!box) return;
+      box.style.display = 'block';
+      box.textContent += '⚠ ' + (e.message || 'error') + '\nFichier: ' + (e.filename || '?') + ':' + (e.lineno || '?') + '\n\n';
+    });
+    window.addEventListener('unhandledrejection', function (e) {
+      var box = document.getElementById('tvDebugBox');
+      if (!box) return;
+      box.style.display = 'block';
+      box.textContent += '⚠ promise: ' + (e.reason && e.reason.message ? e.reason.message : String(e.reason)) + '\n\n';
+    });
+  </script>
   <script src="peerjs.min.js"></script>
   <script src="obs.js"></script>
   <script>
