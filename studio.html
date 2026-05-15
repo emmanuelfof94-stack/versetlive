@@ -184,6 +184,62 @@
         </div>
       </div>
 
+      <!-- ============ Sorties (TV / Projecteur) ============ -->
+      <div class="section">
+        <div class="section-title">
+          <span>📡 Sorties d'affichage</span>
+        </div>
+
+        <div class="studio-outputs">
+
+          <!-- Écran Wi-Fi (TV / projecteur smart avec navigateur) -->
+          <div class="studio-output-card" id="outputTvCard">
+            <div class="studio-output-icon">📺</div>
+            <div class="studio-output-info">
+              <div class="studio-output-title">Écran Wi-Fi (TV / projecteur smart)</div>
+              <div class="studio-output-status" id="outputTvStatus">Aucun écran connecté</div>
+              <div class="studio-output-help">
+                Sur l'écran cible : ouvre <code>versetlive.vercel.app/tv</code> dans son navigateur, puis tape le code 4 lettres affiché.
+              </div>
+            </div>
+            <div class="studio-output-actions">
+              <button class="btn btn-sm btn-primary" id="outputTvConnect">Connecter</button>
+              <button class="btn btn-sm" id="outputTvDisconnect" hidden>Déconnecter</button>
+            </div>
+          </div>
+
+          <!-- Fenêtre projecteur HDMI -->
+          <div class="studio-output-card" id="outputHdmiCard">
+            <div class="studio-output-icon">📽</div>
+            <div class="studio-output-info">
+              <div class="studio-output-title">Projecteur HDMI / écran étendu</div>
+              <div class="studio-output-status" id="outputHdmiStatus">Fenêtre fermée</div>
+              <div class="studio-output-help">
+                Mac branché au projecteur par câble HDMI/USB-C. Mets macOS en « bureau étendu », ouvre la fenêtre, glisse-la sur l'écran du projecteur puis appuie F11.
+              </div>
+            </div>
+            <div class="studio-output-actions">
+              <button class="btn btn-sm btn-primary" id="outputHdmiOpen">Ouvrir fenêtre</button>
+              <button class="btn btn-sm" id="outputHdmiClose" hidden>Fermer</button>
+            </div>
+          </div>
+
+          <!-- Aide sortie sans-fil système -->
+          <div class="studio-output-card studio-output-help-card">
+            <div class="studio-output-icon">📡</div>
+            <div class="studio-output-info">
+              <div class="studio-output-title">Sortie sans-fil système (AirPlay / Cast)</div>
+              <div class="studio-output-help">
+                <strong>AirPlay (Apple TV, TV récente)</strong> : barre de menu macOS → icône Écran → choisis ton appareil.<br>
+                <strong>Google Cast (Chromecast)</strong> : dans Chrome, menu → « Caster… » → choisis le projecteur, caste l'onglet.<br>
+                <em>Ces sorties passent par le système macOS / Chrome, pas par l'app — donc impossible à activer depuis cette interface.</em>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
       <div class="section">
         <div class="section-title">
           <span>📡 Diffusion multi-plateformes</span>

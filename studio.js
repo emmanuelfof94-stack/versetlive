@@ -849,6 +849,48 @@ function openProjector() {
     }
   };
   tryAttach();
+  updateHdmiOutputUi();
+  // Surveiller la fermeture (l'utilisateur peut fermer la fenêtre depuis macOS)
+  const watch = setInterval(() => {
+    if (!outputWindow || outputWindow.closed) {
+      clearInterval(watch);
+      outputWindow = null;
+      updateHdmiOutputUi();
+    }
+  }, 1000);
+}
+
+function closeProjector() {
+  if (outputWindow && !outputWindow.closed) {
+    try { outputWindow.close(); } catch (e) {}
+  }
+  outputWindow = null;
+  updateHdmiOutputUi();
+  toast('Fenêtre projecteur fermée');
+}
+
+function updateHdmiOutputUi() {
+  const open = !!(outputWindow && !outputWindow.closed);
+  const card = $('outputHdmiCard');
+  if (card) card.classList.toggle('connected', open);
+  const status = $('outputHdmiStatus');
+  if (status) status.textContent = open ? '✓ Fenêtre ouverte — drag sur l\'écran projecteur + F11' : 'Fenêtre fermée';
+  const openBtn = $('outputHdmiOpen');
+  const closeBtn = $('outputHdmiClose');
+  if (openBtn) openBtn.hidden = open;
+  if (closeBtn) closeBtn.hidden = !open;
+}
+
+function bindOutputsPanel() {
+  const tvConnect = $('outputTvConnect');
+  if (tvConnect) tvConnect.addEventListener('click', () => $('tvModal').classList.add('show'));
+  const tvDisconnect = $('outputTvDisconnect');
+  if (tvDisconnect) tvDisconnect.addEventListener('click', () => disconnectFromTv(false));
+  const hdmiOpen = $('outputHdmiOpen');
+  if (hdmiOpen) hdmiOpen.addEventListener('click', openProjector);
+  const hdmiClose = $('outputHdmiClose');
+  if (hdmiClose) hdmiClose.addEventListener('click', closeProjector);
+  updateHdmiOutputUi();
 }
 
 // ============ Enregistrement ============
@@ -1222,8 +1264,22 @@ function setTvConnected(connected) {
   $('tvPairRow').hidden = connected;
   $('tvStatusRow').hidden = !connected;
   if (!connected) {
-    $('tvVideoToggle').checked = false;
+    const tvg = $('tvVideoToggle');
+    if (tvg) tvg.checked = false;
   }
+  // Mise à jour du panneau Sorties unifié
+  const card = $('outputTvCard');
+  if (card) card.classList.toggle('connected', connected);
+  const statusEl = $('outputTvStatus');
+  if (statusEl) {
+    statusEl.textContent = connected
+      ? (tvPeerId ? `✓ Connecté (${tvPeerId.replace('versetlive-tv-', '')})` : '✓ Connecté')
+      : 'Aucun écran connecté';
+  }
+  const connectBtn = $('outputTvConnect');
+  const disconnectBtn = $('outputTvDisconnect');
+  if (connectBtn) connectBtn.hidden = connected;
+  if (disconnectBtn) disconnectBtn.hidden = !connected;
 }
 
 function setTvStatusText(text) {
@@ -2171,6 +2227,7 @@ async function init() {
   bindUi();
   bindRemoteHelp();
   bindTvUi();
+  bindOutputsPanel();
   bindStreaming();
   bindShortcuts();
   bindImagesUi();

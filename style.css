@@ -3199,3 +3199,80 @@ input[type="time"] {
 .studio-schedule-btn-pulse {
   animation: studio-schedule-pulse 1.6s infinite;
 }
+
+/* ============ Panneau Sorties unifié (Phase 8) ============ */
+.studio-outputs {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.studio-output-card {
+  display: grid;
+  grid-template-columns: 40px 1fr auto;
+  gap: 12px;
+  padding: 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  align-items: start;
+  transition: border-color 0.15s, background 0.15s;
+}
+.studio-output-card.connected {
+  border-color: var(--success, #10b981);
+  background: rgba(16, 185, 129, 0.06);
+}
+.studio-output-icon {
+  font-size: 24px;
+  line-height: 1;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(99, 102, 241, 0.1);
+  border-radius: 6px;
+  flex: 0 0 auto;
+}
+.studio-output-card.connected .studio-output-icon {
+  background: rgba(16, 185, 129, 0.15);
+}
+.studio-output-info {
+  min-width: 0;
+}
+.studio-output-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+.studio-output-status {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+  font-family: 'SF Mono', Menlo, monospace;
+}
+.studio-output-card.connected .studio-output-status {
+  color: var(--success, #10b981);
+}
+.studio-output-help {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+.studio-output-help code {
+  background: var(--bg-primary);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 11px;
+  color: var(--accent-hover);
+}
+.studio-output-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 0 0 auto;
+}
+.studio-output-help-card {
+  background: rgba(99, 102, 241, 0.04);
+  border-style: dashed;
+}
