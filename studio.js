@@ -1299,47 +1299,53 @@ let tvSnapshotTimer = null;
 let tvSnapshotCanvas = null;
 let tvSnapshotCtx = null;
 
+// Réglages qualité : HD 1280x720, JPEG 70%, 10 fps
+const TV_SNAPSHOT_W = 1280;
+const TV_SNAPSHOT_H = 720;
+const TV_SNAPSHOT_QUALITY = 0.7;
+const TV_SNAPSHOT_INTERVAL_MS = 100; // 10 fps
+
 function ensureTvSnapshotCanvas() {
   if (!tvSnapshotCanvas) {
     tvSnapshotCanvas = document.createElement('canvas');
-    tvSnapshotCanvas.width = 800;
-    tvSnapshotCanvas.height = 450;
+    tvSnapshotCanvas.width = TV_SNAPSHOT_W;
+    tvSnapshotCanvas.height = TV_SNAPSHOT_H;
     tvSnapshotCtx = tvSnapshotCanvas.getContext('2d', { alpha: false });
   }
 }
 
 let snapshotSeq = 0;
-let snapshotInflight = false;
 function captureAndSendSnapshot() {
   if (!tvDataConn || !tvDataConn.open) return;
   if (!programCanvas) return;
-  if (snapshotInflight) return; // évite l'empilement si le précédent prend trop de temps
-  snapshotInflight = true;
+  // Backpressure : si le buffer du data channel est trop rempli, on saute cette frame
+  // (l'ancien lot finira de partir avant qu'on enchaîne)
+  try {
+    const dc = tvDataConn._dc || tvDataConn.dataChannel;
+    if (dc && dc.bufferedAmount > 1_500_000) return; // 1.5 MB en attente → on patiente
+  } catch (e) {}
   ensureTvSnapshotCanvas();
   tvSnapshotCtx.drawImage(programCanvas, 0, 0, tvSnapshotCanvas.width, tvSnapshotCanvas.height);
-  // toDataURL → base64 — passe via JSON, pas de risque de sérialisation binaire
   try {
-    const dataUrl = tvSnapshotCanvas.toDataURL('image/jpeg', 0.4);
+    const dataUrl = tvSnapshotCanvas.toDataURL('image/jpeg', TV_SNAPSHOT_QUALITY);
     tvDataConn.send({ type: 'snapshot', dataUrl });
     snapshotSeq++;
     const el = $('tvStatusText');
     if (el) {
       const kb = Math.round(dataUrl.length / 1024);
-      el.textContent = `Connecté (envoyés: ${snapshotSeq}, ${kb} Ko)`;
+      el.textContent = `Connecté (HD ${snapshotSeq}f, ${kb} Ko/f)`;
     }
     const statusEl = $('outputTvStatus');
-    if (statusEl) statusEl.textContent = `✓ Snapshots envoyés : ${snapshotSeq}`;
+    if (statusEl) statusEl.textContent = `✓ HD 1280×720 · ${snapshotSeq} frames envoyées`;
   } catch (e) {
     console.warn('snapshot send failed', e);
-  } finally {
-    snapshotInflight = false;
   }
 }
 
 function startTvSnapshots() {
   if (tvSnapshotTimer) return;
   sendToTv({ type: 'tv-mode', mode: 'snapshot' });
-  tvSnapshotTimer = setInterval(captureAndSendSnapshot, 200); // 5 fps
+  tvSnapshotTimer = setInterval(captureAndSendSnapshot, TV_SNAPSHOT_INTERVAL_MS);
 }
 
 function stopTvSnapshots() {
