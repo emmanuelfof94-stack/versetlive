@@ -285,6 +285,7 @@
 
       // ============ Snapshot mode (5 fps JPEG via data channel) ============
       let snapshotUrl = null;
+      let snapshotCount = 0;
       function showSnapshot(arrayBuffer) {
         try {
           const blob = new Blob([arrayBuffer], { type: 'image/jpeg' });
@@ -292,10 +293,16 @@
           const img = $('programSnapshot');
           img.src = url;
           img.classList.add('show');
-          // Révoquer l'ancienne URL pour ne pas faire fuir la mémoire
           if (snapshotUrl) URL.revokeObjectURL(snapshotUrl);
           snapshotUrl = url;
-        } catch (e) { /* ignore */ }
+          snapshotCount++;
+          // Compteur visible dans le statut pour vérifier que ça arrive
+          const status = $('pairingStatus');
+          if (status) status.textContent = `Snapshots reçus : ${snapshotCount}`;
+        } catch (e) {
+          var box = document.getElementById('tvDebugBox');
+          if (box) { box.style.display = 'block'; box.textContent += '⚠ showSnapshot: ' + (e.message || e) + '\n\n'; }
+        }
       }
       function hideSnapshot() {
         const img = $('programSnapshot');
@@ -347,6 +354,16 @@
 
           conn.on('data', (msg) => {
             if (!msg) return;
+            // Snapshot brut : ArrayBuffer (ou Uint8Array selon les implémentations)
+            if (msg instanceof ArrayBuffer) {
+              showSnapshot(msg);
+              return;
+            }
+            if (msg && msg.buffer instanceof ArrayBuffer && msg.byteLength) {
+              // Uint8Array, Int8Array, etc.
+              showSnapshot(msg.buffer);
+              return;
+            }
             if (msg.type === 'video-stop') {
               stopVideo();
               return;
@@ -355,13 +372,8 @@
               try { conn.close(); } catch (e) {}
               return;
             }
-            if (msg.type === 'snapshot' && msg.data) {
-              showSnapshot(msg.data);
-              return;
-            }
             if (msg.type === 'tv-mode') {
               if (msg.mode === 'text') hideSnapshot();
-              // mode 'snapshot' : on attend les frames qui arrivent
               return;
             }
             // show / showTitle / clear / style → forward to obs.js via BroadcastChannel

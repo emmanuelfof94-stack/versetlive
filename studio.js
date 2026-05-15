@@ -1246,26 +1246,36 @@ let tvSnapshotCtx = null;
 function ensureTvSnapshotCanvas() {
   if (!tvSnapshotCanvas) {
     tvSnapshotCanvas = document.createElement('canvas');
-    tvSnapshotCanvas.width = 1280;
-    tvSnapshotCanvas.height = 720;
+    tvSnapshotCanvas.width = 960;
+    tvSnapshotCanvas.height = 540;
     tvSnapshotCtx = tvSnapshotCanvas.getContext('2d', { alpha: false });
   }
 }
 
+let snapshotSeq = 0;
 function captureAndSendSnapshot() {
   if (!tvDataConn || !tvDataConn.open) return;
   if (!programCanvas) return;
   ensureTvSnapshotCanvas();
-  // Downscale 1920x1080 → 1280x720 pour réduire la bande passante
+  // Downscale 1920x1080 → 960x540 (KB plus petits → moins de chunks → plus fiable)
   tvSnapshotCtx.drawImage(programCanvas, 0, 0, tvSnapshotCanvas.width, tvSnapshotCanvas.height);
   tvSnapshotCanvas.toBlob(async (blob) => {
     if (!blob || !tvDataConn || !tvDataConn.open) return;
     try {
       const buf = await blob.arrayBuffer();
-      // PeerJS sait envoyer un ArrayBuffer directement
-      tvDataConn.send({ type: 'snapshot', data: buf });
-    } catch (e) { /* ignore */ }
-  }, 'image/jpeg', 0.55);
+      // Envoie l'ArrayBuffer brut : PeerJS le gère nativement et le TV-side l'identifie via instanceof
+      tvDataConn.send(buf);
+      snapshotSeq++;
+      // Affiche un compteur dans le statut TV du studio (utile pour vérifier que ça envoie)
+      const el = $('tvStatusText');
+      if (el && tvDataConn && tvDataConn.open) {
+        const kb = Math.round(buf.byteLength / 1024);
+        el.textContent = `Connecté (snapshots envoyés: ${snapshotSeq}, ${kb} Ko)`;
+      }
+    } catch (e) {
+      console.warn('snapshot send failed', e);
+    }
+  }, 'image/jpeg', 0.4);
 }
 
 function startTvSnapshots() {
