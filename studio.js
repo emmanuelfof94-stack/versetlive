@@ -208,6 +208,7 @@ function removeCamera(sourceId) {
 
 // ============ Rendu UI des sources ============
 function renderSources() {
+  if (typeof coopBroadcast === 'function') coopBroadcast();
   const list = $('sourcesList');
   if (!sources.length) {
     list.innerHTML = '<div class="studio-empty">Aucune caméra ajoutée. Clique sur « + Ajouter caméra ».</div>';
@@ -625,6 +626,7 @@ function setProgramScene(scene) {
   syncIframeToProjector(scene);
   // Auto-switch TV : texte si scène 'verse'/'black', snapshot canvas sinon
   autoSwitchTvForScene(scene);
+  if (typeof coopBroadcast === 'function') coopBroadcast();
 }
 
 function syncIframeToProjector(scene) {
@@ -643,6 +645,7 @@ function syncIframeToProjector(scene) {
 function setPreviewScene(scene) {
   previewScene = scene;
   renderScenes();
+  if (typeof coopBroadcast === 'function') coopBroadcast();
 }
 
 function takeProgram() {
@@ -1041,6 +1044,7 @@ function updateRecordBtn(recording) {
   btn.textContent = recording ? '⏹ Arrêter l\'enreg.' : '⏺ Enregistrer';
   btn.classList.toggle('btn-danger', !recording);
   btn.classList.toggle('btn-success', recording);
+  if (typeof coopBroadcast === 'function') coopBroadcast();
 }
 
 function setStatus(s) { $('studioStatus').textContent = s; }
@@ -1048,6 +1052,7 @@ function setStatus(s) { $('studioStatus').textContent = s; }
 // ============ Synchro verset ============
 function applyVerseState(state) {
   verseState = state;
+  if (typeof coopBroadcast === 'function') coopBroadcast();
   renderVerseStatus();
 }
 
@@ -1705,6 +1710,7 @@ function saveDestinations() {
 }
 
 function renderDestinations() {
+  if (typeof coopBroadcast === 'function') coopBroadcast();
   const list = $('destinationsList');
   list.innerHTML = '';
   destinations.forEach((d, i) => {
@@ -1915,6 +1921,7 @@ function startStreaming() {
   startStreamElapsedTimer();
   updateStreamBtnState();
   setStatus('● Diffusion en direct');
+  if (typeof coopBroadcast === 'function') coopBroadcast();
 }
 
 function stopStreaming(reason = 'user') {
@@ -1935,6 +1942,7 @@ function finalizeStop() {
   $('streamBitrate').textContent = '— kbps';
   updateStreamBtnState();
   setStatus('Prêt');
+  if (typeof coopBroadcast === 'function') coopBroadcast();
 }
 
 function startStreamElapsedTimer() {
@@ -2338,6 +2346,7 @@ function toggleStudioMode() {
     previewScene = programScene;
   }
   applyStudioModeUi();
+  if (typeof coopBroadcast === 'function') coopBroadcast();
 }
 
 function bindStudioModeUi() {
@@ -2360,17 +2369,446 @@ function bindTransitionUi() {
       transitionCfg.kind = b.dataset.kind === 'cut' ? 'cut' : 'fade';
       saveTransitionCfg();
       applyTransitionUi();
+      if (typeof coopBroadcast === 'function') coopBroadcast();
     });
   });
   $('transitionDuration').addEventListener('input', (e) => {
     transitionCfg.durationMs = parseInt(e.target.value, 10);
     saveTransitionCfg();
     $('transitionDurationVal').textContent = transitionCfg.durationMs + ' ms';
+    if (typeof coopBroadcast === 'function') coopBroadcast();
   });
+}
+
+// ============ Coop (multi-poste : host + co-pilot) ============
+// Voir coop.js pour la couche transport PeerJS. Ici on branche le studio :
+// - Host : snapshot d'état + dispatch commandes + démarrage de la session
+// - Co-pilot : initCoPilot() (mode dérouté depuis init() quand ?cop=CODE)
+let coopHost = null;          // instance retournée par VLCoop.startHost
+let coopGuest = null;         // instance retournée par VLCoop.joinAsCoPilot
+let coopBroadcastTimer = null;
+
+function coopBroadcast() {
+  // Debounce 80 ms : coalesce les bursts (renderSources + renderDestinations + setScene…)
+  if (!coopHost) return;
+  if (coopBroadcastTimer) return;
+  coopBroadcastTimer = setTimeout(() => {
+    coopBroadcastTimer = null;
+    try { coopHost.broadcastState(); } catch (e) {}
+  }, 80);
+}
+
+function coopStateSnapshot() {
+  return {
+    hostName: 'Studio principal',
+    studioMode,
+    programScene,
+    previewScene,
+    transitionCfg: { kind: transitionCfg.kind, durationMs: transitionCfg.durationMs },
+    sources: sources.map(s => ({
+      id: s.id, kind: s.kind, label: s.label, deviceId: s.deviceId || '',
+      muted: !!s.muted, audioOn: !!s.audioOn, audioGainValue: s.audioGainValue ?? 100,
+    })),
+    images: (typeof imageSources !== 'undefined' ? imageSources : []).map(i => ({ id: i.id, name: i.name })),
+    scenes: buildSceneList().map(s => ({ key: s.key, label: s.label, scene: s.scene })),
+    destinations: (typeof destinations !== 'undefined' ? destinations : []).map((d, i) => ({
+      idx: i,
+      name: d.name,
+      enabled: !!d.enabled,
+      ytBroadcastId: d.ytBroadcastId,
+      status: d.status || '',
+    })),
+    streaming: typeof relayStreaming !== 'undefined' ? !!relayStreaming : false,
+    recording: !!(mediaRecorder && mediaRecorder.state === 'recording'),
+    verseState,
+  };
+}
+
+function applyCoopCommand(cmd, args) {
+  args = args || {};
+  switch (cmd) {
+    case 'setScene':
+      if (args.scene) setScene(args.scene);
+      break;
+    case 'setProgramScene':
+      if (args.scene) setProgramScene(args.scene);
+      break;
+    case 'setPreviewScene':
+      if (args.scene) setPreviewScene(args.scene);
+      break;
+    case 'take':
+      takeProgram();
+      break;
+    case 'setStudioMode':
+      if (!!args.on !== !!studioMode) toggleStudioMode();
+      break;
+    case 'setTransitionConfig':
+      if (args.cfg) {
+        transitionCfg.kind = args.cfg.kind === 'cut' ? 'cut' : 'fade';
+        transitionCfg.durationMs = Math.max(0, Math.min(2000, parseInt(args.cfg.durationMs, 10) || 300));
+        saveTransitionCfg();
+        applyTransitionUi();
+        coopBroadcast();
+      }
+      break;
+    case 'startStream':
+      if (!relayStreaming) startStreaming();
+      break;
+    case 'stopStream':
+      if (relayStreaming) stopStreaming('coop');
+      break;
+    case 'startRecord':
+      if (!(mediaRecorder && mediaRecorder.state === 'recording')) toggleRecord();
+      break;
+    case 'stopRecord':
+      if (mediaRecorder && mediaRecorder.state === 'recording') toggleRecord();
+      break;
+    case 'showVerse':
+      coopApplyVerseFromCommand(args.state || args);
+      break;
+    case 'clearVerse':
+      coopApplyVerseFromCommand({ style: verseState?.style });
+      break;
+    case 'enableDestination': {
+      const d = destinations[args.idx];
+      if (d) { d.enabled = !!args.on; saveDestinations(); renderDestinations(); updateStreamBtnState(); }
+      break;
+    }
+    default:
+      console.warn('Coop : commande inconnue', cmd);
+  }
+}
+
+function coopApplyVerseFromCommand(state) {
+  // Reproduit le chemin de index.html : localStorage + BroadcastChannel + applyVerseState.
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    const bc = new BroadcastChannel(CHANNEL_NAME);
+    if (state && (state.text || state.title)) {
+      const msg = state.kind === 'title'
+        ? { type: 'showTitle', payload: state }
+        : { type: 'show', payload: state };
+      bc.postMessage(msg);
+      applyVerseState(state.kind === 'title' ? { ...state, kind: 'title' } : state);
+    } else {
+      bc.postMessage({ type: 'clear' });
+      applyVerseState({ style: state?.style });
+    }
+    bc.close();
+    sendCurrentVerseToTv();
+  } catch (e) {
+    console.warn('coop apply verse err', e);
+  }
+}
+
+function coopUpdateDotUi() {
+  const dot = $('coopDot');
+  if (!dot) return;
+  dot.classList.remove('connected', 'hosting');
+  if (coopHost) dot.classList.add(coopHost.coPilotCount && coopHost.coPilotCount() > 0 ? 'connected' : 'hosting');
+  else if (coopGuest) dot.classList.add('connected');
+}
+
+function coopStartHost(code) {
+  if (coopHost) coopHost.stop();
+  coopHost = VLCoop.startHost({
+    code,
+    hostName: 'Studio principal',
+    programStreamFn: () => {
+      if (!programStream) rebuildProgramStream();
+      return programStream;
+    },
+    previewStreamFn: () => {
+      try { return previewCanvas.captureStream(15); } catch (e) { return null; }
+    },
+    stateFn: coopStateSnapshot,
+    onCommand: applyCoopCommand,
+    onCoPilotChange: (count, list) => {
+      const status = $('coopHostStatus');
+      if (status) {
+        status.textContent = count ? `${count} co-pilot${count > 1 ? 's' : ''} connecté${count > 1 ? 's' : ''}` : 'Aucun co-pilot connecté';
+        status.className = 'studio-coop-status' + (count ? ' ok' : '');
+      }
+      const listEl = $('coopHostList');
+      if (listEl) {
+        if (!count) {
+          listEl.innerHTML = '<div class="studio-empty">Personne connecté pour l\'instant.</div>';
+        } else {
+          listEl.innerHTML = list.map(c => `<div class="studio-coop-list-item">${escapeHtml(c.name || 'Co-pilot')}</div>`).join('');
+        }
+      }
+      coopUpdateDotUi();
+    },
+    onStatus: (text, kind) => {
+      const status = $('coopHostStatus');
+      if (status) { status.textContent = text; status.className = 'studio-coop-status ' + (kind || ''); }
+    },
+  });
+  // Affiche la zone d'info host
+  const info = $('coopHostInfo');
+  if (info) info.hidden = false;
+  const startBtn = $('coopHostStartBtn');
+  if (startBtn) startBtn.hidden = true;
+  const stopBtn = $('coopHostStopBtn');
+  if (stopBtn) stopBtn.hidden = false;
+  const codeEl = $('coopHostCode');
+  if (codeEl) codeEl.textContent = coopHost.code;
+  // Lien direct
+  const url = `${location.protocol}//${location.host}${location.pathname.replace(/[^/]*$/, '')}studio.html?cop=${coopHost.code}`;
+  const urlEl = $('coopHostUrl');
+  if (urlEl) urlEl.innerHTML = `<a href="${url}" target="_blank">${url.replace(/^https?:\/\//, '')}</a>`;
+  // QR
+  const qrEl = $('coopHostQr');
+  if (qrEl) {
+    qrEl.innerHTML = '';
+    try {
+      const qr = qrcode(0, 'M');
+      qr.addData(url);
+      qr.make();
+      qrEl.innerHTML = qr.createSvgTag({ cellSize: 4, margin: 1 });
+    } catch (e) {}
+  }
+  coopUpdateDotUi();
+}
+
+function coopStopHost() {
+  if (!coopHost) return;
+  coopHost.stop();
+  coopHost = null;
+  const info = $('coopHostInfo');
+  if (info) info.hidden = true;
+  const startBtn = $('coopHostStartBtn');
+  if (startBtn) startBtn.hidden = false;
+  const stopBtn = $('coopHostStopBtn');
+  if (stopBtn) stopBtn.hidden = true;
+  const status = $('coopHostStatus');
+  if (status) { status.textContent = 'Hors-ligne'; status.className = 'studio-coop-status'; }
+  coopUpdateDotUi();
+}
+
+function bindCoopUi() {
+  const openBtn = $('openCoopBtn');
+  const modal = $('coopModal');
+  if (!openBtn || !modal) return;
+  openBtn.addEventListener('click', () => modal.classList.add('show'));
+  $('coopModalClose').addEventListener('click', () => modal.classList.remove('show'));
+  $('coopModalOk').addEventListener('click', () => modal.classList.remove('show'));
+
+  // Tabs
+  document.querySelectorAll('#coopTabs .studio-coop-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      const which = tab.dataset.tab;
+      document.querySelectorAll('#coopTabs .studio-coop-tab').forEach(t => t.classList.toggle('active', t === tab));
+      document.querySelectorAll('.studio-coop-pane').forEach(p => p.hidden = p.dataset.pane !== which);
+    });
+  });
+
+  // Host start/stop
+  $('coopHostStartBtn').addEventListener('click', () => coopStartHost());
+  $('coopHostStopBtn').addEventListener('click', () => coopStopHost());
+  $('coopHostCopyBtn').addEventListener('click', () => {
+    const a = $('coopHostUrl').querySelector('a');
+    if (a) navigator.clipboard?.writeText(a.href).then(() => toast('Lien copié')).catch(() => {});
+  });
+
+  // Join : redirige vers studio.html?cop=CODE (mode co-pilot = nouveau chargement de page)
+  $('coopJoinBtn').addEventListener('click', () => {
+    const code = ($('coopJoinCode').value || '').toUpperCase().trim();
+    const name = ($('coopJoinName').value || '').trim();
+    if (!code || code.length !== 4) {
+      const s = $('coopJoinStatus'); s.textContent = 'Saisis un code de 4 caractères.'; s.className = 'studio-coop-join-status err';
+      return;
+    }
+    const params = new URLSearchParams();
+    params.set('cop', code);
+    if (name) params.set('name', name);
+    location.search = '?' + params.toString();
+  });
+}
+
+// ============ Mode CO-PILOT (UI dérouté) ============
+// Branché depuis init() quand ?cop=CODE est présent. On NE lance PAS le studio
+// local (pas de caméras, pas de rendu canvas, pas de signaling phones). Le
+// co-pilot reçoit Program+Preview en WebRTC + l'état complet en data channel.
+let coopRemoteState = null;
+
+async function initCoPilot(code, name) {
+  document.body.classList.add('coop-mode');
+  const banner = $('coopBanner');
+  const sub = $('coopBannerSub');
+  if (banner) banner.hidden = false;
+  if (sub) sub.textContent = `Code ${code} · connexion en cours…`;
+
+  // Bindings minimaux : modale (pour rebascule éventuelle) + boutons UI partagés
+  try { bindCoopUi(); } catch (e) {}
+
+  // Branche les boutons studio en mode "envoie commande"
+  $('studioModeBtn').addEventListener('click', () => coopGuest && coopGuest.sendCommand('setStudioMode', { on: !coopRemoteState?.studioMode }));
+  $('takeBtn').addEventListener('click', () => coopGuest && coopGuest.sendCommand('take'));
+  $('recordBtn').addEventListener('click', () => coopGuest && coopGuest.sendCommand(coopRemoteState?.recording ? 'stopRecord' : 'startRecord'));
+  // Stream button (s'il existe)
+  const streamBtn = $('streamBtn');
+  if (streamBtn) streamBtn.addEventListener('click', () => coopGuest && coopGuest.sendCommand(coopRemoteState?.streaming ? 'stopStream' : 'startStream'));
+  // Transition
+  document.querySelectorAll('#transitionModes .studio-transition-mode').forEach(b => {
+    b.addEventListener('click', () => {
+      const kind = b.dataset.kind === 'cut' ? 'cut' : 'fade';
+      const dur = parseInt($('transitionDuration').value, 10) || 300;
+      coopGuest && coopGuest.sendCommand('setTransitionConfig', { cfg: { kind, durationMs: dur } });
+    });
+  });
+  $('transitionDuration').addEventListener('change', (e) => {
+    const dur = parseInt(e.target.value, 10) || 300;
+    coopGuest && coopGuest.sendCommand('setTransitionConfig', { cfg: { kind: transitionCfgKindFromUi(), durationMs: dur } });
+  });
+  // Quitter
+  const leaveBtn = $('coopLeaveBtn');
+  if (leaveBtn) leaveBtn.addEventListener('click', () => { coopGuest && coopGuest.leave(); location.href = location.pathname; });
+
+  // Connexion
+  coopGuest = VLCoop.joinAsCoPilot(code, {
+    name: name || 'Co-pilot',
+    onStatus: (text, kind) => {
+      if (sub) sub.textContent = `Code ${code} · ${text}`;
+      const dot = $('coopDot'); if (dot) dot.classList.toggle('connected', kind === 'ok');
+    },
+    onHello: ({ hostName }) => {
+      if (sub) sub.textContent = `Connecté à ${hostName || 'host'} (${code})`;
+    },
+    onProgramStream: (stream) => {
+      const v = $('coopProgramVideo');
+      if (v) { v.srcObject = stream; v.play().catch(() => {}); }
+    },
+    onPreviewStream: (stream) => {
+      const v = $('coopPreviewVideo');
+      if (v) { v.srcObject = stream; v.play().catch(() => {}); }
+    },
+    onState: (state) => {
+      coopRemoteState = state;
+      coopRenderRemoteState(state);
+    },
+    onToast: (msg, isError) => toast(msg, isError),
+  });
+}
+
+function transitionCfgKindFromUi() {
+  const active = document.querySelector('#transitionModes .studio-transition-mode.active');
+  return active && active.dataset.kind === 'cut' ? 'cut' : 'fade';
+}
+
+function coopRenderRemoteState(state) {
+  // Studio mode UI
+  const monitors = $('studioMonitors');
+  const previewWrap = $('previewWrap');
+  const modeBtn = $('studioModeBtn');
+  if (state.studioMode) {
+    monitors.classList.add('has-preview');
+    previewWrap.hidden = false;
+    modeBtn.classList.add('active');
+    modeBtn.textContent = '🟡 Studio (preview)';
+  } else {
+    monitors.classList.remove('has-preview');
+    previewWrap.hidden = true;
+    modeBtn.classList.remove('active');
+    modeBtn.textContent = '🔴 Direct';
+  }
+
+  // Transition
+  if (state.transitionCfg) {
+    document.querySelectorAll('#transitionModes .studio-transition-mode').forEach(b => {
+      b.classList.toggle('active', b.dataset.kind === state.transitionCfg.kind);
+    });
+    $('transitionDuration').value = state.transitionCfg.durationMs;
+    $('transitionDurationVal').textContent = state.transitionCfg.durationMs + ' ms';
+  }
+
+  // Scène list
+  const list = $('scenesList');
+  const scenesArr = state.scenes || [];
+  if (!scenesArr.length) {
+    list.innerHTML = '<div class="studio-empty">Aucune scène côté host.</div>';
+  } else {
+    const progKey = sceneKey(state.programScene);
+    const prevKey = sceneKey(state.previewScene);
+    list.innerHTML = '';
+    scenesArr.forEach(s => {
+      const btn = document.createElement('button');
+      btn.className = 'studio-scene-btn';
+      btn.textContent = s.label;
+      if (progKey === s.key) btn.classList.add('active');
+      if (state.studioMode && prevKey === s.key && progKey !== s.key) btn.classList.add('preview-active');
+      btn.addEventListener('click', () => coopGuest && coopGuest.sendCommand('setScene', { scene: s.scene }));
+      list.appendChild(btn);
+    });
+  }
+
+  // Stream/record status (visuel topbar)
+  const statusEl = $('studioStatus');
+  if (statusEl) statusEl.textContent = state.streaming ? '● Diffusion en direct' : (state.recording ? '⏺ Enregistrement…' : 'Co-pilot');
+  const recBtn = $('recordBtn');
+  if (recBtn) {
+    recBtn.textContent = state.recording ? '⏹ Arrêter l\'enreg.' : '⏺ Enregistrer';
+    recBtn.classList.toggle('btn-danger', !state.recording);
+    recBtn.classList.toggle('btn-success', !!state.recording);
+  }
+
+  // Stream button : drivé par l'état du host (le relais RTMP tourne côté host)
+  const streamBtn = $('streamBtn');
+  if (streamBtn) {
+    if (state.streaming) {
+      streamBtn.disabled = false;
+      streamBtn.textContent = '⏹ Arrêter le stream (host)';
+      streamBtn.classList.remove('btn-primary');
+      streamBtn.classList.add('btn-danger');
+    } else {
+      const activeDests = (state.destinations || []).filter(d => d.enabled).length;
+      streamBtn.disabled = activeDests === 0;
+      streamBtn.textContent = activeDests
+        ? `▶ Démarrer le stream (${activeDests} destination${activeDests > 1 ? 's' : ''})`
+        : '▶ Démarrer le stream (aucune destination)';
+      streamBtn.classList.add('btn-primary');
+      streamBtn.classList.remove('btn-danger');
+    }
+  }
+
+  // Liste destinations en lecture seule (le host gère réellement le relais)
+  const destList = $('destinationsList');
+  if (destList) {
+    const dests = state.destinations || [];
+    if (!dests.length) {
+      destList.innerHTML = '<div class="studio-empty">Aucune destination — à configurer sur l\'ordi host.</div>';
+    } else {
+      destList.innerHTML = dests.map(d => `
+        <div class="studio-destination" style="opacity:${d.enabled ? 1 : 0.5}">
+          <span>${d.enabled ? '✅' : '⬜'} ${escapeHtml(d.name)}</span>
+          ${d.status ? `<span class="studio-destination-status">${escapeHtml(d.status)}</span>` : ''}
+        </div>
+      `).join('');
+    }
+  }
+
+  // Cache les boutons d'édition (add destination, relay help) en mode co-pilot
+  const addDest = $('addDestBtn'); if (addDest) addDest.style.display = 'none';
+  const relayHelp = $('relayHelp'); if (relayHelp) relayHelp.style.display = 'none';
+  const relayPill = $('relayPill'); if (relayPill) relayPill.style.display = 'none';
+
+  // Verset status (panneau dédié si présent)
+  try { verseState = state.verseState; renderVerseStatus(); } catch (e) {}
 }
 
 // ============ Boot ============
 async function init() {
+  // Mode co-pilot : ?cop=CODE → on dévie complètement le boot
+  const params = new URLSearchParams(location.search);
+  const copCode = (params.get('cop') || '').toUpperCase().trim();
+  if (copCode && copCode.length === 4) {
+    // Bindings minimaux ; pas de caméras, pas de signaling phones, pas de bindStudioModeUi/Transition
+    // (initCoPilot installe ses propres listeners qui envoient des commandes au host)
+    renderVerseStatus();
+    await initCoPilot(copCode, params.get('name') || '');
+    return;
+  }
+
   bindUi();
   bindRemoteHelp();
   bindTvUi();
@@ -2380,6 +2818,7 @@ async function init() {
   bindImagesUi();
   bindStudioModeUi();
   bindTransitionUi();
+  bindCoopUi();
   applyStudioModeUi();
   applyTransitionUi();
   // Init module intro/outro (chargement assets IndexedDB + bind modal)

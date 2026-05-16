@@ -505,6 +505,72 @@
     </div>
   </div>
 
+  <!-- Modal Multi-poste (Coop) -->
+  <div class="modal-backdrop" id="coopModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>👥 Multi-poste — co-pilots</h2>
+        <button class="modal-close" id="coopModalClose">×</button>
+      </div>
+      <div class="modal-body">
+        <p>Connecte d'autres ordinateurs comme <strong>co-pilots</strong> : ils voient Programme + Preview en direct et peuvent changer les scènes, pousser un verset, démarrer le stream… Tout est synchronisé.</p>
+
+        <div class="studio-coop-tabs" id="coopTabs">
+          <button class="studio-coop-tab active" data-tab="host">Je suis host</button>
+          <button class="studio-coop-tab" data-tab="join">Rejoindre un host</button>
+        </div>
+
+        <!-- Onglet Host -->
+        <div class="studio-coop-pane" data-pane="host">
+          <h3>1. Démarrer la session</h3>
+          <div class="studio-coop-host-row" id="coopHostRow">
+            <button class="btn btn-primary" id="coopHostStartBtn">▶ Démarrer la session</button>
+            <button class="btn" id="coopHostStopBtn" hidden>■ Arrêter</button>
+            <span class="studio-coop-status" id="coopHostStatus">Hors-ligne</span>
+          </div>
+
+          <div class="studio-coop-host-info" id="coopHostInfo" hidden>
+            <h3>2. Sur les autres ordinateurs</h3>
+            <div class="studio-coop-code-row">
+              <div class="studio-coop-code-label">Code de session :</div>
+              <div class="studio-coop-code" id="coopHostCode">—</div>
+            </div>
+            <div class="studio-coop-url-row">
+              <div class="studio-coop-url-label">Lien direct :</div>
+              <div class="studio-coop-url" id="coopHostUrl"></div>
+              <button class="btn btn-sm" id="coopHostCopyBtn">Copier</button>
+            </div>
+            <div class="studio-coop-qr" id="coopHostQr"></div>
+            <p class="studio-coop-hint">Sur l'autre PC : ouvre <code>versetlive.vercel.app/studio.html</code>, clique <kbd>👥 Multi-poste</kbd> → onglet <strong>Rejoindre</strong>, tape le code. Ou ouvre directement le lien ci-dessus.</p>
+
+            <h3>3. Co-pilots connectés</h3>
+            <div class="studio-coop-list" id="coopHostList">
+              <div class="studio-empty">Personne connecté pour l'instant.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Onglet Join -->
+        <div class="studio-coop-pane" data-pane="join" hidden>
+          <h3>Rejoindre une session existante</h3>
+          <p>Saisis le code 4 caractères affiché sur l'ordinateur host.</p>
+          <div class="studio-coop-join-row">
+            <label>Code :</label>
+            <input type="text" id="coopJoinCode" maxlength="4" placeholder="A7B3" autocapitalize="characters" autocomplete="off" spellcheck="false">
+            <input type="text" id="coopJoinName" placeholder="Mon nom (optionnel)" autocomplete="off">
+            <button class="btn btn-primary" id="coopJoinBtn">Rejoindre</button>
+          </div>
+          <div class="studio-coop-join-status" id="coopJoinStatus"></div>
+          <p class="studio-coop-hint">Une fois connecté en co-pilot, tu verras Programme + Preview du host et tu pourras contrôler les scènes / Take / stream / verset. Cet onglet n'expose pas tes caméras locales (à venir).</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <div style="flex:1;"></div>
+        <button class="btn" id="coopModalOk">Fermer</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal Aide caméras distantes -->
   <div class="modal-backdrop" id="remoteHelpModal">
     <div class="modal">
@@ -821,6 +887,7 @@
   <script src="intro-outro.js"></script>
   <script src="videos.js"></script>
   <script src="youtube-scheduler.js"></script>
+  <script src="coop.js"></script>
   <script src="studio.js"></script>
   <script>
     // Modal d'aide : ouverture/fermeture + navigation onglets + raccourci ?
