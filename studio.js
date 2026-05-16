@@ -796,16 +796,33 @@ function startAudioMeter() {
 }
 
 // ============ Capture du programme ============
+// La piste vidéo du canvas est capturée UNE seule fois et réutilisée à chaque
+// rebuild — sinon chaque toggle audio/record/stream pousserait un nouveau
+// srcObject à la fenêtre projecteur, donnant l'impression que la projection
+// « relance ». Avec une piste vidéo stable, le projecteur reste continu et
+// l'opérateur peut basculer les scènes/affichages depuis le studio sans saut.
+let programVideoTrack = null;
 function rebuildProgramStream() {
-  const videoStream = programCanvas.captureStream(OUTPUT_FPS);
-  const tracks = [videoStream.getVideoTracks()[0]];
-  if (programAudioStream) {
-    const at = programAudioStream.getAudioTracks()[0];
-    if (at) tracks.push(at);
+  if (!programVideoTrack || programVideoTrack.readyState === 'ended') {
+    programVideoTrack = programCanvas.captureStream(OUTPUT_FPS).getVideoTracks()[0];
   }
-  programStream = new MediaStream(tracks);
+  if (!programStream) programStream = new MediaStream();
 
-  // Si la fenêtre projecteur est ouverte, lui pousser le nouveau stream
+  // Sync piste vidéo (stable)
+  const existingVideo = programStream.getVideoTracks()[0];
+  if (existingVideo !== programVideoTrack) {
+    if (existingVideo) programStream.removeTrack(existingVideo);
+    programStream.addTrack(programVideoTrack);
+  }
+  // Sync piste audio (peut changer)
+  const newAudio = programAudioStream ? programAudioStream.getAudioTracks()[0] || null : null;
+  const currentAudio = programStream.getAudioTracks()[0] || null;
+  if (newAudio !== currentAudio) {
+    if (currentAudio) programStream.removeTrack(currentAudio);
+    if (newAudio) programStream.addTrack(newAudio);
+  }
+
+  // Si la fenêtre projecteur est ouverte, lui pousser le stream (no-op si déjà attaché)
   if (outputWindow && !outputWindow.closed && outputWindow.setProgramStream) {
     outputWindow.setProgramStream(programStream);
   }
@@ -823,9 +840,53 @@ function rebuildProgramStream() {
   }
 }
 
+// ============ Anti-throttling : maintient le canvas vivant en arrière-plan ============
+// Chrome ralentit requestAnimationFrame à ~1Hz quand l'onglet n'est pas au premier plan.
+// Astuce : un onglet qui joue du son n'est pas throttlé → oscillateur quasi-inaudible.
+// On y ajoute Wake Lock pour empêcher l'écran de s'endormir pendant les longs services.
+let keepAliveOsc = null;
+let wakeLock = null;
+let keepAliveStarted = false;
+
+function startKeepAlive() {
+  if (keepAliveStarted) {
+    acquireWakeLock();
+    return;
+  }
+  keepAliveStarted = true;
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    if (!keepAliveOsc) {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      gain.gain.value = 0.0001; // quasi inaudible
+      osc.frequency.value = 1;  // sous la plage d'audition humaine
+      osc.connect(gain).connect(audioCtx.destination);
+      osc.start();
+      keepAliveOsc = osc;
+    }
+  } catch (e) {}
+  acquireWakeLock();
+}
+
+async function acquireWakeLock() {
+  if (!('wakeLock' in navigator) || wakeLock) return;
+  try {
+    wakeLock = await navigator.wakeLock.request('screen');
+    wakeLock.addEventListener('release', () => { wakeLock = null; });
+  } catch (e) {}
+}
+
+// Le wake lock est relâché quand l'onglet passe en arrière-plan : on le ré-acquiert au retour.
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && keepAliveStarted && !wakeLock) acquireWakeLock();
+});
+
 // ============ Projecteur ============
 function openProjector() {
   if (!programStream) rebuildProgramStream();
+  startKeepAlive();
   if (outputWindow && !outputWindow.closed) {
     outputWindow.focus();
     return;
@@ -1777,6 +1838,7 @@ function startStreaming() {
     return;
   }
   if (!programStream) rebuildProgramStream();
+  startKeepAlive();
 
   // Préparer MediaRecorder sur le stream du programme
   const mime = pickStreamMime();
