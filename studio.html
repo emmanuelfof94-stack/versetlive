@@ -19,6 +19,7 @@
     <div class="topbar-actions">
       <span class="studio-status" id="studioStatus">Prêt</span>
       <button class="btn" id="studioModeBtn" title="Activer le mode Preview/Program (sélectionner avant d'envoyer en direct)">🔴 Direct</button>
+      <button class="btn" id="openCoopBtn" title="Connecter d'autres ordinateurs en co-pilot — multi-poste"><span id="coopDot" class="studio-coop-dot"></span>👥 Multi-poste</button>
       <button class="btn" id="openTvBtn" title="Projette le verset ou le mix complet sur une TV via son navigateur web"><span id="tvDot" class="studio-tv-dot"></span>📺 TV</button>
       <button class="btn" id="openProjectorBtn" title="Ouvre une fenêtre à glisser sur le projecteur">📽 Sortie projecteur</button>
       <button class="btn btn-danger" id="recordBtn">⏺ Enregistrer</button>
@@ -149,6 +150,7 @@
           </div>
           <div class="studio-monitor-frame">
             <canvas id="previewCanvas" width="1280" height="720"></canvas>
+            <video id="coopPreviewVideo" class="studio-coop-video" autoplay playsinline muted></video>
           </div>
           <button class="btn btn-primary studio-take-btn" id="takeBtn" title="Envoie la preview vers le programme (Entrée)">▶ Envoyer en direct (Entrée)</button>
         </div>
@@ -159,9 +161,20 @@
           </div>
           <div class="studio-monitor-frame">
             <canvas id="programCanvas" width="1280" height="720"></canvas>
+            <video id="coopProgramVideo" class="studio-coop-video" autoplay playsinline muted></video>
           </div>
           <div class="studio-program-info" id="programInfo">1920×1080 · 30 fps · Aucune caméra</div>
         </div>
+      </div>
+
+      <!-- Bandeau mode co-pilot (visible uniquement quand body.coop-mode) -->
+      <div class="studio-coop-banner" id="coopBanner" hidden>
+        <div class="studio-coop-banner-icon">👥</div>
+        <div class="studio-coop-banner-text">
+          <div class="studio-coop-banner-title">Mode co-pilot</div>
+          <div class="studio-coop-banner-sub" id="coopBannerSub">Connexion au host…</div>
+        </div>
+        <button class="btn btn-sm" id="coopLeaveBtn">Quitter</button>
       </div>
 
       <div class="section">

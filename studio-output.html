@@ -25,6 +25,8 @@
 </head>
 <body>
   <video id="output" autoplay playsinline></video>
+  <iframe id="iframeOverlay" hidden allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen
+    style="position:fixed; inset:0; width:100%; height:100%; border:0; background:#000; z-index:10;"></iframe>
   <div class="hint" id="hint">
     Glisse cette fenêtre sur l'écran du projecteur, puis appuie sur <b>F11</b> pour plein écran.<br>
     Ferme cette fenêtre pour arrêter la sortie.
@@ -33,6 +35,7 @@
   <script>
     const video = document.getElementById('output');
     const hint = document.getElementById('hint');
+    const iframeOverlay = document.getElementById('iframeOverlay');
 
     // Appelé par la fenêtre parente (studio.js). On évite de réassigner srcObject
     // si c'est déjà le même flux : ça causait un saut/flicker à chaque toggle
@@ -41,6 +44,19 @@
       if (video.srcObject === stream) return;
       video.srcObject = stream;
       video.play().catch(() => {});
+    };
+
+    // Mode iframe (YouTube/Vimeo) : superpose un lecteur tiers par-dessus le canvas.
+    // Appelé par studio.js quand on bascule sur une scène { kind: 'iframe', url }.
+    window.setIframeUrl = function (url) {
+      if (!url) { window.clearIframe(); return; }
+      if (iframeOverlay.src !== url) iframeOverlay.src = url;
+      iframeOverlay.hidden = false;
+    };
+    window.clearIframe = function () {
+      iframeOverlay.hidden = true;
+      // Reset src pour stopper l'audio/vidéo de la plateforme externe.
+      if (iframeOverlay.src) iframeOverlay.src = 'about:blank';
     };
 
     // Masquer l'aide après 6s

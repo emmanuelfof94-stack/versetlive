@@ -395,6 +395,7 @@ function sceneKey(scene) {
   if (scene.kind === 'image') return `img-${scene.imageId}`;
   if (scene.kind === 'image+verse') return `img-verse-${scene.imageId}`;
   if (scene.kind === 'video') return `vid-${scene.videoId}`;
+  if (scene.kind === 'iframe') return `iframe-${scene.videoId || scene.url}`;
   if (scene.kind === 'pip') return 'pip';
   if (scene.kind === 'verse') return 'verse';
   if (scene.kind === 'intro') return 'intro';
@@ -620,8 +621,23 @@ function setProgramScene(scene) {
   if (window.IntroOutro) window.IntroOutro.onSceneChange(scene);
   // Trigger lecture vidéo si applicable
   if (window.VideoLibrary) window.VideoLibrary.onSceneChange(scene);
+  // Iframe (YouTube/Vimeo) : push l'URL au projecteur, sinon le retire.
+  syncIframeToProjector(scene);
   // Auto-switch TV : texte si scène 'verse'/'black', snapshot canvas sinon
   autoSwitchTvForScene(scene);
+}
+
+function syncIframeToProjector(scene) {
+  // On a besoin d'une fenêtre projecteur ouverte pour la lecture iframe.
+  if (scene.kind === 'iframe') {
+    if (!outputWindow || outputWindow.closed) {
+      toast('Ouvre d\'abord 📽 Sortie projecteur pour lire un lien YouTube/Vimeo', true);
+      return;
+    }
+    try { outputWindow.setIframeUrl && outputWindow.setIframeUrl(scene.url); } catch (e) {}
+  } else if (outputWindow && !outputWindow.closed) {
+    try { outputWindow.clearIframe && outputWindow.clearIframe(); } catch (e) {}
+  }
 }
 
 function setPreviewScene(scene) {
@@ -685,6 +701,18 @@ function drawScene(s) {
     if (window.IntroOutro) window.IntroOutro.draw(activeCtx, s.kind, OUTPUT_W, OUTPUT_H);
   } else if (s.kind === 'video') {
     if (window.VideoLibrary) window.VideoLibrary.draw(activeCtx, s.videoId, OUTPUT_W, OUTPUT_H);
+  } else if (s.kind === 'iframe') {
+    // La lecture réelle se fait dans la fenêtre projecteur via une iframe ;
+    // le canvas (et donc le live RTMP) ne reçoit qu'un placeholder.
+    activeCtx.fillStyle = '#0a0a0a';
+    activeCtx.fillRect(0, 0, OUTPUT_W, OUTPUT_H);
+    activeCtx.fillStyle = '#888';
+    activeCtx.textAlign = 'center';
+    activeCtx.font = `${Math.round(OUTPUT_H * 0.06)}px -apple-system, sans-serif`;
+    activeCtx.fillText('▶ Lecture externe sur le projecteur', OUTPUT_W / 2, OUTPUT_H / 2 - 10);
+    activeCtx.fillStyle = '#555';
+    activeCtx.font = `${Math.round(OUTPUT_H * 0.035)}px -apple-system, sans-serif`;
+    activeCtx.fillText(s.label || '', OUTPUT_W / 2, OUTPUT_H / 2 + Math.round(OUTPUT_H * 0.06));
   }
   // 'black' → rien à dessiner
 }
@@ -900,6 +928,10 @@ function openProjector() {
   const tryAttach = () => {
     if (outputWindow.setProgramStream) {
       outputWindow.setProgramStream(programStream);
+      // Si la scène courante est un iframe (YouTube/Vimeo), réémet l'URL.
+      if (programScene.kind === 'iframe' && outputWindow.setIframeUrl) {
+        outputWindow.setIframeUrl(programScene.url);
+      }
       toast('Fenêtre projecteur ouverte — glisse-la sur l\'écran du projecteur puis F11');
     } else {
       setTimeout(tryAttach, 100);

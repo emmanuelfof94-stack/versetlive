@@ -147,15 +147,45 @@
     });
   }
 
+  // ============ Conversion URL -> embed (YouTube/Vimeo) ============
+  function ytEmbedUrl(url) {
+    try {
+      const u = new URL(url);
+      let id = '';
+      if (u.hostname.includes('youtu.be')) id = u.pathname.slice(1);
+      else if (u.hostname.includes('youtube.com')) {
+        id = u.searchParams.get('v') || u.pathname.replace(/^\/(embed|shorts|live)\//, '').split('/')[0];
+      }
+      if (!id) return null;
+      return `https://www.youtube.com/embed/${id}?autoplay=1&playsinline=1&rel=0&modestbranding=1`;
+    } catch (e) { return null; }
+  }
+  function vimeoEmbedUrl(url) {
+    try {
+      const u = new URL(url);
+      const id = u.pathname.split('/').filter(Boolean).pop();
+      if (!id || !/^\d+$/.test(id)) return null;
+      return `https://player.vimeo.com/video/${id}?autoplay=1`;
+    } catch (e) { return null; }
+  }
+
   // ============ Ajouter une vidéo depuis une URL ============
   async function addVideoUrl(name, url) {
     const cleaned = (url || '').trim();
     if (!cleaned) throw new Error('URL vide');
     const kind = detectUrlKind(cleaned);
-    if (kind === 'youtube' || kind === 'vimeo' || kind === 'facebook' || kind === 'twitch') {
-      // Ces plateformes interdisent l'incrustation dans un canvas (CORS + iframe).
-      // On échoue avec un message clair plutôt que de stocker une entrée cassée.
-      throw new Error(`${kind.charAt(0).toUpperCase() + kind.slice(1)} ne peut pas être incrusté dans le programme (contraintes CORS/iframe). Télécharge le fichier en MP4 et importe-le, ou utilise une URL directe vers le fichier vidéo.`);
+
+    // YouTube / Vimeo : mode iframe (projeté sur la fenêtre projecteur,
+    // pas mixé dans le canvas, donc absent du live RTMP).
+    let embedUrl = null;
+    if (kind === 'youtube') {
+      embedUrl = ytEmbedUrl(cleaned);
+      if (!embedUrl) throw new Error('Lien YouTube invalide');
+    } else if (kind === 'vimeo') {
+      embedUrl = vimeoEmbedUrl(cleaned);
+      if (!embedUrl) throw new Error('Lien Vimeo invalide');
+    } else if (kind === 'facebook' || kind === 'twitch') {
+      throw new Error(`${kind === 'facebook' ? 'Facebook' : 'Twitch'} n'est pas encore supporté (les embeds nécessitent une configuration spécifique).`);
     }
     if (kind === 'invalid') throw new Error('URL invalide');
 
@@ -170,6 +200,7 @@
       type: 'url',
       urlKind: kind,
       url: cleaned,
+      embedUrl,                       // défini pour youtube/vimeo
       size: 0,
       durationSec: 0,
       createdAt: Date.now(),
@@ -180,9 +211,15 @@
     await saveCatalog();
     renderList();
     notifyChange();
-    // Tentative non-bloquante d'extraire un thumbnail (échouera silencieusement si CORS bloque).
-    extractUrlThumbnail(id, cleaned, kind).catch(() => {});
+    // Tentative non-bloquante d'extraire un thumbnail (uniquement pour URL canvas).
+    if (kind === 'direct' || kind === 'hls') {
+      extractUrlThumbnail(id, cleaned, kind).catch(() => {});
+    }
     return id;
+  }
+
+  function isIframeKind(kind) {
+    return kind === 'youtube' || kind === 'vimeo';
   }
 
   async function extractUrlThumbnail(id, url, kind) {
@@ -586,9 +623,19 @@
   }
 
   function triggerPlayScene(id) {
-    if (window.__studioApi && window.__studioApi.setScene) {
-      window.__studioApi.setScene({ kind: 'video', videoId: id });
+    if (!window.__studioApi || !window.__studioApi.setScene) return;
+    const entry = getEntry(id);
+    if (entry && entry.type === 'url' && isIframeKind(entry.urlKind) && entry.embedUrl) {
+      // Mode iframe : la vidéo joue dans la fenêtre projecteur, pas dans le canvas.
+      window.__studioApi.setScene({
+        kind: 'iframe',
+        url: entry.embedUrl,
+        label: entry.name,
+        videoId: id
+      });
+      return;
     }
+    window.__studioApi.setScene({ kind: 'video', videoId: id });
   }
 
   function escapeHtml(s) {
@@ -610,8 +657,10 @@
     if (urlBtn) {
       urlBtn.addEventListener('click', async () => {
         const url = prompt(
-          'Colle l\'URL d\'une vidéo (MP4, WebM, .m3u8 HLS).\n' +
-          'YouTube/Vimeo/Facebook ne fonctionnent pas (limitations CORS).'
+          'Colle l\'URL d\'une vidéo :\n' +
+          '• MP4/WebM/HLS → lecture mixée (projection + live RTMP)\n' +
+          '• YouTube/Vimeo → projection seulement (pas dans le live)\n' +
+          '• Facebook/Twitch : non supportés'
         );
         if (!url) return;
         const name = prompt('Nom à afficher pour cette vidéo (optionnel) :', '');
@@ -648,8 +697,10 @@
       // Pour buildSceneList dans studio.js
       return catalog.map(v => ({
         key: `vid-${v.id}`,
-        label: `${v.type === 'recording' ? '🔴' : '🎥'} ${v.name}`,
-        scene: { kind: 'video', videoId: v.id }
+        label: `${v.type === 'recording' ? '🔴' : v.type === 'url' && isIframeKind(v.urlKind) ? '🌐' : v.type === 'url' ? '🔗' : '🎥'} ${v.name}`,
+        scene: (v.type === 'url' && isIframeKind(v.urlKind) && v.embedUrl)
+          ? { kind: 'iframe', url: v.embedUrl, label: v.name, videoId: v.id }
+          : { kind: 'video', videoId: v.id }
       }));
     },
     getEntry,
