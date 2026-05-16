@@ -4,8 +4,8 @@
 
 const CHANNEL_NAME = 'versetlive';
 const STORAGE_KEY = 'versetlive:state';
-const OUTPUT_W = 1920;
-const OUTPUT_H = 1080;
+const OUTPUT_W = 1280;
+const OUTPUT_H = 720;
 const OUTPUT_FPS = 30;
 
 // ============ État ============
@@ -1788,7 +1788,7 @@ function startStreaming() {
   try {
     streamRecorder = new MediaRecorder(programStream, {
       mimeType: mime,
-      videoBitsPerSecond: 4_500_000,
+      videoBitsPerSecond: 2_500_000,
       audioBitsPerSecond: 128_000
     });
   } catch (e) {
