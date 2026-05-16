@@ -7,6 +7,60 @@ const HISTORY_KEY = 'versetlive:history';
 
 const bc = (() => { try { return new BroadcastChannel(CHANNEL_NAME); } catch { return null; } })();
 
+// Reçoit les commandes de navigation envoyées par le studio (sans
+// devoir revenir manuellement sur cet onglet). Le studio envoie
+// { type: 'nav', action: 'prev'|'next'|'clear'|'showRef', payload? }.
+bc?.addEventListener('message', async (event) => {
+  const msg = event.data;
+  if (!msg || msg.type !== 'nav') return;
+  if (msg.action === 'next') {
+    if (activeIndex < chapterVerses.length - 1) {
+      selectVerse(activeIndex + 1);
+      sendCurrentVerse();
+    } else {
+      bc?.postMessage({ type: 'navAck', ok: false, reason: 'end-of-chapter' });
+    }
+  } else if (msg.action === 'prev') {
+    if (activeIndex > 0) {
+      selectVerse(activeIndex - 1);
+      sendCurrentVerse();
+    } else {
+      bc?.postMessage({ type: 'navAck', ok: false, reason: 'start-of-chapter' });
+    }
+  } else if (msg.action === 'clear') {
+    clearLive();
+  } else if (msg.action === 'showRef' && msg.payload) {
+    const ref = String(msg.payload).trim();
+    const m = ref.match(/^([\d]?\s*[A-Za-zéèêàâîôùçÉÈÊÀÂÎÔÙÇ]+\.?)\s+(\d+)(?::(\d+))?$/);
+    if (!m) { bc?.postMessage({ type: 'navAck', ok: false, reason: 'parse' }); return; }
+    const bookName = m[1].trim().toLowerCase();
+    const chap = parseInt(m[2]);
+    const verseNum = m[3] ? parseInt(m[3]) : 1;
+    const book = BIBLE_BOOKS.find(b =>
+      b.name.toLowerCase() === bookName ||
+      b.name.toLowerCase().startsWith(bookName) ||
+      b.short.toLowerCase() === bookName
+    );
+    if (!book) { bc?.postMessage({ type: 'navAck', ok: false, reason: 'book-not-found' }); return; }
+    try {
+      const verses = await fetchChapter(currentTranslation, book.id, chap);
+      chapterVerses = verses.map(vx => ({
+        num: vx.verse,
+        text: cleanVerseHtml(vx.text),
+        reference: `${book.name} ${chap}:${vx.verse}`,
+      }));
+      currentBookName = book.name;
+      currentChapter = chap;
+      activeIndex = chapterVerses.findIndex(cv => cv.num === verseNum);
+      if (activeIndex < 0) activeIndex = 0;
+      renderVerseList();
+      sendCurrentVerse();
+    } catch (e) {
+      bc?.postMessage({ type: 'navAck', ok: false, reason: 'fetch-' + (e.message || 'error') });
+    }
+  }
+});
+
 // Canal direct vers l'iframe d'aperçu : BroadcastChannel ne traverse pas toujours
 // les iframes (notamment en file://). postMessage est garanti même origine.
 function postToPreview(msg) {

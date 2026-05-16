@@ -1085,20 +1085,64 @@ try {
   if (saved) applyVerseState(JSON.parse(saved));
 } catch (e) {}
 
-// BroadcastChannel
+// BroadcastChannel exposé au niveau module pour permettre au studio
+// d'envoyer des commandes de navigation au panneau principal.
+let verseBc = null;
 try {
-  const bc = new BroadcastChannel(CHANNEL_NAME);
-  bc.addEventListener('message', (event) => {
+  verseBc = new BroadcastChannel(CHANNEL_NAME);
+  verseBc.addEventListener('message', (event) => {
     const msg = event.data;
     if (!msg) return;
     if (msg.type === 'show') applyVerseState(msg.payload);
     else if (msg.type === 'showTitle') applyVerseState({ ...msg.payload, kind: 'title' });
     else if (msg.type === 'clear') applyVerseState({ style: verseState?.style });
     else if (msg.type === 'style') applyVerseState({ ...(verseState || {}), style: msg.payload });
+    else if (msg.type === 'navAck' && !msg.ok) {
+      const reasons = {
+        'end-of-chapter': 'Dernier verset du chapitre',
+        'start-of-chapter': 'Premier verset du chapitre',
+        'parse': 'Référence invalide — exemple : Jean 3:16',
+        'book-not-found': 'Livre introuvable',
+      };
+      toast(reasons[msg.reason] || ('Navigation : ' + msg.reason), true);
+    }
     // Forward to TV (si connectée)
     sendToTv(msg);
   });
 } catch (e) {}
+
+// ============ Navigation versets depuis le studio ============
+// Envoie une commande au panneau principal qui exécute la navigation
+// (sélection verset précédent/suivant, effacement, ou diffusion d'une
+// référence libre). Le panneau rediffuse ensuite via BroadcastChannel,
+// ce qui met à jour le verseState du studio automatiquement.
+function navigateVerseFromStudio(action, payload) {
+  if (!verseBc) {
+    toast('Navigation versets non supportée (BroadcastChannel)', true);
+    return;
+  }
+  verseBc.postMessage({ type: 'nav', action, payload });
+}
+
+function bindVerseNav() {
+  const prev = $('prevVerseStudioBtn');
+  if (prev) prev.addEventListener('click', () => navigateVerseFromStudio('prev'));
+  const next = $('nextVerseStudioBtn');
+  if (next) next.addEventListener('click', () => navigateVerseFromStudio('next'));
+  const clear = $('clearVerseStudioBtn');
+  if (clear) clear.addEventListener('click', () => navigateVerseFromStudio('clear'));
+  const input = $('verseRefInputStudio');
+  const go = $('verseRefGoStudioBtn');
+  const sendRef = () => {
+    const ref = input?.value.trim();
+    if (!ref) return;
+    navigateVerseFromStudio('showRef', ref);
+  };
+  if (go) go.addEventListener('click', sendRef);
+  if (input) input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); sendRef(); }
+  });
+}
 
 // Storage fallback (autre onglet)
 window.addEventListener('storage', (e) => {
@@ -2819,6 +2863,7 @@ async function init() {
   bindStudioModeUi();
   bindTransitionUi();
   bindCoopUi();
+  bindVerseNav();
   applyStudioModeUi();
   applyTransitionUi();
   // Init module intro/outro (chargement assets IndexedDB + bind modal)

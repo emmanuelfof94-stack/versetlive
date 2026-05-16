@@ -105,9 +105,23 @@
       </div>
 
       <div class="section">
-        <div class="section-title">📖 Verset (depuis panneau principal)</div>
+        <div class="section-title">
+          <span>📖 Verset</span>
+          <button class="btn btn-sm" id="clearVerseStudioBtn" title="Effacer le verset à l'écran">🗑</button>
+        </div>
         <div class="studio-verse-preview" id="verseStatus">
-          <div class="studio-empty">Aucun verset affiché.<br><small>Diffuse depuis l'onglet principal.</small></div>
+          <div class="studio-empty">Aucun verset affiché.<br><small>Tape une référence ci-dessous ou diffuse depuis l'onglet principal.</small></div>
+        </div>
+        <div class="studio-verse-nav" style="display:flex; gap:6px; margin-top:8px;">
+          <button class="btn btn-sm" id="prevVerseStudioBtn" style="flex:1;" title="Verset précédent">◀ Précédent</button>
+          <button class="btn btn-sm" id="nextVerseStudioBtn" style="flex:1;" title="Verset suivant">Suivant ▶</button>
+        </div>
+        <div class="studio-verse-goto" style="display:flex; gap:6px; margin-top:6px;">
+          <input type="text" id="verseRefInputStudio" placeholder="Ex : Jean 3:16" style="flex:1; padding:6px 8px; border-radius:4px; border:1px solid #444; background:#1a1a1a; color:inherit; font-size:13px;">
+          <button class="btn btn-sm btn-primary" id="verseRefGoStudioBtn" title="Diffuser ce verset">→</button>
+        </div>
+        <div class="studio-hint" style="line-height:1.4; padding:4px 0 0; font-size:11px; color:#777;">
+          Nécessite l'onglet panneau principal ouvert (peut être en arrière-plan).
         </div>
       </div>
 
