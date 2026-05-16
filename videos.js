@@ -56,8 +56,36 @@
     });
   }
 
+  // ============ Détection / chargement HLS pour URLs ============
+  function detectUrlKind(url) {
+    const u = (url || '').trim().toLowerCase();
+    if (!u) return 'invalid';
+    if (u.includes('youtube.com') || u.includes('youtu.be')) return 'youtube';
+    if (u.includes('vimeo.com')) return 'vimeo';
+    if (u.includes('facebook.com/') || u.includes('fb.watch')) return 'facebook';
+    if (u.includes('twitch.tv')) return 'twitch';
+    if (/\.m3u8(\?|$)/.test(u)) return 'hls';
+    if (/\.(mp4|webm|mov|m4v|ogv|ogg)(\?|$)/.test(u)) return 'direct';
+    // URL générique inconnue : on tentera en direct, mais on prévient l'utilisateur.
+    return 'direct';
+  }
+
+  let hlsLoaderPromise = null;
+  function ensureHls() {
+    if (window.Hls) return Promise.resolve();
+    if (hlsLoaderPromise) return hlsLoaderPromise;
+    hlsLoaderPromise = new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/hls.js@1';
+      s.onload = () => resolve();
+      s.onerror = () => reject(new Error('Impossible de charger hls.js'));
+      document.head.appendChild(s);
+    });
+    return hlsLoaderPromise;
+  }
+
   // ============ État ============
-  // catalog : array de { id, name, type: 'upload'|'recording', size, durationSec, createdAt, thumbnail (data URL), loop }
+  // catalog : array de { id, name, type: 'upload'|'recording'|'url', size, durationSec, createdAt, thumbnail (data URL), loop, url?, urlKind? }
   let catalog = [];
 
   // Cache des HTMLVideoElement (un par vidéo en cache, lazy)
@@ -119,6 +147,82 @@
     });
   }
 
+  // ============ Ajouter une vidéo depuis une URL ============
+  async function addVideoUrl(name, url) {
+    const cleaned = (url || '').trim();
+    if (!cleaned) throw new Error('URL vide');
+    const kind = detectUrlKind(cleaned);
+    if (kind === 'youtube' || kind === 'vimeo' || kind === 'facebook' || kind === 'twitch') {
+      // Ces plateformes interdisent l'incrustation dans un canvas (CORS + iframe).
+      // On échoue avec un message clair plutôt que de stocker une entrée cassée.
+      throw new Error(`${kind.charAt(0).toUpperCase() + kind.slice(1)} ne peut pas être incrusté dans le programme (contraintes CORS/iframe). Télécharge le fichier en MP4 et importe-le, ou utilise une URL directe vers le fichier vidéo.`);
+    }
+    if (kind === 'invalid') throw new Error('URL invalide');
+
+    if (kind === 'hls') {
+      try { await ensureHls(); } catch (e) { /* on tentera quand même en natif Safari */ }
+    }
+
+    const id = 'v' + Date.now() + '-' + Math.random().toString(36).slice(2, 6);
+    const entry = {
+      id,
+      name: name || cleaned.split('/').pop()?.split('?')[0] || `Vidéo URL ${catalog.length + 1}`,
+      type: 'url',
+      urlKind: kind,
+      url: cleaned,
+      size: 0,
+      durationSec: 0,
+      createdAt: Date.now(),
+      thumbnail: null,
+      loop: false
+    };
+    catalog.unshift(entry);
+    await saveCatalog();
+    renderList();
+    notifyChange();
+    // Tentative non-bloquante d'extraire un thumbnail (échouera silencieusement si CORS bloque).
+    extractUrlThumbnail(id, cleaned, kind).catch(() => {});
+    return id;
+  }
+
+  async function extractUrlThumbnail(id, url, kind) {
+    const v = document.createElement('video');
+    v.crossOrigin = 'anonymous';
+    v.muted = true;
+    v.playsInline = true;
+    v.preload = 'metadata';
+    if (kind === 'hls' && window.Hls && window.Hls.isSupported()) {
+      const hls = new window.Hls();
+      hls.loadSource(url);
+      hls.attachMedia(v);
+      v.__hlsTmp = hls;
+    } else {
+      v.src = url;
+    }
+    await new Promise((resolve, reject) => {
+      v.addEventListener('loadeddata', resolve, { once: true });
+      v.addEventListener('error', () => reject(new Error('load failed')), { once: true });
+      setTimeout(() => reject(new Error('timeout')), 8000);
+    });
+    try { v.currentTime = Math.min(2, (v.duration || 4) / 2); } catch (e) {}
+    await new Promise(r => v.addEventListener('seeked', r, { once: true }));
+    const c = document.createElement('canvas');
+    c.width = 320;
+    c.height = 180;
+    const cctx = c.getContext('2d');
+    cctx.drawImage(v, 0, 0, c.width, c.height);
+    let thumb = null;
+    try { thumb = c.toDataURL('image/jpeg', 0.7); } catch (e) {}
+    const entry = catalog.find(e => e.id === id);
+    if (entry) {
+      if (thumb) entry.thumbnail = thumb;
+      if (v.duration && isFinite(v.duration)) entry.durationSec = v.duration;
+      await saveCatalog();
+      renderList();
+    }
+    if (v.__hlsTmp) try { v.__hlsTmp.destroy(); } catch (e) {}
+  }
+
   // ============ Ajouter / supprimer / lister ============
   async function addVideo(name, blob, type = 'upload') {
     const id = 'v' + Date.now() + '-' + Math.random().toString(36).slice(2, 6);
@@ -142,13 +246,15 @@
   }
 
   async function removeVideo(id) {
+    const entry = catalog.find(e => e.id === id);
     catalog = catalog.filter(e => e.id !== id);
     await saveCatalog();
-    await idbDel(STORE_BLOB, id);
+    if (entry && entry.type !== 'url') await idbDel(STORE_BLOB, id);
     const cached = elemCache.get(id);
     if (cached) {
       try { cached.videoEl.pause(); } catch (e) {}
-      URL.revokeObjectURL(cached.url);
+      if (cached.hls) { try { cached.hls.destroy(); } catch (e) {} }
+      if (entry && entry.type !== 'url') URL.revokeObjectURL(cached.url);
       elemCache.delete(id);
     }
     renderList();
@@ -186,17 +292,55 @@
   async function getVideoElement(id) {
     let cached = elemCache.get(id);
     if (cached) return cached.videoEl;
-    const blob = await idbGet(STORE_BLOB, id);
-    if (!blob) return null;
-    const url = URL.createObjectURL(blob);
+    const entry = getEntry(id);
+    if (!entry) return null;
+
     const videoEl = document.createElement('video');
-    videoEl.src = url;
-    videoEl.muted = false;       // audio de la vidéo va dans le mix
+    videoEl.muted = false;        // audio de la vidéo va dans le mix
     videoEl.playsInline = true;
     videoEl.preload = 'auto';
-    const entry = getEntry(id);
-    videoEl.loop = !!(entry && entry.loop);
-    elemCache.set(id, { videoEl, url });
+    videoEl.loop = !!entry.loop;
+    // crossOrigin nécessaire pour dessiner dans le canvas sans tainting.
+    // Si le serveur ne renvoie pas CORS, la lecture échouera et on tombera
+    // sur le fallback sans crossOrigin (lecture visible mais canvas tainted).
+    videoEl.crossOrigin = 'anonymous';
+
+    let cacheUrl = null;
+    let hlsInstance = null;
+
+    if (entry.type === 'url') {
+      const url = entry.url;
+      if (entry.urlKind === 'hls') {
+        if (window.Hls && window.Hls.isSupported()) {
+          hlsInstance = new window.Hls();
+          hlsInstance.loadSource(url);
+          hlsInstance.attachMedia(videoEl);
+        } else if (videoEl.canPlayType('application/vnd.apple.mpegurl')) {
+          videoEl.src = url; // Safari supporte HLS nativement
+        } else {
+          // Dernier recours
+          videoEl.src = url;
+        }
+      } else {
+        videoEl.src = url;
+      }
+      cacheUrl = url;
+      // Filet de sécurité CORS : si l'attribut crossOrigin bloque le chargement,
+      // on réessaie sans (la lecture marche mais le canvas sera tainted → projection noire).
+      videoEl.addEventListener('error', () => {
+        if (videoEl.crossOrigin) {
+          videoEl.removeAttribute('crossorigin');
+          if (!hlsInstance) { videoEl.src = url; videoEl.load(); }
+        }
+      }, { once: true });
+    } else {
+      const blob = await idbGet(STORE_BLOB, id);
+      if (!blob) return null;
+      cacheUrl = URL.createObjectURL(blob);
+      videoEl.src = cacheUrl;
+    }
+
+    elemCache.set(id, { videoEl, url: cacheUrl, hls: hlsInstance });
     return videoEl;
   }
 
@@ -366,12 +510,16 @@
       const thumb = v.thumbnail
         ? `<img class="studio-video-thumb" src="${v.thumbnail}" alt="">`
         : '<div class="studio-video-thumb studio-video-thumb-placeholder">🎞</div>';
-      const badge = v.type === 'recording' ? '<span class="studio-video-badge rec">REC</span>' : '<span class="studio-video-badge up">⬆</span>';
+      const badge = v.type === 'recording'
+        ? '<span class="studio-video-badge rec">REC</span>'
+        : v.type === 'url'
+          ? '<span class="studio-video-badge up" title="Vidéo depuis URL">🔗</span>'
+          : '<span class="studio-video-badge up">⬆</span>';
       card.innerHTML = `
         ${thumb}
         <div class="studio-video-info">
           <div class="studio-video-name" title="${escapeHtml(v.name)}">${badge}${escapeHtml(v.name)}</div>
-          <div class="studio-video-meta">${fmtDuration(v.durationSec)} · ${fmtSize(v.size)}</div>
+          <div class="studio-video-meta">${fmtDuration(v.durationSec)}${v.type === 'url' ? ' · URL' : ` · ${fmtSize(v.size)}`}</div>
         </div>
         <div class="studio-video-actions">
           <button class="studio-video-action" data-act="play" title="Mettre en scène">▶</button>
@@ -403,9 +551,14 @@
           }
         }
         else if (act === 'download') {
+          const entry = getEntry(id);
+          if (entry?.type === 'url') {
+            // Pour une vidéo URL, on ouvre simplement le lien dans un nouvel onglet.
+            window.open(entry.url, '_blank');
+            return;
+          }
           const blob = await idbGet(STORE_BLOB, id);
           if (!blob) return;
-          const entry = getEntry(id);
           const a = document.createElement('a');
           const url = URL.createObjectURL(blob);
           a.href = url;
@@ -451,6 +604,22 @@
           await addVideo(f.name.replace(/\.[^.]+$/, ''), f, 'upload');
         }
         fileInput.value = '';
+      });
+    }
+    const urlBtn = $('addVideoUrlBtn');
+    if (urlBtn) {
+      urlBtn.addEventListener('click', async () => {
+        const url = prompt(
+          'Colle l\'URL d\'une vidéo (MP4, WebM, .m3u8 HLS).\n' +
+          'YouTube/Vimeo/Facebook ne fonctionnent pas (limitations CORS).'
+        );
+        if (!url) return;
+        const name = prompt('Nom à afficher pour cette vidéo (optionnel) :', '');
+        try {
+          await addVideoUrl(name, url);
+        } catch (e) {
+          alert('Impossible d\'ajouter cette URL : ' + (e.message || e));
+        }
       });
     }
   }

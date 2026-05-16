@@ -125,10 +125,11 @@
         <div class="section-title">
           <span>🎥 Vidéothèque</span>
           <label class="btn btn-sm btn-primary" for="videoUploadInput" style="cursor:pointer;">+ Importer</label>
+          <button class="btn btn-sm" id="addVideoUrlBtn" title="Ajouter une vidéo depuis un lien (MP4, WebM, HLS .m3u8)">🔗 URL</button>
           <input type="file" id="videoUploadInput" accept="video/mp4,video/webm,video/quicktime" multiple hidden>
         </div>
         <div class="studio-hint" style="line-height:1.5; padding:4px 0 8px;">
-          Tes clips importés et tes enregistrements. Clic = mettre en scène. Lecture une fois puis retour automatique à la scène précédente (ou en boucle si activé 🔁).
+          Tes clips importés, enregistrements et URLs. Clic = mettre en scène. Lecture une fois puis retour automatique à la scène précédente (ou en boucle si activé 🔁).
         </div>
         <div class="studio-videos-list" id="videosList">
           <div class="studio-empty">Aucune vidéo. Importe un MP4 ou démarre un enregistrement.</div>
