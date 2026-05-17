@@ -22,6 +22,10 @@
       <button class="btn" id="openCoopBtn" title="Connecter d'autres ordinateurs en co-pilot — multi-poste"><span id="coopDot" class="studio-coop-dot"></span>👥 Multi-poste</button>
       <button class="btn" id="openTvBtn" title="Projette le verset ou le mix complet sur une TV via son navigateur web"><span id="tvDot" class="studio-tv-dot"></span>📺 TV</button>
       <button class="btn" id="openProjectorBtn" title="Ouvre une fenêtre à glisser sur le projecteur">📽 Sortie projecteur</button>
+      <select class="btn" id="qualitySelect" title="Résolution de sortie (canvas, projecteur, live RTMP, enregistrement)">
+        <option value="720p">📐 720p · CPU léger</option>
+        <option value="1080p">📐 1080p · qualité maxi</option>
+      </select>
       <button class="btn btn-danger" id="recordBtn">⏺ Enregistrer</button>
       <button class="btn" id="openScheduleBtn" title="Planifier un live YouTube à l'avance">📅 Planifier</button>
       <button class="btn" id="helpStudioBtn" title="Aide — premiers pas, raccourcis, dépannage (touche ?)">❔ Aide</button>
@@ -189,6 +193,22 @@
           <div class="studio-coop-banner-sub" id="coopBannerSub">Connexion au host…</div>
         </div>
         <button class="btn btn-sm" id="coopLeaveBtn">Quitter</button>
+      </div>
+
+      <!-- Partage caméra co-pilot → host (visible uniquement en coop-mode) -->
+      <div class="section studio-coop-share-section" id="coopShareSection" hidden>
+        <div class="section-title">
+          <span>🎥 Partager une caméra au host</span>
+        </div>
+        <div class="studio-hint" style="line-height:1.5; padding:4px 0 8px;">
+          Tes caméras locales deviennent disponibles côté host comme sources. Idéal si tu es à un autre poste avec ta propre webcam ou ta tablette branchée en USB.
+        </div>
+        <div class="studio-coop-share-row">
+          <select id="coopCameraSelect"><option value="">— Choisir une caméra —</option></select>
+          <button class="btn btn-sm btn-primary" id="coopCameraShareBtn" disabled>Partager</button>
+          <button class="btn btn-sm" id="coopCameraRefreshBtn" title="Actualiser la liste (et demander l'autorisation)">↻</button>
+        </div>
+        <div class="studio-coop-shared-list" id="coopSharedList"></div>
       </div>
 
       <div class="section">

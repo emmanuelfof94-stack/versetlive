@@ -4,8 +4,18 @@
 
 const CHANNEL_NAME = 'versetlive';
 const STORAGE_KEY = 'versetlive:state';
-const OUTPUT_W = 1280;
-const OUTPUT_H = 720;
+const QUALITY_KEY = 'versetlive:studio:quality';
+
+// Qualité dynamique — modifiable au runtime via le sélecteur de la topbar.
+// OUTPUT_W/H/FPS restent mutables (et non const) pour que toutes les fonctions
+// qui les référencent voient automatiquement la nouvelle résolution après bascule.
+const QUALITY_PRESETS = {
+  '720p':  { w: 1280, h: 720,  streamBitrate: 2_500_000, recordBitrate: 4_000_000 },
+  '1080p': { w: 1920, h: 1080, streamBitrate: 4_500_000, recordBitrate: 6_000_000 },
+};
+let currentQuality = (localStorage.getItem(QUALITY_KEY) === '1080p') ? '1080p' : '720p';
+let OUTPUT_W = QUALITY_PRESETS[currentQuality].w;
+let OUTPUT_H = QUALITY_PRESETS[currentQuality].h;
 const OUTPUT_FPS = 30;
 
 // ============ État ============
@@ -985,6 +995,50 @@ function bindOutputsPanel() {
   updateHdmiOutputUi();
 }
 
+// ============ Sélecteur qualité (720p / 1080p) ============
+function applyQualityToCanvases() {
+  const preset = QUALITY_PRESETS[currentQuality];
+  OUTPUT_W = preset.w;
+  OUTPUT_H = preset.h;
+  if (programCanvas) {
+    programCanvas.width = preset.w;
+    programCanvas.height = preset.h;
+  }
+  const previewCanvas = $('previewCanvas');
+  if (previewCanvas) {
+    previewCanvas.width = preset.w;
+    previewCanvas.height = preset.h;
+  }
+}
+
+function setQuality(quality) {
+  if (!QUALITY_PRESETS[quality] || quality === currentQuality) return;
+  currentQuality = quality;
+  localStorage.setItem(QUALITY_KEY, quality);
+  applyQualityToCanvases();
+  // Force la reconstruction de la piste vidéo captureStream — l'ancienne
+  // garde son ancienne résolution figée.
+  if (programVideoTrack) {
+    try { programVideoTrack.stop(); } catch (e) {}
+    programVideoTrack = null;
+  }
+  rebuildProgramStream();
+  updateProgramInfo();
+  const preset = QUALITY_PRESETS[quality];
+  toast(`Qualité : ${preset.w}×${preset.h} · stream ${(preset.streamBitrate/1_000_000).toFixed(1)} Mbps`);
+  if (relayStreaming) toast('Note : le live en cours garde son bitrate. Redémarre la diffusion pour appliquer.', false);
+}
+
+function bindQualitySelector() {
+  const sel = $('qualitySelect');
+  if (sel) {
+    sel.value = currentQuality;
+    sel.addEventListener('change', (e) => setQuality(e.target.value));
+  }
+  // Sync les canvas avec la qualité sauvegardée en localStorage.
+  applyQualityToCanvases();
+}
+
 // ============ Enregistrement ============
 function toggleRecord() {
   if (mediaRecorder && mediaRecorder.state === 'recording') {
@@ -996,7 +1050,7 @@ function toggleRecord() {
   recordedChunks = [];
   const mime = pickMime();
   try {
-    mediaRecorder = new MediaRecorder(programStream, { mimeType: mime, videoBitsPerSecond: 6_000_000 });
+    mediaRecorder = new MediaRecorder(programStream, { mimeType: mime, videoBitsPerSecond: QUALITY_PRESETS[currentQuality].recordBitrate });
   } catch (e) {
     toast('MediaRecorder non supporté : ' + e.message, true);
     return;
@@ -1932,7 +1986,7 @@ function startStreaming() {
   try {
     streamRecorder = new MediaRecorder(programStream, {
       mimeType: mime,
-      videoBitsPerSecond: 2_500_000,
+      videoBitsPerSecond: QUALITY_PRESETS[currentQuality].streamBitrate,
       audioBitsPerSecond: 128_000
     });
   } catch (e) {
@@ -2424,6 +2478,74 @@ function bindTransitionUi() {
   });
 }
 
+// ============ Caméras contribuées par co-pilots (Coop phase 2) ============
+// Map call.peer -> sourceId pour pouvoir retrouver/retirer la source à la fermeture.
+const coopCameraCalls = new Map();
+
+function addCoopCameraSource(stream, info, call) {
+  // Doublon (même co-pilot rappelle avec un nouveau stream) → remplace le track
+  if (coopCameraCalls.has(call.peer)) {
+    const prev = coopCameraCalls.get(call.peer);
+    const prevSrc = sources.find(s => s.id === prev.sourceId);
+    if (prevSrc) {
+      prevSrc.stream = stream;
+      prevSrc.videoEl.srcObject = stream;
+      return;
+    }
+  }
+
+  const videoEl = document.createElement('video');
+  videoEl.srcObject = stream;
+  videoEl.autoplay = true;
+  videoEl.muted = true;
+  videoEl.playsInline = true;
+  videoEl.play().catch(() => {});
+
+  const labelBase = info.name || 'Co-pilot';
+  const label = info.deviceLabel ? `💻 ${labelBase} — ${info.deviceLabel}` : `💻 ${labelBase}`;
+  const source = {
+    id: 's' + (nextSourceId++),
+    kind: 'remote',
+    deviceId: 'coop-' + call.peer + (info.deviceLabel ? ':' + info.deviceLabel : ''),
+    label,
+    stream,
+    videoEl,
+    muted: false,
+    peer: call.peer,
+    coopCamera: true,
+  };
+  sources.push(source);
+  coopCameraCalls.set(call.peer, { call, sourceId: source.id });
+
+  call.on('close', () => removeCoopCameraSource(call));
+  call.on('error', () => removeCoopCameraSource(call));
+
+  renderSources();
+  renderScenes();
+  toast(`Caméra reçue : ${label}`);
+  if (typeof coopBroadcast === 'function') coopBroadcast();
+}
+
+function removeCoopCameraSource(call) {
+  const entry = coopCameraCalls.get(call.peer);
+  if (!entry) return;
+  const src = sources.find(s => s.id === entry.sourceId);
+  if (src) {
+    disconnectSourceAudio(src);
+    try { src.stream.getTracks().forEach(t => t.stop()); } catch (e) {}
+    const idx = sources.indexOf(src);
+    sources.splice(idx, 1);
+  }
+  coopCameraCalls.delete(call.peer);
+  renderSources();
+  renderScenes();
+  if (src && (programScene.primaryId === src.id || programScene.secondaryId === src.id)) {
+    setScene(sources.length ? { kind: 'camera', primaryId: sources[0].id } : { kind: 'black' });
+  }
+  toast(`${src ? src.label : 'Caméra co-pilot'} retirée`);
+  if (typeof coopBroadcast === 'function') coopBroadcast();
+}
+
 // ============ Coop (multi-poste : host + co-pilot) ============
 // Voir coop.js pour la couche transport PeerJS. Ici on branche le studio :
 // - Host : snapshot d'état + dispatch commandes + démarrage de la session
@@ -2567,6 +2689,7 @@ function coopStartHost(code) {
     },
     stateFn: coopStateSnapshot,
     onCommand: applyCoopCommand,
+    onCoPilotCamera: (stream, info, call) => addCoopCameraSource(stream, info, call),
     onCoPilotChange: (count, list) => {
       const status = $('coopHostStatus');
       if (status) {
@@ -2707,7 +2830,21 @@ async function initCoPilot(code, name) {
   });
   // Quitter
   const leaveBtn = $('coopLeaveBtn');
-  if (leaveBtn) leaveBtn.addEventListener('click', () => { coopGuest && coopGuest.leave(); location.href = location.pathname; });
+  if (leaveBtn) leaveBtn.addEventListener('click', () => { coopStopAllSharedCameras(); coopGuest && coopGuest.leave(); location.href = location.pathname; });
+
+  // Partage caméra locale → host (phase 2)
+  const shareSection = $('coopShareSection');
+  if (shareSection) shareSection.hidden = false;
+  $('coopCameraRefreshBtn').addEventListener('click', () => coopRefreshCameraList(true));
+  $('coopCameraSelect').addEventListener('change', (e) => {
+    $('coopCameraShareBtn').disabled = !e.target.value;
+  });
+  $('coopCameraShareBtn').addEventListener('click', () => {
+    const deviceId = $('coopCameraSelect').value;
+    const label = $('coopCameraSelect').selectedOptions[0]?.text || '';
+    if (deviceId) coopShareLocalCamera(deviceId, label);
+  });
+  coopRefreshCameraList(false);
 
   // Connexion
   coopGuest = VLCoop.joinAsCoPilot(code, {
@@ -2738,6 +2875,109 @@ async function initCoPilot(code, name) {
 function transitionCfgKindFromUi() {
   const active = document.querySelector('#transitionModes .studio-transition-mode.active');
   return active && active.dataset.kind === 'cut' ? 'cut' : 'fade';
+}
+
+// ---- Phase 2 : partage caméra du co-pilot vers le host ----
+const coopSharedCameras = new Map(); // deviceId -> { call, stream, label }
+
+async function coopRefreshCameraList(promptPermission) {
+  const sel = $('coopCameraSelect');
+  if (!sel) return;
+  // Pour obtenir les labels, il faut au moins un getUserMedia accordé.
+  if (promptPermission) {
+    try {
+      const probe = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+      probe.getTracks().forEach(t => t.stop());
+    } catch (e) {
+      toast('Accès caméra refusé : ' + e.message, true);
+      return;
+    }
+  }
+  sel.innerHTML = '<option value="">— Choisir une caméra —</option>';
+  try {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const cams = devices.filter(d => d.kind === 'videoinput');
+    if (!cams.length) {
+      sel.innerHTML = '<option value="">— Aucune caméra détectée —</option>';
+      return;
+    }
+    cams.forEach((d, i) => {
+      const opt = document.createElement('option');
+      opt.value = d.deviceId;
+      opt.textContent = d.label || `Caméra ${i + 1} (autoriser pour le nom)`;
+      if (coopSharedCameras.has(d.deviceId)) {
+        opt.disabled = true;
+        opt.textContent = '✅ ' + opt.textContent + ' — partagée';
+      }
+      sel.appendChild(opt);
+    });
+  } catch (e) {
+    console.warn('enumerateDevices err', e);
+  }
+}
+
+async function coopShareLocalCamera(deviceId, label) {
+  if (coopSharedCameras.has(deviceId)) { toast('Caméra déjà partagée'); return; }
+  if (!coopGuest) { toast('Pas connecté au host', true); return; }
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { deviceId: { exact: deviceId }, width: { ideal: 1280 }, height: { ideal: 720 } },
+      audio: false,
+    });
+    const trackLabel = stream.getVideoTracks()[0]?.label || label || 'Caméra';
+    const cleanLabel = String(label || trackLabel).replace(/\s*\(autoriser.*$/, '').replace(/^[✅⬜]\s*/, '').trim();
+    const call = coopGuest.shareCamera(stream, { deviceLabel: cleanLabel });
+    if (!call) {
+      stream.getTracks().forEach(t => t.stop());
+      toast('Impossible d\'appeler le host', true);
+      return;
+    }
+    coopSharedCameras.set(deviceId, { call, stream, label: cleanLabel });
+    call.on('close', () => {
+      const entry = coopSharedCameras.get(deviceId);
+      if (entry) {
+        try { entry.stream.getTracks().forEach(t => t.stop()); } catch (e) {}
+        coopSharedCameras.delete(deviceId);
+        coopRenderSharedList();
+        coopRefreshCameraList(false);
+      }
+    });
+    coopRenderSharedList();
+    coopRefreshCameraList(false);
+    toast(`Caméra partagée : ${cleanLabel}`);
+  } catch (e) {
+    toast('Impossible d\'accéder à la caméra : ' + e.message, true);
+  }
+}
+
+function coopStopShareLocalCamera(deviceId) {
+  const entry = coopSharedCameras.get(deviceId);
+  if (!entry) return;
+  try { entry.call.close(); } catch (e) {}
+  try { entry.stream.getTracks().forEach(t => t.stop()); } catch (e) {}
+  coopSharedCameras.delete(deviceId);
+  coopRenderSharedList();
+  coopRefreshCameraList(false);
+}
+
+function coopStopAllSharedCameras() {
+  Array.from(coopSharedCameras.keys()).forEach(coopStopShareLocalCamera);
+}
+
+function coopRenderSharedList() {
+  const list = $('coopSharedList');
+  if (!list) return;
+  if (!coopSharedCameras.size) { list.innerHTML = ''; return; }
+  list.innerHTML = '';
+  coopSharedCameras.forEach((entry, deviceId) => {
+    const row = document.createElement('div');
+    row.className = 'studio-coop-shared-item';
+    row.innerHTML = `<span class="studio-coop-shared-item-label">🎥 ${escapeHtml(entry.label || 'Caméra')}</span><button class="btn btn-sm" data-stop="${escapeHtml(deviceId)}">Stop</button>`;
+    list.appendChild(row);
+  });
+  list.querySelectorAll('[data-stop]').forEach(b => {
+    b.addEventListener('click', () => coopStopShareLocalCamera(b.dataset.stop));
+  });
 }
 
 function coopRenderRemoteState(state) {
@@ -2864,6 +3104,7 @@ async function init() {
   bindTransitionUi();
   bindCoopUi();
   bindVerseNav();
+  bindQualitySelector();
   applyStudioModeUi();
   applyTransitionUi();
   // Init module intro/outro (chargement assets IndexedDB + bind modal)
