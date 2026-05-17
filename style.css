@@ -2730,19 +2730,21 @@ body.safe-zones-on .studio-safe-zones { display: block; }
 }
 .studio-transition-modes {
   display: inline-flex;
+  flex-wrap: wrap;
   background: var(--bg-primary);
   border: 1px solid var(--border);
   border-radius: 4px;
   overflow: hidden;
 }
 .studio-transition-mode {
-  padding: 4px 12px;
+  padding: 4px 10px;
   background: transparent;
   border: none;
   color: var(--text-secondary);
   cursor: pointer;
   font-size: 12px;
   font-weight: 500;
+  white-space: nowrap;
 }
 .studio-transition-mode.active {
   background: var(--accent);

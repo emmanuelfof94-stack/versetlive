@@ -67,12 +67,14 @@ const openFilterPanels = new Set(); // sourceIds dont le panneau filtres est ouv
 
 let verseState = null;
 
+const TRANSITION_KINDS = ['cut', 'fade', 'fade-black', 'fade-white', 'slide', 'zoom'];
 function loadTransitionCfg() {
   try {
     const raw = localStorage.getItem(TRANSITION_KEY);
     if (raw) {
       const c = JSON.parse(raw);
-      return { kind: c.kind === 'cut' ? 'cut' : 'fade', durationMs: Math.max(0, Math.min(2000, c.durationMs ?? 300)) };
+      const kind = TRANSITION_KINDS.includes(c.kind) ? c.kind : 'fade';
+      return { kind, durationMs: Math.max(0, Math.min(2000, c.durationMs ?? 300)) };
     }
   } catch (e) {}
   return { kind: 'fade', durationMs: 300 };
@@ -776,10 +778,8 @@ function renderFrame() {
   const elapsed = performance.now() - transitionStart;
   const transDur = transitionCfg.kind === 'cut' ? 0 : transitionCfg.durationMs;
   if (previousProgramScene && transDur > 0 && elapsed < transDur) {
-    drawScene(previousProgramScene);
-    ctx.globalAlpha = elapsed / transDur;
-    drawScene(programScene);
-    ctx.globalAlpha = 1;
+    const t = elapsed / transDur; // 0 → 1
+    applyTransition(transitionCfg.kind, t, previousProgramScene, programScene);
   } else {
     if (previousProgramScene) previousProgramScene = null;
     drawScene(programScene);
@@ -795,6 +795,92 @@ function renderFrame() {
   }
 
   requestAnimationFrame(renderFrame);
+}
+
+// ============ Moteur de transitions ============
+// Easing cosinusoïdal — démarre/finit doucement, plus naturel à l'œil que le linéaire.
+function easeInOut(t) { return 0.5 - 0.5 * Math.cos(Math.PI * t); }
+
+function applyTransition(kind, t, oldScene, newScene) {
+  const w = OUTPUT_W, h = OUTPUT_H;
+  const e = easeInOut(t);
+
+  switch (kind) {
+    case 'fade': {
+      drawScene(oldScene);
+      ctx.globalAlpha = e;
+      drawScene(newScene);
+      ctx.globalAlpha = 1;
+      return;
+    }
+    case 'fade-black': {
+      // Phase 1 (0 → 0.5) : ancien → noir.  Phase 2 (0.5 → 1) : noir → nouveau.
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, w, h);
+      if (t < 0.5) {
+        ctx.globalAlpha = 1 - easeInOut(t * 2);
+        drawScene(oldScene);
+      } else {
+        ctx.globalAlpha = easeInOut((t - 0.5) * 2);
+        drawScene(newScene);
+      }
+      ctx.globalAlpha = 1;
+      return;
+    }
+    case 'fade-white': {
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, 0, w, h);
+      if (t < 0.5) {
+        ctx.globalAlpha = 1 - easeInOut(t * 2);
+        drawScene(oldScene);
+      } else {
+        ctx.globalAlpha = easeInOut((t - 0.5) * 2);
+        drawScene(newScene);
+      }
+      ctx.globalAlpha = 1;
+      return;
+    }
+    case 'slide': {
+      // L'ancienne sort vers la gauche, la nouvelle entre depuis la droite.
+      ctx.save();
+      ctx.translate(-e * w, 0);
+      drawScene(oldScene);
+      ctx.restore();
+      ctx.save();
+      ctx.translate((1 - e) * w, 0);
+      drawScene(newScene);
+      ctx.restore();
+      return;
+    }
+    case 'zoom': {
+      // L'ancienne s'estompe en s'agrandissant légèrement, la nouvelle apparaît en grandissant depuis 70%.
+      // Ancien : scale 1 → 1.15, alpha 1 → 0
+      const oldScale = 1 + 0.15 * e;
+      ctx.save();
+      ctx.translate(w / 2, h / 2);
+      ctx.scale(oldScale, oldScale);
+      ctx.translate(-w / 2, -h / 2);
+      ctx.globalAlpha = 1 - e;
+      drawScene(oldScene);
+      ctx.restore();
+      // Nouveau : scale 0.7 → 1, alpha 0 → 1
+      const newScale = 0.7 + 0.3 * e;
+      ctx.save();
+      ctx.translate(w / 2, h / 2);
+      ctx.scale(newScale, newScale);
+      ctx.translate(-w / 2, -h / 2);
+      ctx.globalAlpha = e;
+      drawScene(newScene);
+      ctx.restore();
+      ctx.globalAlpha = 1;
+      return;
+    }
+    default: {
+      // 'cut' ne devrait pas arriver ici (transDur=0), mais au cas où
+      drawScene(newScene);
+      return;
+    }
+  }
 }
 
 // Zones sûres EBU R 95 : on n'écrit pas sur le canvas (sinon le stream/projo
@@ -3645,7 +3731,7 @@ function applyTransitionUi() {
 function bindTransitionUi() {
   document.querySelectorAll('#transitionModes .studio-transition-mode').forEach(b => {
     b.addEventListener('click', () => {
-      transitionCfg.kind = b.dataset.kind === 'cut' ? 'cut' : 'fade';
+      transitionCfg.kind = TRANSITION_KINDS.includes(b.dataset.kind) ? b.dataset.kind : 'fade';
       saveTransitionCfg();
       applyTransitionUi();
       if (typeof coopBroadcast === 'function') coopBroadcast();
@@ -3796,7 +3882,7 @@ function applyCoopCommand(cmd, args) {
       break;
     case 'setTransitionConfig':
       if (args.cfg) {
-        transitionCfg.kind = args.cfg.kind === 'cut' ? 'cut' : 'fade';
+        transitionCfg.kind = TRANSITION_KINDS.includes(args.cfg.kind) ? args.cfg.kind : 'fade';
         transitionCfg.durationMs = Math.max(0, Math.min(2000, parseInt(args.cfg.durationMs, 10) || 300));
         saveTransitionCfg();
         applyTransitionUi();

@@ -301,8 +301,12 @@
         <div class="studio-transition-bar">
           <span class="studio-transition-label">Transition</span>
           <div class="studio-transition-modes" id="transitionModes">
-            <button class="studio-transition-mode active" data-kind="fade">Fade</button>
-            <button class="studio-transition-mode" data-kind="cut">Cut</button>
+            <button class="studio-transition-mode" data-kind="cut" title="Coupe sèche instantanée">Cut</button>
+            <button class="studio-transition-mode active" data-kind="fade" title="Fondu enchaîné cross-dissolve">Fade</button>
+            <button class="studio-transition-mode" data-kind="fade-black" title="Fondu vers noir puis depuis noir — séparation nette entre moments du culte">→ Noir</button>
+            <button class="studio-transition-mode" data-kind="fade-white" title="Fondu vers blanc puis depuis blanc — effet lumière (bénédiction, baptême)">→ Blanc</button>
+            <button class="studio-transition-mode" data-kind="slide" title="La nouvelle scène pousse l'ancienne de la droite vers la gauche">Slide</button>
+            <button class="studio-transition-mode" data-kind="zoom" title="Zoom progressif : la nouvelle scène apparaît en grandissant depuis le centre">Zoom</button>
           </div>
           <div class="studio-transition-duration" id="transitionDurationWrap">
             <input type="range" id="transitionDuration" min="0" max="2000" step="50" value="300">
