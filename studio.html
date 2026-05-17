@@ -22,6 +22,7 @@
       <button class="btn" id="openCoopBtn" title="Connecter d'autres ordinateurs en co-pilot — multi-poste"><span id="coopDot" class="studio-coop-dot"></span>👥 Multi-poste</button>
       <button class="btn" id="openTvBtn" title="Projette le verset ou le mix complet sur une TV via son navigateur web"><span id="tvDot" class="studio-tv-dot"></span>📺 TV</button>
       <button class="btn" id="openProjectorBtn" title="Ouvre une fenêtre à glisser sur le projecteur">📽 Sortie projecteur</button>
+      <button class="btn" id="openTextStudioModalTopbarBtn" title="Diffuser un texte libre, une annonce ou un verset personnalisé">📝 Texte</button>
       <select class="btn" id="qualitySelect" title="Résolution de sortie (canvas, projecteur, live RTMP, enregistrement)">
         <option value="720p">📐 720p · CPU léger</option>
         <option value="1080p">📐 1080p · qualité maxi</option>
@@ -152,6 +153,22 @@
         <div class="studio-hint" style="line-height:1.4; padding:4px 0 0; font-size:11px; color:#777;">
           Nécessite l'onglet panneau principal ouvert. Le numéro cherche dans les chants des Chants de Victoire (recueil 1926).
         </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">
+          <span>📝 Texte libre</span>
+          <button class="btn btn-sm" id="openTextStudioModalBtn" title="Ouvrir en grand format pour textes longs">⤢</button>
+        </div>
+        <div class="studio-text-mode-tabs" style="display:flex; gap:4px; margin-bottom:6px;">
+          <button class="btn btn-sm text-mode-tab active" data-mode="verse" style="flex:1; font-size:11px;">📖 Verset</button>
+          <button class="btn btn-sm text-mode-tab" data-mode="title" style="flex:1; font-size:11px;">📢 Annonce</button>
+          <button class="btn btn-sm text-mode-tab" data-mode="keypoint" style="flex:1; font-size:11px;">💡 Point-clé</button>
+        </div>
+        <div class="studio-text-mode-content" id="textModeContent"></div>
+        <button class="btn btn-primary" id="diffuseTextStudioBtn" style="width:100%; margin-top:6px;">📡 Diffuser</button>
+        <div class="studio-text-history" id="textStudioHistory" style="margin-top:8px;"></div>
+        <div class="studio-text-templates" id="textStudioTemplates" style="margin-top:8px;"></div>
       </div>
 
       <div class="section">
@@ -937,6 +954,29 @@
       <div class="modal-footer">
         <div style="flex:1;"></div>
         <button class="btn btn-primary" id="helpStudioOk">Compris</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ Modale Texte libre grand format ============ -->
+  <div class="modal-backdrop" id="textStudioModal">
+    <div class="modal modal-wide">
+      <div class="modal-header">
+        <h2>📝 Diffuser un texte</h2>
+        <button class="modal-close" id="textStudioModalClose">×</button>
+      </div>
+      <div class="modal-body">
+        <div style="display:flex; gap:6px; margin-bottom:12px;">
+          <button class="btn text-mode-tab-modal active" data-mode="verse" style="flex:1;">📖 Verset libre</button>
+          <button class="btn text-mode-tab-modal" data-mode="title" style="flex:1;">📢 Annonce / Titre</button>
+          <button class="btn text-mode-tab-modal" data-mode="keypoint" style="flex:1;">💡 Point-clé du sermon</button>
+        </div>
+        <div id="textModeContentModal" style="margin-bottom:12px;"></div>
+        <div style="display:flex; gap:10px; justify-content:flex-end;">
+          <button class="btn" id="textStudioModalCancelBtn">Annuler</button>
+          <button class="btn btn-primary" id="textStudioModalDiffuseBtn">📡 Diffuser</button>
+        </div>
+        <div id="textStudioTemplatesModal" style="margin-top:24px;"></div>
       </div>
     </div>
   </div>

@@ -1339,6 +1339,308 @@ function syncBookChapterSelectsFromRef(reference) {
   if (chapSel) chapSel.value = chap;
 }
 
+// ============ Texte libre : section rapide + modale grand format ============
+// Permet de diffuser depuis le studio :
+//  - 'verse'    → verset libre (référence + texte tapé à la main)
+//  - 'title'    → annonce (titre + sous-titre, style centré grand)
+//  - 'keypoint' → point-clé du sermon (phrase courte, sans sous-titre)
+// Le payload réutilise le pipeline existant (BroadcastChannel 'show'/'showTitle')
+// donc panneau / studio / TV / OBS / projecteur le rendent comme aujourd'hui.
+const TEXT_STUDIO_HISTORY_KEY = 'versetlive:studio:text-history';
+const TEXT_STUDIO_TEMPLATES_KEY = 'versetlive:studio:text-templates';
+const TEXT_STUDIO_MAX_HISTORY = 20;
+let textStudioMode = 'verse';
+let textStudioModalMode = 'verse';
+let textStudioHistory = [];
+let textStudioTemplates = [];
+
+function loadTextStudioStorage() {
+  try { textStudioHistory = JSON.parse(localStorage.getItem(TEXT_STUDIO_HISTORY_KEY) || '[]'); } catch (e) { textStudioHistory = []; }
+  try { textStudioTemplates = JSON.parse(localStorage.getItem(TEXT_STUDIO_TEMPLATES_KEY) || '[]'); } catch (e) { textStudioTemplates = []; }
+}
+
+function saveTextStudioHistory() {
+  localStorage.setItem(TEXT_STUDIO_HISTORY_KEY, JSON.stringify(textStudioHistory.slice(0, TEXT_STUDIO_MAX_HISTORY)));
+}
+function saveTextStudioTemplates() {
+  localStorage.setItem(TEXT_STUDIO_TEMPLATES_KEY, JSON.stringify(textStudioTemplates));
+}
+
+function fieldStyle() {
+  return 'width:100%; padding:6px 8px; border-radius:4px; border:1px solid #444; background:#1a1a1a; color:inherit; font-size:13px; font-family:inherit; margin-bottom:6px; box-sizing:border-box;';
+}
+
+// Render des champs adaptés au mode courant dans un container donné.
+// `containerId` = élément qui reçoit le HTML. `prefix` distingue les IDs
+// entre la section rapide (textStudio*) et la modale (textStudioModal*).
+function renderTextModeContent(containerId, prefix, mode, big) {
+  const wrap = document.getElementById(containerId);
+  if (!wrap) return;
+  const rowsVerse = big ? 6 : 3;
+  const rowsKey = big ? 4 : 2;
+  if (mode === 'verse') {
+    wrap.innerHTML = `
+      <input type="text" id="${prefix}VerseRef" placeholder="Référence (ex: Jean 3:16 ou Annonce)" style="${fieldStyle()}">
+      <textarea id="${prefix}VerseText" rows="${rowsVerse}" placeholder="Texte du verset à diffuser..." style="${fieldStyle()}"></textarea>
+    `;
+  } else if (mode === 'title') {
+    wrap.innerHTML = `
+      <input type="text" id="${prefix}Title" placeholder="Titre principal (ex: Réunion de prière)" style="${fieldStyle()}">
+      <input type="text" id="${prefix}Subtitle" placeholder="Sous-titre (optionnel — ex: Ce soir 19h)" style="${fieldStyle()}">
+    `;
+  } else if (mode === 'keypoint') {
+    wrap.innerHTML = `
+      <textarea id="${prefix}Keypoint" rows="${rowsKey}" placeholder="Phrase courte à afficher (ex: Dieu est amour)" style="${fieldStyle()}"></textarea>
+    `;
+  }
+}
+
+function collectTextStudioPayload(prefix, mode) {
+  if (mode === 'verse') {
+    const ref = document.getElementById(`${prefix}VerseRef`)?.value.trim() || '';
+    const text = document.getElementById(`${prefix}VerseText`)?.value.trim() || '';
+    if (!text) return { error: 'Le texte du verset est vide' };
+    return {
+      kind: 'verse',
+      state: { reference: ref || 'Verset', text, translation: 'Manuel', style: verseState?.style || {}, ts: Date.now() },
+      historyItem: { mode: 'verse', reference: ref || 'Verset', text }
+    };
+  }
+  if (mode === 'title') {
+    const title = document.getElementById(`${prefix}Title`)?.value.trim() || '';
+    const subtitle = document.getElementById(`${prefix}Subtitle`)?.value.trim() || '';
+    if (!title) return { error: 'Le titre est vide' };
+    return {
+      kind: 'title',
+      state: { title, subtitle, kind: 'title', style: verseState?.style || {} },
+      historyItem: { mode: 'title', title, subtitle }
+    };
+  }
+  if (mode === 'keypoint') {
+    const text = document.getElementById(`${prefix}Keypoint`)?.value.trim() || '';
+    if (!text) return { error: 'Le texte est vide' };
+    return {
+      kind: 'title',
+      state: { title: text, subtitle: '', kind: 'title', style: verseState?.style || {} },
+      historyItem: { mode: 'keypoint', text }
+    };
+  }
+  return { error: 'Mode inconnu' };
+}
+
+function diffuseTextStudioState(p) {
+  if (!verseBc) { toast('BroadcastChannel non supporté', true); return false; }
+  if (p.kind === 'verse') {
+    verseBc.postMessage({ type: 'show', payload: p.state });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(p.state));
+  } else {
+    verseBc.postMessage({ type: 'showTitle', payload: p.state });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(p.state));
+  }
+  // Maj locale immédiate (sinon il faut attendre le retour storage event).
+  applyVerseState(p.state);
+  return true;
+}
+
+function addToTextStudioHistory(item) {
+  const key = JSON.stringify({ m: item.mode, r: item.reference, t: item.title || item.text, s: item.subtitle });
+  textStudioHistory = textStudioHistory.filter(h =>
+    JSON.stringify({ m: h.mode, r: h.reference, t: h.title || h.text, s: h.subtitle }) !== key
+  );
+  textStudioHistory.unshift({ ...item, ts: Date.now() });
+  textStudioHistory = textStudioHistory.slice(0, TEXT_STUDIO_MAX_HISTORY);
+  saveTextStudioHistory();
+}
+
+function diffuseFromUI(prefix, mode) {
+  const result = collectTextStudioPayload(prefix, mode);
+  if (result.error) { toast(result.error, true); return false; }
+  if (!diffuseTextStudioState(result)) return false;
+  addToTextStudioHistory(result.historyItem);
+  renderTextStudioHistory();
+  toast('Diffusion lancée');
+  return true;
+}
+
+function historyLabel(h) {
+  if (h.mode === 'verse') return `📖 ${h.reference || 'Verset'} · ${(h.text || '').slice(0, 50)}${(h.text || '').length > 50 ? '…' : ''}`;
+  if (h.mode === 'title') return `📢 ${h.title}${h.subtitle ? ' — ' + h.subtitle : ''}`;
+  if (h.mode === 'keypoint') return `💡 ${(h.text || '').slice(0, 60)}${(h.text || '').length > 60 ? '…' : ''}`;
+  return '?';
+}
+
+function renderTextStudioHistory() {
+  const wrap = $('textStudioHistory');
+  if (!wrap) return;
+  if (!textStudioHistory.length) { wrap.innerHTML = ''; return; }
+  const itemStyle = 'display:flex; align-items:center; justify-content:space-between; gap:6px; padding:5px 8px; background:#1a1a1a; border:1px solid #333; border-radius:4px; font-size:11px; margin-bottom:3px; cursor:pointer; line-height:1.3;';
+  wrap.innerHTML = `
+    <div style="font-size:11px; color:#888; margin:6px 0 4px;">Récents (clic pour rediffuser) :</div>
+    ${textStudioHistory.slice(0, 8).map((h, i) => `
+      <div class="studio-text-history-item" data-i="${i}" style="${itemStyle}">
+        <span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(historyLabel(h))}</span>
+        <button class="studio-text-history-save" data-i="${i}" title="Enregistrer comme carte" style="background:none; border:none; color:#888; cursor:pointer; padding:0 4px;">★</button>
+        <button class="studio-text-history-del" data-i="${i}" title="Supprimer" style="background:none; border:none; color:#888; cursor:pointer; padding:0 4px;">×</button>
+      </div>
+    `).join('')}
+  `;
+  wrap.querySelectorAll('.studio-text-history-item').forEach(el => {
+    el.addEventListener('click', (e) => {
+      const tgt = e.target;
+      const i = parseInt(el.dataset.i, 10);
+      if (tgt.classList.contains('studio-text-history-del')) {
+        textStudioHistory.splice(i, 1);
+        saveTextStudioHistory();
+        renderTextStudioHistory();
+        return;
+      }
+      if (tgt.classList.contains('studio-text-history-save')) {
+        saveHistoryItemAsTemplate(i);
+        return;
+      }
+      replayHistory(i);
+    });
+  });
+}
+
+function replayHistory(i) {
+  const h = textStudioHistory[i];
+  if (!h) return;
+  diffuseTextStudioState(modeToPayload(h));
+  // Remonte l'item en tête (preuve d'usage récent).
+  textStudioHistory.splice(i, 1);
+  textStudioHistory.unshift({ ...h, ts: Date.now() });
+  saveTextStudioHistory();
+  renderTextStudioHistory();
+  toast('Rediffusé');
+}
+
+function modeToPayload(h) {
+  if (h.mode === 'verse') return {
+    kind: 'verse',
+    state: { reference: h.reference || 'Verset', text: h.text || '', translation: 'Manuel', style: verseState?.style || {}, ts: Date.now() }
+  };
+  if (h.mode === 'title') return {
+    kind: 'title',
+    state: { title: h.title || '', subtitle: h.subtitle || '', kind: 'title', style: verseState?.style || {} }
+  };
+  return {
+    kind: 'title',
+    state: { title: h.text || '', subtitle: '', kind: 'title', style: verseState?.style || {} }
+  };
+}
+
+// ============ Cartes pré-faites (templates) ============
+function saveHistoryItemAsTemplate(i) {
+  const h = textStudioHistory[i];
+  if (!h) return;
+  const name = prompt('Nom de la carte :', historyLabel(h).replace(/^[📖📢💡]\s*/, '').slice(0, 40));
+  if (!name) return;
+  textStudioTemplates.unshift({ id: 't' + Date.now(), name, ...h });
+  saveTextStudioTemplates();
+  renderTextStudioTemplates();
+  toast('Carte enregistrée');
+}
+
+function renderTextStudioTemplates() {
+  const wrap = $('textStudioTemplates');
+  if (!wrap) return;
+  if (!textStudioTemplates.length) {
+    wrap.innerHTML = `<div style="font-size:11px; color:#666; margin-top:6px;">Aucune carte enregistrée. ★ sur un texte récent pour le sauvegarder.</div>`;
+  } else {
+    const itemStyle = 'display:flex; align-items:center; justify-content:space-between; gap:6px; padding:6px 8px; background:#222; border:1px solid #3a3a3a; border-radius:4px; font-size:12px; margin-bottom:3px; cursor:pointer;';
+    wrap.innerHTML = `
+      <div style="font-size:11px; color:#888; margin:6px 0 4px;">Cartes enregistrées :</div>
+      ${textStudioTemplates.map((t) => `
+        <div class="studio-text-template-item" data-id="${t.id}" style="${itemStyle}" title="${escapeHtml(historyLabel(t))}">
+          <span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${t.mode === 'verse' ? '📖' : t.mode === 'title' ? '📢' : '💡'} ${escapeHtml(t.name)}</span>
+          <button class="studio-text-template-del" data-id="${t.id}" title="Supprimer la carte" style="background:none; border:none; color:#888; cursor:pointer; padding:0 4px;">×</button>
+        </div>
+      `).join('')}
+    `;
+    wrap.querySelectorAll('.studio-text-template-item').forEach(el => {
+      el.addEventListener('click', (e) => {
+        const id = el.dataset.id;
+        const t = textStudioTemplates.find(x => x.id === id);
+        if (!t) return;
+        if (e.target.classList.contains('studio-text-template-del')) {
+          if (confirm(`Supprimer la carte « ${t.name} » ?`)) {
+            textStudioTemplates = textStudioTemplates.filter(x => x.id !== id);
+            saveTextStudioTemplates();
+            renderTextStudioTemplates();
+          }
+          return;
+        }
+        diffuseTextStudioState(modeToPayload(t));
+        toast(`Carte « ${t.name} » diffusée`);
+      });
+    });
+  }
+  // Miroir dans la modale (autre ID).
+  const wrapModal = $('textStudioTemplatesModal');
+  if (wrapModal) wrapModal.innerHTML = wrap.innerHTML;
+}
+
+// ============ Onglets de mode (visuel actif) ============
+function setTextStudioMode(scope, mode) {
+  if (scope === 'section') {
+    textStudioMode = mode;
+    document.querySelectorAll('.text-mode-tab').forEach(b =>
+      b.classList.toggle('btn-primary', b.dataset.mode === mode)
+    );
+    renderTextModeContent('textModeContent', 'textStudio', mode, false);
+  } else {
+    textStudioModalMode = mode;
+    document.querySelectorAll('.text-mode-tab-modal').forEach(b =>
+      b.classList.toggle('btn-primary', b.dataset.mode === mode)
+    );
+    renderTextModeContent('textModeContentModal', 'textStudioModal', mode, true);
+  }
+}
+
+function openTextStudioModal() {
+  const modal = $('textStudioModal');
+  if (!modal) return;
+  modal.classList.add('show');
+  setTextStudioMode('modal', textStudioModalMode);
+}
+function closeTextStudioModal() {
+  $('textStudioModal')?.classList.remove('show');
+}
+
+function bindTextStudio() {
+  loadTextStudioStorage();
+  // Mode tabs section rapide
+  document.querySelectorAll('.text-mode-tab').forEach(b => {
+    b.addEventListener('click', () => setTextStudioMode('section', b.dataset.mode));
+  });
+  setTextStudioMode('section', 'verse');
+  // Bouton diffuser section rapide
+  const diffuseBtn = $('diffuseTextStudioBtn');
+  if (diffuseBtn) diffuseBtn.addEventListener('click', () => diffuseFromUI('textStudio', textStudioMode));
+  // Bouton ouvrir modale (depuis section ou topbar)
+  const openFromSection = $('openTextStudioModalBtn');
+  const openFromTopbar = $('openTextStudioModalTopbarBtn');
+  if (openFromSection) openFromSection.addEventListener('click', openTextStudioModal);
+  if (openFromTopbar) openFromTopbar.addEventListener('click', openTextStudioModal);
+  // Modale
+  document.querySelectorAll('.text-mode-tab-modal').forEach(b => {
+    b.addEventListener('click', () => setTextStudioMode('modal', b.dataset.mode));
+  });
+  const modalDiffuse = $('textStudioModalDiffuseBtn');
+  if (modalDiffuse) modalDiffuse.addEventListener('click', () => {
+    if (diffuseFromUI('textStudioModal', textStudioModalMode)) closeTextStudioModal();
+  });
+  $('textStudioModalClose')?.addEventListener('click', closeTextStudioModal);
+  $('textStudioModalCancelBtn')?.addEventListener('click', closeTextStudioModal);
+  $('textStudioModal')?.addEventListener('click', (e) => {
+    if (e.target.id === 'textStudioModal') closeTextStudioModal();
+  });
+  // Render historique + templates
+  renderTextStudioHistory();
+  renderTextStudioTemplates();
+}
+
 // Storage fallback (autre onglet)
 window.addEventListener('storage', (e) => {
   if (e.key !== STORAGE_KEY || !e.newValue) return;
@@ -3247,6 +3549,7 @@ async function init() {
   bindVerseNav();
   bindSongNav();
   bindQualitySelector();
+  bindTextStudio();
   applyStudioModeUi();
   applyTransitionUi();
   // Init module intro/outro (chargement assets IndexedDB + bind modal)
