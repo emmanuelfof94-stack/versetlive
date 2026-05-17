@@ -3570,7 +3570,15 @@ async function initCoPilot(code, name) {
   });
   // Quitter
   const leaveBtn = $('coopLeaveBtn');
-  if (leaveBtn) leaveBtn.addEventListener('click', () => { coopStopAllSharedCameras(); coopGuest && coopGuest.leave(); location.href = location.pathname; });
+  if (leaveBtn) leaveBtn.addEventListener('click', () => {
+    // Annule un éventuel take-over en attente avant de fermer
+    if (coopFailoverTimer) { clearTimeout(coopFailoverTimer); coopFailoverTimer = null; }
+    if (coopFailoverCountdownTimer) { clearInterval(coopFailoverCountdownTimer); coopFailoverCountdownTimer = null; }
+    coopStopAllSharedCameras();
+    coopGuest && coopGuest.leave();
+    coopGuest = null;
+    location.href = location.pathname;
+  });
 
   // Partage caméra locale → host (phase 2)
   const shareSection = $('coopShareSection');
@@ -3630,8 +3638,10 @@ function coopHandleHostLost({ myPeerId, coPilotIds, lastState, code }) {
   const ids = Array.isArray(coPilotIds) ? coPilotIds : [];
   let myRank = ids.indexOf(myPeerId);
   if (myRank < 0) myRank = ids.length;
-  // Délai : 2 s pour le rang 0, +4 s par rang suivant. Garde-fou 30 s.
-  const delayMs = Math.min(30000, 2000 + myRank * 4000);
+  // Délai : 3 s pour le rang 0, +5 s par rang suivant. Garde-fou 30 s.
+  // Suffisamment large pour qu'un take-over en cours (reload + init ~5 s) ait
+  // le temps de revenir comme host avant que le rang suivant ne tente aussi.
+  const delayMs = Math.min(30000, 3000 + myRank * 5000);
   coopFailoverDeadline = Date.now() + delayMs;
   coopShowFailoverBanner(myRank);
   if (coopFailoverTimer) clearTimeout(coopFailoverTimer);
@@ -3682,8 +3692,11 @@ function coopTakeOver(code, snapshot) {
   try {
     // Pousse les pièces "restaurables" dans le localStorage local
     // (l'init normal les rechargera comme s'il s'agissait d'une session locale).
-    if (snapshot.verseState !== undefined && snapshot.verseState !== null) {
-      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot.verseState)); } catch (e) {}
+    if (snapshot.verseState !== undefined) {
+      try {
+        if (snapshot.verseState === null) localStorage.removeItem(STORAGE_KEY);
+        else localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot.verseState));
+      } catch (e) {}
     }
     if (snapshot.transitionCfg) {
       try { localStorage.setItem(TRANSITION_KEY, JSON.stringify(snapshot.transitionCfg)); } catch (e) {}
@@ -3996,7 +4009,19 @@ async function init() {
       try {
         coopStartHost(takeoverCode);
         toast(`Tu es désormais le host (${takeoverCode}). Reconnecte tes caméras puis relance le stream.`, false);
+        const modal = $('coopModal');
+        if (modal) modal.classList.add('show');
       } catch (e) { console.warn('takeover host start err', e); }
+      // Filet de secours : si dans 4 s le code est déjà pris (un autre co-pilot
+      // a basculé avant nous), on retombe en co-pilot pour rejoindre le nouveau host.
+      setTimeout(() => {
+        const status = $('coopHostStatus');
+        const txt = (status && status.textContent) || '';
+        if (/d[ée]j[àa] pris/i.test(txt)) {
+          toast('Un autre co-pilot a pris la main. Reconnexion…', false);
+          location.href = location.pathname + '?cop=' + encodeURIComponent(takeoverCode);
+        }
+      }, 4000);
     }, 500);
   }
 }

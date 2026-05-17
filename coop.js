@@ -38,7 +38,11 @@
     const peer = new Peer(peerId, { debug: 1 });
 
     // copilotId → { conn, programCall, previewCall, meta }
+    // Map = insertion order préservé → utilisé pour l'ordre d'élection (phase 3).
     const copilots = new Map();
+    let heartbeatTimer = null;
+
+    const coPilotIds = () => Array.from(copilots.keys());
 
     const notifyChange = () => {
       const list = Array.from(copilots.values()).map(c => c.meta || { name: 'Co-pilot' });
@@ -52,6 +56,13 @@
 
     const sendAll = (msg) => {
       copilots.forEach(entry => sendTo(entry, msg));
+    };
+
+    // Heartbeat 3 s : le co-pilot détecte la mort du host par absence de battements.
+    // On joint la liste ordonnée des co-pilots pour permettre l'élection côté guest.
+    const sendHeartbeat = () => {
+      if (!copilots.size) return;
+      sendAll({ type: 'heartbeat', ts: Date.now(), coPilotIds: coPilotIds() });
     };
 
     const callCoPilot = (entry) => {
@@ -78,6 +89,8 @@
 
     peer.on('open', () => {
       opts.onStatus && opts.onStatus(`Session ${code} prête`, 'ok');
+      if (heartbeatTimer) clearInterval(heartbeatTimer);
+      heartbeatTimer = setInterval(sendHeartbeat, 3000);
     });
 
     // Caméra contribuée par un co-pilot : il appelle peer avec son flux webcam.
@@ -108,9 +121,10 @@
       copilots.set(copilotId, entry);
 
       conn.on('open', () => {
-        // Hello + état initial
+        // Hello + état initial + heartbeat immédiat
         sendTo(entry, { type: 'hello', hostName: opts.hostName || 'Studio principal', code });
         try { sendTo(entry, { type: 'state', payload: opts.stateFn ? opts.stateFn() : {} }); } catch (e) {}
+        sendTo(entry, { type: 'heartbeat', ts: Date.now(), coPilotIds: coPilotIds() });
         // Puis appel des flux Program + Preview
         setTimeout(() => callCoPilot(entry), 250);
         notifyChange();
@@ -177,6 +191,7 @@
       coPilotCount: () => copilots.size,
       coPilotList: () => Array.from(copilots.values()).map(c => c.meta || { name: 'Co-pilot' }),
       stop() {
+        if (heartbeatTimer) { clearInterval(heartbeatTimer); heartbeatTimer = null; }
         copilots.forEach(entry => {
           if (entry.programCall) try { entry.programCall.close(); } catch (e) {}
           if (entry.previewCall) try { entry.previewCall.close(); } catch (e) {}
@@ -198,6 +213,8 @@
   //   onHello: ({ hostName, code }) => void,
   //   onToast: (msg, isError) => void,
   //   onStatus: (text, kind) => void,
+  //   onHostLost: ({ myPeerId, coPilotIds, lastState }) => void,  // phase 3 failover
+  //   onHostBack: () => void,                                     // phase 3 failover
   // }
   function joinAsCoPilot(code, opts) {
     if (!window.Peer) throw new Error('PeerJS non chargé');
@@ -205,10 +222,21 @@
     if (!code) throw new Error('Code manquant');
 
     const peer = new Peer({ debug: 1 });
+    const hostPeerId = COOP_PEER_PREFIX + code;
     let hostConn = null;
     let programStream = null;
     let previewStream = null;
-    let opened = false;
+    let myPeerId = null;
+    let hasBeenConnected = false;          // une fois true → on autorise le mode failover
+    let hostLost = false;
+    let lastHeartbeat = 0;
+    let lastCoPilotIds = [];
+    let lastState = null;                  // dernier snapshot reçu (utilisé au take-over)
+    let watchdogTimer = null;
+    let reconnectTimer = null;
+    let initialConnectTimer = null;
+    const HEARTBEAT_TIMEOUT_MS = 8000;
+    const RECONNECT_INTERVAL_MS = 3000;
 
     const ensureRecall = () => {
       if (hostConn && hostConn.open) {
@@ -216,21 +244,66 @@
       }
     };
 
-    peer.on('open', () => {
-      const hostPeerId = COOP_PEER_PREFIX + code;
-      const conn = peer.connect(hostPeerId, {
-        reliable: true,
-        metadata: { name: opts.name || 'Co-pilot' },
-      });
+    const markHostLost = () => {
+      if (hostLost) return;
+      hostLost = true;
+      try {
+        opts.onHostLost && opts.onHostLost({ myPeerId, coPilotIds: lastCoPilotIds.slice(), lastState });
+      } catch (e) { console.warn('onHostLost err', e); }
+    };
 
-      let openTimer = setTimeout(() => {
-        if (!opened) opts.onStatus && opts.onStatus(`Host ${code} introuvable`, 'err');
+    const markHostBack = () => {
+      if (!hostLost) return;
+      hostLost = false;
+      try { opts.onHostBack && opts.onHostBack(); } catch (e) {}
+    };
+
+    const scheduleReconnect = () => {
+      if (reconnectTimer) return;
+      if (peer.destroyed) return;
+      reconnectTimer = setTimeout(() => {
+        reconnectTimer = null;
+        if (hostConn && hostConn.open) return;
+        attemptConnect();
+      }, RECONNECT_INTERVAL_MS);
+    };
+
+    const attemptConnect = () => {
+      if (peer.destroyed) return;
+      if (hostConn && hostConn.open) return;
+      let conn;
+      try {
+        conn = peer.connect(hostPeerId, {
+          reliable: true,
+          metadata: { name: opts.name || 'Co-pilot' },
+        });
+      } catch (e) {
+        scheduleReconnect();
+        return;
+      }
+      wireConn(conn);
+    };
+
+    const wireConn = (conn) => {
+      if (initialConnectTimer) clearTimeout(initialConnectTimer);
+      initialConnectTimer = setTimeout(() => {
+        // Premier appel jamais ouvert → host vraiment introuvable
+        if (!hasBeenConnected && !(hostConn && hostConn.open)) {
+          opts.onStatus && opts.onStatus(`Host ${code} introuvable`, 'err');
+        }
       }, 8000);
 
       conn.on('open', () => {
-        clearTimeout(openTimer);
-        opened = true;
+        clearTimeout(initialConnectTimer);
         hostConn = conn;
+        lastHeartbeat = Date.now();
+        if (hasBeenConnected && hostLost) {
+          // Reconnexion réussie après perte du host (peut-être un nouveau host !)
+          markHostBack();
+          // Demande un état frais : on n'est plus sûr de rien
+          try { conn.send({ type: 'request-state' }); } catch (e) {}
+        }
+        hasBeenConnected = true;
         opts.onStatus && opts.onStatus(`Connecté au host ${code}`, 'ok');
       });
 
@@ -239,20 +312,47 @@
         if (msg.type === 'hello') {
           opts.onHello && opts.onHello({ hostName: msg.hostName, code: msg.code });
         } else if (msg.type === 'state') {
-          opts.onState && opts.onState(msg.payload || {});
+          lastState = msg.payload || {};
+          opts.onState && opts.onState(lastState);
         } else if (msg.type === 'toast') {
           opts.onToast && opts.onToast(msg.message, msg.isError);
+        } else if (msg.type === 'heartbeat') {
+          lastHeartbeat = Date.now();
+          if (Array.isArray(msg.coPilotIds)) lastCoPilotIds = msg.coPilotIds;
+          if (hostLost) markHostBack();
         }
       });
 
       conn.on('close', () => {
-        hostConn = null;
-        opts.onStatus && opts.onStatus('Host déconnecté', 'err');
+        if (hostConn === conn) hostConn = null;
+        if (hasBeenConnected) {
+          markHostLost();
+          scheduleReconnect();
+        }
       });
 
       conn.on('error', (err) => {
-        opts.onStatus && opts.onStatus('Erreur connexion : ' + (err.type || err.message || ''), 'err');
+        if (hasBeenConnected) {
+          if (hostConn === conn) hostConn = null;
+          markHostLost();
+          scheduleReconnect();
+        } else {
+          opts.onStatus && opts.onStatus('Erreur connexion : ' + (err.type || err.message || ''), 'err');
+        }
       });
+    };
+
+    peer.on('open', (id) => {
+      myPeerId = id;
+      attemptConnect();
+      // Watchdog : déclenche failover si aucun heartbeat depuis HEARTBEAT_TIMEOUT_MS
+      if (!watchdogTimer) {
+        watchdogTimer = setInterval(() => {
+          if (!hasBeenConnected) return;
+          const age = Date.now() - lastHeartbeat;
+          if (age > HEARTBEAT_TIMEOUT_MS && !hostLost) markHostLost();
+        }, 1000);
+      }
     });
 
     peer.on('call', (call) => {
@@ -282,7 +382,14 @@
     peer.on('error', (err) => {
       console.warn('Coop copilot peer err', err.type, err);
       if (err.type === 'peer-unavailable') {
-        opts.onStatus && opts.onStatus(`Host ${code} introuvable`, 'err');
+        // Host pas en ligne. Si on l'avait connu : c'est une perte de host → failover
+        // (le watchdog l'aurait fait, mais ça accélère). Sinon c'est l'erreur initiale.
+        if (hasBeenConnected) {
+          markHostLost();
+          scheduleReconnect();
+        } else {
+          opts.onStatus && opts.onStatus(`Host ${code} introuvable`, 'err');
+        }
       } else if (err.type === 'network' || err.type === 'disconnected') {
         opts.onStatus && opts.onStatus('Hors-ligne — reconnexion…', 'err');
         setTimeout(() => peer && !peer.destroyed && peer.reconnect(), 2000);
@@ -321,9 +428,15 @@
         return call;
       },
       leave() {
+        if (watchdogTimer) { clearInterval(watchdogTimer); watchdogTimer = null; }
+        if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
+        if (initialConnectTimer) { clearTimeout(initialConnectTimer); initialConnectTimer = null; }
         try { hostConn && hostConn.close(); } catch (e) {}
         try { peer.destroy(); } catch (e) {}
       },
+      // Phase 3 : accesseurs utilisés au moment du failover
+      getMyPeerId: () => myPeerId,
+      getLastState: () => lastState,
     };
   }
 
