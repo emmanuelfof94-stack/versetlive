@@ -14,7 +14,7 @@ const titleContent = document.getElementById('titleContent');
 const titleMainEl = document.getElementById('titleMainEl');
 const titleSubEl = document.getElementById('titleSubEl');
 
-const TITLE_TEMPLATE_IDS = ['classic','elegant','banner','modern','card','double','ornament','minimal','lower-third','badge'];
+const TITLE_TEMPLATE_IDS = ['ad-broukoi','ad-broukoi-light','classic','elegant','banner','modern','card','double','ornament','minimal','lower-third','badge'];
 
 const isPreview = new URLSearchParams(window.location.search).get('preview') === '1';
 if (isPreview) document.body.classList.add('preview-mode');
@@ -158,8 +158,12 @@ function showTitle(payload) {
   const tpl = TITLE_TEMPLATE_IDS.includes(p.template) ? p.template : 'classic';
   titleContent.classList.add('title-tpl-' + tpl);
 
-  // Couleur d'accent
-  titleContent.style.setProperty('--accent', p.accent || '#d4af37');
+  // Couleur d'accent (or AD Broukoi par défaut)
+  titleContent.style.setProperty('--accent', p.accent || '#B38E29');
+
+  // Logo dynamique (sélectionné par le panneau dans l'onglet ✨ Titre)
+  const logoFile = p.logoFile && /^[A-Za-z0-9._-]+$/.test(p.logoFile) ? p.logoFile : 'logo-ad.png';
+  stage.style.setProperty('--ad-logo', `url('${logoFile}')`);
 
   // Texte
   titleMainEl.textContent = p.title || '';

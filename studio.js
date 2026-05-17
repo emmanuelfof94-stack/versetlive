@@ -1063,6 +1063,21 @@ document.addEventListener('visibilitychange', () => {
 });
 
 // ============ Projecteur ============
+// Callback appelé par studio-output.html quand il détecte le ratio du projecteur
+// (au démarrage, au resize, au passage plein écran).
+let lastProjectorAspect = null;
+window.onProjectorAspectChange = function (info) {
+  if (!info) return;
+  lastProjectorAspect = info;
+  const label = info.standard ? info.name : (info.name + ' approx.');
+  toast(`Projecteur ${info.w}×${info.h} · ${label} détecté`);
+  if (info.name !== '16:9') {
+    // Avertit subtilement si le projecteur n'est pas en 16:9 — le canvas reste 16:9
+    // mais les bandes de letterbox seront en bleu nuit AD (pas noir pur).
+    console.info(`[VersetLive] Projecteur non-16:9 (${info.name}) — letterbox AD navy activé.`);
+  }
+};
+
 function openProjector() {
   if (!programStream) rebuildProgramStream();
   startKeepAlive();

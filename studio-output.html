@@ -5,19 +5,53 @@
   <title>Sortie projecteur — VersetLive</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; background: #000; overflow: hidden; cursor: none; }
+    /* Letterbox AD : bleu nuit officiel au lieu de noir pur — discret au projecteur,
+       conserve l'identité visuelle dans les bandes hors-image. */
+    html, body { width: 100%; height: 100%; background: #131536; overflow: hidden; cursor: none; }
     body { display: flex; align-items: center; justify-content: center; }
+    /* En 16:9 natif (pas de bandes), on garde un fond noir pur — plus propre. */
+    body[data-aspect="16:9"] { background: #000; }
     video {
       width: 100%; height: 100%; object-fit: contain;
-      background: #000;
+      background: transparent;
     }
     body:hover { cursor: default; }
+
+    /* Petit toast d'info détecté (3 s) — identité AD */
+    .ratio-toast {
+      position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
+      background: rgba(19,21,54,0.94);
+      color: #FCFCFC;
+      border: 1px solid #B38E29;
+      padding: 8px 18px;
+      border-radius: 6px;
+      font: 600 13px -apple-system, "Helvetica Neue", sans-serif;
+      letter-spacing: 0.05em;
+      box-shadow: 0 6px 22px rgba(0,0,0,0.55);
+      z-index: 50;
+      opacity: 0;
+      transition: opacity 0.35s;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    .ratio-toast.show { opacity: 1; }
+    .ratio-toast .ratio-pill {
+      display: inline-block;
+      margin-left: 8px;
+      padding: 1px 8px;
+      background: #B38E29;
+      color: #131536;
+      border-radius: 999px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+    }
   </style>
 </head>
-<body>
+<body data-aspect="16:9">
   <video id="output" autoplay playsinline></video>
   <iframe id="iframeOverlay" hidden allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen
     style="position:fixed; inset:0; width:100%; height:100%; border:0; background:#000; z-index:10;"></iframe>
+  <div class="ratio-toast" id="ratioToast" aria-hidden="true"></div>
 
   <script>
     const video = document.getElementById('output');
@@ -44,6 +78,74 @@
       // Reset src pour stopper l'audio/vidéo de la plateforme externe.
       if (iframeOverlay.src) iframeOverlay.src = 'about:blank';
     };
+
+    // ============= Auto-adaptation au ratio du projecteur =============
+    // Ratios standards reconnus. On choisit le plus proche logarithmiquement
+    // (insensible au sens des écarts) pour tolérer ±1-2 % d'arrondi pixel.
+    const KNOWN_RATIOS = [
+      { name: '32:9', ratio: 32 / 9 },
+      { name: '21:9', ratio: 21 / 9 },
+      { name: '16:9', ratio: 16 / 9 },
+      { name: '16:10', ratio: 16 / 10 },
+      { name: '3:2',  ratio: 3 / 2 },
+      { name: '4:3',  ratio: 4 / 3 },
+      { name: '5:4',  ratio: 5 / 4 },
+      { name: '1:1',  ratio: 1 },
+      { name: '9:16', ratio: 9 / 16 },
+    ];
+
+    function classifyAspect() {
+      const w = window.innerWidth, h = window.innerHeight;
+      if (!w || !h) return null;
+      const r = w / h;
+      let best = KNOWN_RATIOS[0], bestDelta = Infinity;
+      for (const it of KNOWN_RATIOS) {
+        const d = Math.abs(Math.log(r / it.ratio));
+        if (d < bestDelta) { bestDelta = d; best = it; }
+      }
+      // Si l'écart au plus proche dépasse ~5 %, on garde la valeur mais on signale "non-standard"
+      const standard = bestDelta < 0.05;
+      return { name: best.name, ratio: best.ratio, actual: r, w, h, standard };
+    }
+
+    let lastSignature = null;
+    function applyAspect() {
+      const a = classifyAspect();
+      if (!a) return;
+      const sig = `${a.w}x${a.h}/${a.name}`;
+      if (sig === lastSignature) return;
+      lastSignature = sig;
+
+      document.body.dataset.aspect = a.name;
+      document.body.style.setProperty('--proj-aspect-ratio', String(a.actual));
+
+      // Toast
+      const t = document.getElementById('ratioToast');
+      if (t) {
+        const label = a.standard ? a.name : (a.name + ' approx.');
+        t.innerHTML = `Projecteur détecté : <strong>${a.w}×${a.h}</strong> <span class="ratio-pill">${label}</span>`;
+        t.classList.add('show');
+        clearTimeout(applyAspect._toastTimer);
+        applyAspect._toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+      }
+
+      // Notifier le studio parent (callback optionnel)
+      try {
+        if (window.opener && !window.opener.closed) {
+          if (typeof window.opener.onProjectorAspectChange === 'function') {
+            window.opener.onProjectorAspectChange(a);
+          }
+        }
+      } catch {}
+    }
+
+    window.addEventListener('resize', applyAspect);
+    document.addEventListener('fullscreenchange', applyAspect);
+    // Premier passage après le layout initial
+    requestAnimationFrame(applyAspect);
+
+    // Permettre au studio de redemander la détection (ex: après un déplacement entre écrans)
+    window.detectProjectorAspect = function () { lastSignature = null; applyAspect(); return classifyAspect(); };
 
     // F11 pour plein écran (Mac : Cmd+Ctrl+F)
     document.addEventListener('keydown', (e) => {

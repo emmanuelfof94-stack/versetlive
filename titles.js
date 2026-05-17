@@ -3,8 +3,10 @@
 
 (function () {
   const TITLE_LAST_KEY = 'versetlive:title-last';
+  const TITLE_LOGO_KEY = 'versetlive:title-logo';
 
-  let selectedTemplate = 'classic';
+  let selectedTemplate = 'ad-broukoi';
+  let selectedLogo = 'original';
 
   const titleEls = {
     main: document.getElementById('titleMain'),
@@ -14,6 +16,7 @@
     accent: document.getElementById('titleAccent'),
     accentHex: document.getElementById('titleAccentHex'),
     sendBtn: document.getElementById('sendTitleBtn'),
+    logoPicker: document.getElementById('logoPicker'),
   };
 
   function renderTemplates() {
@@ -33,6 +36,28 @@
     // Sélection par défaut
     const first = titleEls.templates.querySelector('.title-template-card');
     if (first) first.classList.add('active');
+  }
+
+  function renderLogoPicker() {
+    if (!titleEls.logoPicker || typeof AD_LOGO_OPTIONS === 'undefined') return;
+    titleEls.logoPicker.innerHTML = AD_LOGO_OPTIONS.map(opt => `
+      <button class="logo-picker-item${opt.id === selectedLogo ? ' active' : ''}" data-id="${opt.id}" title="${escapeHtmlSafe(opt.description)}">
+        <span class="logo-picker-thumb" style="background-image:url('${opt.file}')"></span>
+        <span class="logo-picker-name">${escapeHtmlSafe(opt.name)}</span>
+      </button>
+    `).join('');
+    titleEls.logoPicker.querySelectorAll('.logo-picker-item').forEach(btn => {
+      btn.addEventListener('click', () => {
+        selectedLogo = btn.dataset.id;
+        localStorage.setItem(TITLE_LOGO_KEY, selectedLogo);
+        titleEls.logoPicker.querySelectorAll('.logo-picker-item').forEach(b => b.classList.toggle('active', b.dataset.id === selectedLogo));
+      });
+    });
+  }
+
+  function currentLogoFile() {
+    const opt = (typeof AD_LOGO_OPTIONS !== 'undefined') && AD_LOGO_OPTIONS.find(o => o.id === selectedLogo);
+    return opt ? opt.file : 'logo-ad.png';
   }
 
   function renderPresets() {
@@ -84,13 +109,14 @@
       title: title.trim(),
       subtitle: (subtitle || '').trim(),
       template: template || 'classic',
-      accent: accent || '#d4af37',
+      accent: accent || '#B38E29',
+      logoFile: currentLogoFile(),
       style: typeof getStyle === 'function' ? getStyle() : {},
       ts: Date.now(),
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     localStorage.setItem(TITLE_LAST_KEY, JSON.stringify({
-      title: state.title, subtitle: state.subtitle, template: state.template, accent: state.accent
+      title: state.title, subtitle: state.subtitle, template: state.template, accent: state.accent, logoFile: state.logoFile
     }));
     bc?.postMessage({ type: 'showTitle', payload: state });
     if (typeof postToPreview === 'function') postToPreview({ type: 'showTitle', payload: state });
@@ -146,7 +172,9 @@
   });
 
   // Init
+  try { selectedLogo = localStorage.getItem(TITLE_LOGO_KEY) || 'original'; } catch (e) { selectedLogo = 'original'; }
   renderTemplates();
+  renderLogoPicker();
   renderPresets();
   restoreLast();
 })();

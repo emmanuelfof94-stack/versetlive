@@ -88,6 +88,63 @@
     .title-tpl-badge .title-main { color: white; font-weight: 800; text-shadow: 0 3px 0 rgba(0,0,0,0.2); }
     .title-tpl-badge .title-sub { color: rgba(255,255,255,0.9); }
 
+    /* AD Broukoi — identité Église Assemblée de Dieu Broukoi-Jérusalem */
+    .stage:has(.title-tpl-ad-broukoi) {
+      background: radial-gradient(ellipse at 50% 45%, rgba(50,40,130,0.55) 0%, rgba(32,75,154,0.20) 35%, transparent 70%), linear-gradient(160deg, #1a1f4a 0%, #131536 55%, #0b0d24 100%);
+    }
+    .stage:has(.title-tpl-ad-broukoi)::before {
+      content: ""; position: absolute; top: 4vh; right: 4vw; width: 14vh; height: 14vh;
+      background: var(--ad-logo, url('logo-ad.png')) no-repeat center/contain;
+      filter: drop-shadow(0 6px 18px rgba(0,0,0,0.7)); z-index: 5; pointer-events: none;
+    }
+    .stage:has(.title-tpl-ad-broukoi)::after {
+      content: "« AVEC DIEU NOUS FERONS DES EXPLOITS »  —  PSAUMES 60:14";
+      position: absolute; bottom: 4vh; left: 0; right: 0; text-align: center;
+      font-family: -apple-system, "Helvetica Neue", "Segoe UI", sans-serif;
+      font-size: 1.3vw; font-weight: 700; letter-spacing: 0.28em;
+      color: #B38E29; opacity: 0.92; text-transform: uppercase;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.7); z-index: 5;
+    }
+    .title-tpl-ad-broukoi { padding: 4vh 5vw; max-width: 86vw; }
+    .title-tpl-ad-broukoi .title-main {
+      color: #FCFCFC; font-family: -apple-system, "Helvetica Neue", "Segoe UI", sans-serif;
+      font-weight: 900; text-transform: uppercase; letter-spacing: 0.02em;
+      text-shadow: 0 6px 24px rgba(0,0,0,0.65), 0 2px 0 rgba(0,0,0,0.4);
+      padding-bottom: 2vh; border-bottom: 0.45vh solid #B38E29; margin-bottom: 2vh;
+    }
+    .title-tpl-ad-broukoi .title-sub {
+      color: #B38E29; font-family: 'Playfair Display', Georgia, serif;
+      font-style: italic; font-weight: 700; letter-spacing: 0.04em;
+      text-shadow: 0 3px 12px rgba(0,0,0,0.6); font-size: 2.4vw;
+    }
+
+    .stage:has(.title-tpl-ad-broukoi-light) {
+      background: radial-gradient(ellipse at 50% 40%, rgba(179,142,41,0.10) 0%, transparent 60%), linear-gradient(160deg, #FCFCFC 0%, #EEF1FA 60%, #DEE3F0 100%);
+    }
+    .stage:has(.title-tpl-ad-broukoi-light)::before {
+      content: ""; position: absolute; top: 4vh; right: 4vw; width: 14vh; height: 14vh;
+      background: var(--ad-logo, url('logo-ad.png')) no-repeat center/contain;
+      filter: drop-shadow(0 4px 14px rgba(19,21,54,0.25)); z-index: 5; pointer-events: none;
+    }
+    .stage:has(.title-tpl-ad-broukoi-light)::after {
+      content: "« AVEC DIEU NOUS FERONS DES EXPLOITS »  —  PSAUMES 60:14";
+      position: absolute; bottom: 4vh; left: 0; right: 0; text-align: center;
+      font-family: -apple-system, "Helvetica Neue", "Segoe UI", sans-serif;
+      font-size: 1.3vw; font-weight: 700; letter-spacing: 0.28em;
+      color: #204B9A; opacity: 0.95; text-transform: uppercase; z-index: 5;
+    }
+    .title-tpl-ad-broukoi-light { padding: 4vh 5vw; max-width: 86vw; }
+    .title-tpl-ad-broukoi-light .title-main {
+      color: #131536; font-family: -apple-system, "Helvetica Neue", "Segoe UI", sans-serif;
+      font-weight: 900; text-transform: uppercase; letter-spacing: 0.02em;
+      text-shadow: 0 2px 4px rgba(19,21,54,0.15);
+      padding-bottom: 2vh; border-bottom: 0.45vh solid #B38E29; margin-bottom: 2vh;
+    }
+    .title-tpl-ad-broukoi-light .title-sub {
+      color: #322882; font-family: 'Playfair Display', Georgia, serif;
+      font-style: italic; font-weight: 700; letter-spacing: 0.04em; font-size: 2.4vw;
+    }
+
     /* Carte de pairing (affichée tant que le studio n'est pas connecté) */
     .pairing-card {
       position: fixed; inset: 0;
