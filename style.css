@@ -2654,6 +2654,105 @@ input[type="time"] {
   font-size: 12px;
   line-height: 1;
 }
+.studio-card-edit {
+  min-width: 22px;
+  padding: 1px 5px;
+  font-size: 12px;
+  line-height: 1;
+}
+
+/* ============ Modale Édition de carte ============ */
+.card-modal-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+@media (max-width: 760px) {
+  .card-modal-grid { grid-template-columns: 1fr; }
+}
+.card-modal-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.card-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.card-field > span { font-size: 12px; color: var(--text-secondary); }
+.card-field input[type="text"],
+.card-field select {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  border-radius: 4px;
+  padding: 6px 8px;
+  font-size: 13px;
+}
+.card-field input[type="range"] { width: 100%; }
+.card-field input[type="color"] {
+  width: 56px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid var(--border);
+  background: transparent;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.card-field-inline {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+.card-field em { color: var(--text-primary); font-style: normal; }
+.card-pos-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 4px;
+  width: 110px;
+  height: 80px;
+}
+.card-pos-cell {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+}
+.card-pos-cell:hover { background: var(--bg-secondary); }
+.card-pos-cell.active {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.card-modal-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: stretch;
+}
+.card-modal-preview-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.card-modal-preview canvas {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  background: #000;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  display: block;
+}
+.card-modal-preview-hint {
+  font-size: 11px;
+  color: var(--text-secondary);
+  opacity: 0.8;
+}
 .studio-logo-row {
   margin-top: 10px;
   padding: 8px 10px;
@@ -3494,6 +3593,28 @@ input[type="time"] {
 .studio-coop-banner-text { flex: 1; }
 .studio-coop-banner-title { font-weight: 700; font-size: 14px; }
 .studio-coop-banner-sub { font-size: 12px; color: var(--text-secondary); }
+
+/* Bandeau failover phase 3 : visible côté co-pilot quand le host devient injoignable */
+.studio-coop-failover {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  margin: 0 0 12px;
+  background: linear-gradient(90deg, rgba(239, 68, 68, 0.22), rgba(239, 68, 68, 0.06));
+  border: 1px solid rgba(239, 68, 68, 0.55);
+  border-radius: 6px;
+  animation: studioCoopFailoverPulse 1.8s ease-in-out infinite;
+}
+.studio-coop-failover-icon { font-size: 22px; }
+.studio-coop-failover-text { flex: 1; line-height: 1.4; }
+.studio-coop-failover-title { font-weight: 700; font-size: 14px; color: #fca5a5; }
+.studio-coop-failover-sub { font-size: 12px; color: var(--text-secondary); }
+.studio-coop-failover-countdown { font-size: 12px; font-weight: 700; color: #fca5a5; margin-top: 2px; }
+@keyframes studioCoopFailoverPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+  50%      { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0.18); }
+}
 
 /* Vidéo overlay sur les canvases (mode co-pilot) */
 .studio-coop-video {

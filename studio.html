@@ -94,6 +94,16 @@
 
       <div class="section">
         <div class="section-title">
+          <span>🎴 Cartes</span>
+          <button class="btn btn-sm btn-primary" id="addCardBtn" title="Créer une carte (image + texte stylé)">+ Créer</button>
+        </div>
+        <div class="studio-images" id="cardsList">
+          <div class="studio-empty">Aucune carte. Crée-en une à partir d'une image importée.</div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">
           <span>📱 Caméras à distance</span>
           <button class="btn btn-sm" id="remoteHelpBtn" title="Aide">?</button>
         </div>
@@ -235,6 +245,16 @@
           <div class="studio-coop-banner-sub" id="coopBannerSub">Connexion au host…</div>
         </div>
         <button class="btn btn-sm" id="coopLeaveBtn">Quitter</button>
+      </div>
+
+      <!-- Bandeau failover (phase 3) : visible quand le host est injoignable -->
+      <div class="studio-coop-failover" id="coopFailoverBanner" hidden>
+        <div class="studio-coop-failover-icon">⚠️</div>
+        <div class="studio-coop-failover-text">
+          <div class="studio-coop-failover-title">Host injoignable</div>
+          <div class="studio-coop-failover-sub" id="coopFailoverSub">Élection en cours…</div>
+          <div class="studio-coop-failover-countdown" id="coopFailoverCountdown">…</div>
+        </div>
       </div>
 
       <!-- Partage caméra co-pilot → host (visible uniquement en coop-mode) -->
@@ -977,6 +997,85 @@
           <button class="btn btn-primary" id="textStudioModalDiffuseBtn">📡 Diffuser</button>
         </div>
         <div id="textStudioTemplatesModal" style="margin-top:24px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ Modale Édition de carte ============ -->
+  <div class="modal-backdrop" id="cardModal">
+    <div class="modal modal-wide">
+      <div class="modal-header">
+        <h2>🎴 Éditer une carte</h2>
+        <button class="modal-close" id="cardModalClose">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="card-modal-grid">
+          <div class="card-modal-fields">
+            <label class="card-field">
+              <span>Image de fond</span>
+              <select id="cardImageSelect"></select>
+            </label>
+            <label class="card-field">
+              <span>Nom (interne, pour la liste)</span>
+              <input type="text" id="cardName" maxlength="60" placeholder="Ex : Offrande dim 11h">
+            </label>
+            <label class="card-field">
+              <span>Titre</span>
+              <input type="text" id="cardTitle" maxlength="120" placeholder="OFFRANDE">
+            </label>
+            <label class="card-field">
+              <span>Sous-titre</span>
+              <input type="text" id="cardSubtitle" maxlength="160" placeholder="Dimanche 11h">
+            </label>
+
+            <div class="card-field">
+              <span>Position du texte</span>
+              <div class="card-pos-grid">
+                <div class="card-pos-cell" data-v-align="top" data-h-align="left"></div>
+                <div class="card-pos-cell" data-v-align="top" data-h-align="center"></div>
+                <div class="card-pos-cell" data-v-align="top" data-h-align="right"></div>
+                <div class="card-pos-cell" data-v-align="center" data-h-align="left"></div>
+                <div class="card-pos-cell" data-v-align="center" data-h-align="center"></div>
+                <div class="card-pos-cell" data-v-align="center" data-h-align="right"></div>
+                <div class="card-pos-cell" data-v-align="bottom" data-h-align="left"></div>
+                <div class="card-pos-cell" data-v-align="bottom" data-h-align="center"></div>
+                <div class="card-pos-cell" data-v-align="bottom" data-h-align="right"></div>
+              </div>
+            </div>
+
+            <label class="card-field">
+              <span>Taille titre — <em id="cardTitleSizeVal">110 px</em></span>
+              <input type="range" id="cardTitleSize" min="30" max="240" step="2">
+            </label>
+            <label class="card-field">
+              <span>Taille sous-titre — <em id="cardSubtitleSizeVal">60 px</em></span>
+              <input type="range" id="cardSubtitleSize" min="20" max="180" step="2">
+            </label>
+            <label class="card-field card-field-inline">
+              <span>Couleur du texte</span>
+              <input type="color" id="cardColor" value="#ffffff">
+            </label>
+            <label class="card-field card-field-inline">
+              <input type="checkbox" id="cardShadow">
+              <span>Ombre du texte (lisibilité)</span>
+            </label>
+            <label class="card-field card-field-inline">
+              <input type="checkbox" id="cardBgBox">
+              <span>Bande noire translucide derrière le texte</span>
+            </label>
+          </div>
+
+          <div class="card-modal-preview">
+            <div class="card-modal-preview-label">Aperçu</div>
+            <canvas id="cardPreviewCanvas" width="480" height="270"></canvas>
+            <div class="card-modal-preview-hint">L'aperçu reflète le rendu réel à l'écran.</div>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:16px;">
+          <button class="btn" id="cardModalCancel">Annuler</button>
+          <button class="btn btn-primary" id="cardModalSave">💾 Sauvegarder</button>
+        </div>
       </div>
     </div>
   </div>

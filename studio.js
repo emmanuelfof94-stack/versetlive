@@ -39,8 +39,14 @@ let nextImageId = 1;
 let logoOverlayId = null; // image id utilisée en overlay coin
 let logoOverlayEnabled = false;
 
+// Cartes pré-composées (image + texte stylé) — persistées en localStorage,
+// référencent une image déjà importée par imageId.
+const CARDS_KEY = 'versetlive:cards';
+const cards = []; // [{ id, name, imageId, title, subtitle, vAlign, hAlign, titleSize, subtitleSize, color, shadow, bgBox }]
+let nextCardId = 1;
+
 // Scène active : { kind, primaryId?, secondaryId? }
-//   kind ∈ { 'camera', 'camera+verse', 'pip', 'image', 'image+verse', 'verse', 'intro', 'outro', 'black' }
+//   kind ∈ { 'camera', 'camera+verse', 'pip', 'image', 'image+verse', 'card', 'verse', 'intro', 'outro', 'black' }
 let programScene = { kind: 'black' };
 let previewScene = { kind: 'black' };
 let previousProgramScene = null;
@@ -357,6 +363,9 @@ function buildSceneList() {
     list.push({ key: `img-${img.id}`, label: `🖼 ${img.name}`, scene: { kind: 'image', imageId: img.id } });
     list.push({ key: `img-verse-${img.id}`, label: `🖼 ${img.name} + verset`, scene: { kind: 'image+verse', imageId: img.id } });
   });
+  cards.forEach(c => {
+    list.push({ key: `card-${c.id}`, label: `🎴 ${c.name}`, scene: { kind: 'card', cardId: c.id } });
+  });
   if (sources.length >= 2) {
     list.push({
       key: 'pip',
@@ -405,6 +414,7 @@ function sceneKey(scene) {
   if (scene.kind === 'camera+verse') return `cam-verse-${scene.primaryId}`;
   if (scene.kind === 'image') return `img-${scene.imageId}`;
   if (scene.kind === 'image+verse') return `img-verse-${scene.imageId}`;
+  if (scene.kind === 'card') return `card-${scene.cardId}`;
   if (scene.kind === 'video') return `vid-${scene.videoId}`;
   if (scene.kind === 'iframe') return `iframe-${scene.videoId || scene.url}`;
   if (scene.kind === 'pip') return 'pip';
@@ -708,6 +718,9 @@ function drawScene(s) {
       activeCtx.fillRect(0, OUTPUT_H - h, OUTPUT_W, h);
       drawVerseOverlay({ x: 0, y: OUTPUT_H - h, w: OUTPUT_W, h });
     }
+  } else if (s.kind === 'card') {
+    const card = getCardById(s.cardId);
+    if (card) drawCardContent(activeCtx, card, OUTPUT_W, OUTPUT_H);
   } else if (s.kind === 'verse') {
     drawVerseOverlay({ x: 0, y: 0, w: OUTPUT_W, h: OUTPUT_H });
   } else if (s.kind === 'intro' || s.kind === 'outro') {
@@ -2737,8 +2750,10 @@ async function loadStoredImages() {
   }
   nextImageId = maxId + 1;
   loadLogoCfg();
+  loadCards();
   renderImages();
   renderLogoOverlayUi();
+  renderCards();
   renderScenes();
 }
 
@@ -2858,6 +2873,283 @@ function bindImagesUi() {
   $('logoOverlaySelect').addEventListener('change', (e) => {
     logoOverlayId = e.target.value;
     saveLogoCfg();
+  });
+}
+
+// ============ Cartes pré-composées (image + texte) ============
+function defaultCard() {
+  return {
+    id: '',
+    name: 'Nouvelle carte',
+    imageId: imageSources[0]?.id || null,
+    title: '',
+    subtitle: '',
+    vAlign: 'center',     // top | center | bottom
+    hAlign: 'center',     // left | center | right
+    titleSize: 110,       // px @ 1080p
+    subtitleSize: 60,
+    color: '#ffffff',
+    shadow: true,
+    bgBox: false,
+  };
+}
+
+function loadCards() {
+  let raw;
+  try { raw = JSON.parse(localStorage.getItem(CARDS_KEY) || '[]'); }
+  catch (e) { raw = []; }
+  cards.length = 0;
+  let maxId = 0;
+  for (const c of raw) {
+    const merged = { ...defaultCard(), ...c };
+    cards.push(merged);
+    const n = parseInt(String(c.id || '').replace(/^c/, ''), 10);
+    if (!isNaN(n) && n > maxId) maxId = n;
+  }
+  nextCardId = maxId + 1;
+}
+
+function saveCards() {
+  try { localStorage.setItem(CARDS_KEY, JSON.stringify(cards)); }
+  catch (e) { console.warn('saveCards failed', e); }
+}
+
+function getCardById(id) {
+  return cards.find(c => c.id === id) || null;
+}
+
+function upsertCard(card) {
+  if (!card.id) {
+    card.id = 'c' + (nextCardId++);
+    cards.push(card);
+  } else {
+    const idx = cards.findIndex(c => c.id === card.id);
+    if (idx >= 0) cards[idx] = card;
+    else cards.push(card);
+  }
+  saveCards();
+  renderCards();
+  renderScenes();
+}
+
+function removeCard(id) {
+  const idx = cards.findIndex(c => c.id === id);
+  if (idx < 0) return;
+  const removed = cards[idx];
+  cards.splice(idx, 1);
+  saveCards();
+  if (programScene.kind === 'card' && programScene.cardId === id) setProgramScene({ kind: 'black' });
+  if (previewScene.kind === 'card' && previewScene.cardId === id) setPreviewScene({ kind: 'black' });
+  renderCards();
+  renderScenes();
+  toast(`Carte retirée : ${removed.name}`);
+}
+
+function drawCardContent(ctx2, card, w, h) {
+  // 1) Image cover (fond)
+  const img = imageSources.find(i => i.id === card.imageId);
+  if (img && img.imgEl) {
+    const iw = img.imgEl.naturalWidth || img.imgEl.width;
+    const ih = img.imgEl.naturalHeight || img.imgEl.height;
+    if (iw && ih) {
+      const scale = Math.max(w / iw, h / ih);
+      const dw = iw * scale, dh = ih * scale;
+      ctx2.drawImage(img.imgEl, (w - dw) / 2, (h - dh) / 2, dw, dh);
+    }
+  } else {
+    ctx2.fillStyle = '#222';
+    ctx2.fillRect(0, 0, w, h);
+  }
+  // 2) Texte
+  const scale = h / 1080; // tailles définies en référence 1080p
+  const tSize = Math.max(8, card.titleSize * scale);
+  const sSize = Math.max(6, card.subtitleSize * scale);
+  const lineGap = tSize * 0.25;
+  const title = (card.title || '').trim();
+  const subtitle = (card.subtitle || '').trim();
+  if (!title && !subtitle) return;
+
+  ctx2.textBaseline = 'middle';
+  ctx2.textAlign = card.hAlign === 'left' ? 'left' : card.hAlign === 'right' ? 'right' : 'center';
+  const padX = w * 0.05;
+  const x = card.hAlign === 'left' ? padX : card.hAlign === 'right' ? w - padX : w / 2;
+
+  const totalH = (title ? tSize : 0) + (subtitle ? sSize : 0) + (title && subtitle ? lineGap : 0);
+  const padY = h * 0.05;
+  let topY;
+  if (card.vAlign === 'top') topY = padY;
+  else if (card.vAlign === 'bottom') topY = h - padY - totalH;
+  else topY = (h - totalH) / 2;
+
+  if (card.bgBox) {
+    ctx2.fillStyle = 'rgba(0,0,0,0.55)';
+    const boxPadX = w * 0.04;
+    const boxPadY = h * 0.03;
+    ctx2.fillRect(0, topY - boxPadY, w, totalH + boxPadY * 2);
+  }
+
+  ctx2.fillStyle = card.color || '#ffffff';
+  if (card.shadow) {
+    ctx2.shadowColor = 'rgba(0,0,0,0.85)';
+    ctx2.shadowBlur = Math.max(2, tSize * 0.08);
+    ctx2.shadowOffsetX = 0;
+    ctx2.shadowOffsetY = Math.max(1, tSize * 0.04);
+  }
+
+  let y = topY;
+  if (title) {
+    ctx2.font = `700 ${tSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
+    ctx2.fillText(title, x, y + tSize / 2);
+    y += tSize + lineGap;
+  }
+  if (subtitle) {
+    ctx2.font = `400 ${sSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
+    ctx2.fillText(subtitle, x, y + sSize / 2);
+  }
+  ctx2.shadowColor = 'transparent';
+  ctx2.shadowBlur = 0;
+  ctx2.shadowOffsetX = 0;
+  ctx2.shadowOffsetY = 0;
+}
+
+function renderCards() {
+  const list = $('cardsList');
+  if (!list) return;
+  if (!cards.length) {
+    list.innerHTML = '<div class="studio-empty">Aucune carte. Crée-en une à partir d\'une image importée.</div>';
+    return;
+  }
+  list.innerHTML = '';
+  cards.forEach(c => {
+    const img = imageSources.find(i => i.id === c.imageId);
+    const thumbSrc = img ? img.dataUrl : '';
+    const card = document.createElement('div');
+    card.className = 'studio-image-card';
+    const thumb = thumbSrc
+      ? `<div class="studio-image-thumb" style="position:relative;">
+           <img src="${thumbSrc}" alt="">
+           <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#fff; font-size:10px; text-align:center; padding:2px; text-shadow:0 1px 2px #000;">${escapeHtml((c.title || '').slice(0, 24))}</div>
+         </div>`
+      : `<div class="studio-image-thumb" style="background:#333; display:flex; align-items:center; justify-content:center; color:#888; font-size:18px;">🎴</div>`;
+    card.innerHTML = `
+      ${thumb}
+      <div class="studio-image-meta">
+        <span class="studio-image-name" title="${escapeHtml(c.name)}">🎴 ${escapeHtml(c.name)}</span>
+        <button class="btn btn-sm studio-card-edit" data-id="${c.id}" title="Éditer">✎</button>
+        <button class="btn btn-sm btn-danger studio-card-remove" data-id="${c.id}" title="Retirer">×</button>
+      </div>
+    `;
+    card.querySelector('.studio-card-edit').addEventListener('click', () => openCardModal(c.id));
+    card.querySelector('.studio-card-remove').addEventListener('click', () => {
+      if (confirm(`Retirer la carte « ${c.name} » ?`)) removeCard(c.id);
+    });
+    list.appendChild(card);
+  });
+}
+
+// État édition courant dans la modale
+let editingCard = null;
+
+function openCardModal(cardId) {
+  if (!imageSources.length) {
+    toast('Importe d\'abord au moins une image dans la section 🖼.', true);
+    return;
+  }
+  const existing = cardId ? getCardById(cardId) : null;
+  editingCard = existing ? { ...existing } : defaultCard();
+  renderCardModal();
+  $('cardModal').classList.add('show');
+}
+
+function closeCardModal() {
+  $('cardModal').classList.remove('show');
+  editingCard = null;
+}
+
+function renderCardModal() {
+  if (!editingCard) return;
+  // Sélecteur image
+  const imgSel = $('cardImageSelect');
+  imgSel.innerHTML = '';
+  imageSources.forEach(img => {
+    const opt = document.createElement('option');
+    opt.value = img.id;
+    opt.textContent = img.name;
+    imgSel.appendChild(opt);
+  });
+  if (!imageSources.some(i => i.id === editingCard.imageId)) {
+    editingCard.imageId = imageSources[0].id;
+  }
+  imgSel.value = editingCard.imageId;
+  $('cardName').value = editingCard.name;
+  $('cardTitle').value = editingCard.title;
+  $('cardSubtitle').value = editingCard.subtitle;
+  $('cardTitleSize').value = editingCard.titleSize;
+  $('cardTitleSizeVal').textContent = editingCard.titleSize + ' px';
+  $('cardSubtitleSize').value = editingCard.subtitleSize;
+  $('cardSubtitleSizeVal').textContent = editingCard.subtitleSize + ' px';
+  $('cardColor').value = editingCard.color;
+  $('cardShadow').checked = !!editingCard.shadow;
+  $('cardBgBox').checked = !!editingCard.bgBox;
+  // Grille position 3x3
+  document.querySelectorAll('.card-pos-cell').forEach(cell => {
+    const active = cell.dataset.vAlign === editingCard.vAlign && cell.dataset.hAlign === editingCard.hAlign;
+    cell.classList.toggle('active', active);
+  });
+  renderCardPreview();
+}
+
+function renderCardPreview() {
+  if (!editingCard) return;
+  const canvas = $('cardPreviewCanvas');
+  if (!canvas) return;
+  const ctx2 = canvas.getContext('2d');
+  ctx2.fillStyle = '#000';
+  ctx2.fillRect(0, 0, canvas.width, canvas.height);
+  drawCardContent(ctx2, editingCard, canvas.width, canvas.height);
+}
+
+function bindCardsUi() {
+  const addBtn = $('addCardBtn');
+  if (!addBtn) return;
+  addBtn.addEventListener('click', () => openCardModal(null));
+  $('cardModalClose').addEventListener('click', closeCardModal);
+  $('cardModalCancel').addEventListener('click', closeCardModal);
+  $('cardModalSave').addEventListener('click', () => {
+    if (!editingCard) return;
+    if (!editingCard.imageId) { toast('Choisis une image.', true); return; }
+    if (!editingCard.title.trim() && !editingCard.subtitle.trim()) {
+      toast('Ajoute au moins un titre ou un sous-titre.', true); return;
+    }
+    upsertCard(editingCard);
+    toast(`Carte sauvegardée : ${editingCard.name}`);
+    closeCardModal();
+  });
+  // Live updates
+  $('cardImageSelect').addEventListener('change', (e) => { editingCard.imageId = e.target.value; renderCardPreview(); });
+  $('cardName').addEventListener('input', (e) => { editingCard.name = e.target.value || 'Carte'; });
+  $('cardTitle').addEventListener('input', (e) => { editingCard.title = e.target.value; renderCardPreview(); });
+  $('cardSubtitle').addEventListener('input', (e) => { editingCard.subtitle = e.target.value; renderCardPreview(); });
+  $('cardTitleSize').addEventListener('input', (e) => {
+    editingCard.titleSize = parseInt(e.target.value, 10) || 100;
+    $('cardTitleSizeVal').textContent = editingCard.titleSize + ' px';
+    renderCardPreview();
+  });
+  $('cardSubtitleSize').addEventListener('input', (e) => {
+    editingCard.subtitleSize = parseInt(e.target.value, 10) || 50;
+    $('cardSubtitleSizeVal').textContent = editingCard.subtitleSize + ' px';
+    renderCardPreview();
+  });
+  $('cardColor').addEventListener('input', (e) => { editingCard.color = e.target.value; renderCardPreview(); });
+  $('cardShadow').addEventListener('change', (e) => { editingCard.shadow = e.target.checked; renderCardPreview(); });
+  $('cardBgBox').addEventListener('change', (e) => { editingCard.bgBox = e.target.checked; renderCardPreview(); });
+  document.querySelectorAll('.card-pos-cell').forEach(cell => {
+    cell.addEventListener('click', () => {
+      editingCard.vAlign = cell.dataset.vAlign;
+      editingCard.hAlign = cell.dataset.hAlign;
+      document.querySelectorAll('.card-pos-cell').forEach(c => c.classList.toggle('active', c === cell));
+      renderCardPreview();
+    });
   });
 }
 
@@ -3020,9 +3312,14 @@ function coopStateSnapshot() {
     })),
     images: (typeof imageSources !== 'undefined' ? imageSources : []).map(i => ({ id: i.id, name: i.name })),
     scenes: buildSceneList().map(s => ({ key: s.key, label: s.label, scene: s.scene })),
+    // Phase 3 (failover) : on inclut url + key pour que le successeur puisse reprendre
+    // la diffusion sans re-saisir les clés. Le data channel WebRTC est DTLS-chiffré.
     destinations: (typeof destinations !== 'undefined' ? destinations : []).map((d, i) => ({
       idx: i,
       name: d.name,
+      url: d.url || '',
+      key: d.key || '',
+      placeholderKey: d.placeholderKey || '',
       enabled: !!d.enabled,
       ytBroadcastId: d.ytBroadcastId,
       status: d.status || '',
@@ -3312,7 +3609,110 @@ async function initCoPilot(code, name) {
       coopRenderRemoteState(state);
     },
     onToast: (msg, isError) => toast(msg, isError),
+    // Phase 3 : failover
+    onHostLost: ({ myPeerId, coPilotIds, lastState }) => coopHandleHostLost({ myPeerId, coPilotIds, lastState, code }),
+    onHostBack: () => coopHandleHostBack(),
   });
+}
+
+// ============ Failover phase 3 ============
+// État de l'élection en cours. Quand on devient "host lost", on calcule un délai
+// avant de tenter la bascule en fonction de notre position dans la liste des
+// co-pilots (la plus ancienne en premier). Si quelqu'un d'autre réussit avant
+// nous, le watchdog revoit un heartbeat et onHostBack() annule le take-over.
+let coopFailoverTimer = null;
+let coopFailoverDeadline = 0;
+let coopFailoverCountdownTimer = null;
+
+function coopHandleHostLost({ myPeerId, coPilotIds, lastState, code }) {
+  // Calcule le rang : oldest first (ordre d'insertion). Si on n'est pas dans la
+  // liste (heartbeat jamais reçu), on prend la pire place + délai max.
+  const ids = Array.isArray(coPilotIds) ? coPilotIds : [];
+  let myRank = ids.indexOf(myPeerId);
+  if (myRank < 0) myRank = ids.length;
+  // Délai : 2 s pour le rang 0, +4 s par rang suivant. Garde-fou 30 s.
+  const delayMs = Math.min(30000, 2000 + myRank * 4000);
+  coopFailoverDeadline = Date.now() + delayMs;
+  coopShowFailoverBanner(myRank);
+  if (coopFailoverTimer) clearTimeout(coopFailoverTimer);
+  coopFailoverTimer = setTimeout(() => {
+    coopFailoverTimer = null;
+    // Re-check : le host est-il revenu entre temps ?
+    if (!coopGuest) return;
+    coopTakeOver(code, lastState || coopRemoteState);
+  }, delayMs);
+  // Countdown UI
+  if (coopFailoverCountdownTimer) clearInterval(coopFailoverCountdownTimer);
+  coopFailoverCountdownTimer = setInterval(() => {
+    const sec = Math.max(0, Math.ceil((coopFailoverDeadline - Date.now()) / 1000));
+    const el = $('coopFailoverCountdown');
+    if (el) el.textContent = sec > 0 ? `Reprise dans ${sec} s…` : 'Reprise en cours…';
+  }, 250);
+}
+
+function coopHandleHostBack() {
+  if (coopFailoverTimer) { clearTimeout(coopFailoverTimer); coopFailoverTimer = null; }
+  if (coopFailoverCountdownTimer) { clearInterval(coopFailoverCountdownTimer); coopFailoverCountdownTimer = null; }
+  coopHideFailoverBanner();
+}
+
+function coopShowFailoverBanner(myRank) {
+  const el = $('coopFailoverBanner');
+  if (!el) return;
+  el.hidden = false;
+  const sub = $('coopFailoverSub');
+  if (sub) sub.textContent = myRank === 0
+    ? 'Tu es le co-pilot le plus ancien : tu vas reprendre la main.'
+    : `${myRank} co-pilot${myRank > 1 ? 's' : ''} plus ancien${myRank > 1 ? 's' : ''} tentera la reprise avant toi.`;
+  const cd = $('coopFailoverCountdown');
+  if (cd) cd.textContent = '…';
+}
+
+function coopHideFailoverBanner() {
+  const el = $('coopFailoverBanner');
+  if (el) el.hidden = true;
+}
+
+// Bascule le co-pilot en host. On stash le snapshot dans sessionStorage puis on
+// recharge la page sans ?cop= → la séquence init() normale tourne, et à la fin
+// elle démarre VLCoop.startHost avec le même code. Les autres co-pilots, qui
+// retentent peer.connect en boucle, se reconnectent automatiquement.
+function coopTakeOver(code, snapshot) {
+  if (!snapshot) snapshot = coopRemoteState || {};
+  try {
+    // Pousse les pièces "restaurables" dans le localStorage local
+    // (l'init normal les rechargera comme s'il s'agissait d'une session locale).
+    if (snapshot.verseState !== undefined && snapshot.verseState !== null) {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot.verseState)); } catch (e) {}
+    }
+    if (snapshot.transitionCfg) {
+      try { localStorage.setItem(TRANSITION_KEY, JSON.stringify(snapshot.transitionCfg)); } catch (e) {}
+    }
+    if (snapshot.studioMode !== undefined) {
+      try { localStorage.setItem(STUDIO_MODE_KEY, snapshot.studioMode ? '1' : '0'); } catch (e) {}
+    }
+    if (Array.isArray(snapshot.destinations) && snapshot.destinations.length) {
+      // Reconstruit un format compatible avec loadDestinations()
+      const restored = snapshot.destinations.map(d => ({
+        name: d.name || 'Destination',
+        url: d.url || '',
+        key: d.key || '',
+        placeholderKey: d.placeholderKey || '',
+        enabled: !!d.enabled,
+        ytBroadcastId: d.ytBroadcastId,
+      }));
+      try { localStorage.setItem(DEST_STORAGE_KEY, JSON.stringify(restored)); } catch (e) {}
+    }
+    // Marque la session : init() détectera ce flag et fera coopStartHost(code).
+    sessionStorage.setItem('versetlive:coop-takeover', code);
+  } catch (e) { console.warn('coopTakeOver state stash err', e); }
+  // Coupe le guest et les caméras partagées avant rechargement
+  try { coopStopAllSharedCameras(); } catch (e) {}
+  try { coopGuest && coopGuest.leave(); } catch (e) {}
+  coopGuest = null;
+  // Recharge la page en mode host normal (URL sans ?cop=)
+  const url = location.pathname;
+  location.href = url;
 }
 
 function transitionCfgKindFromUi() {
@@ -3543,6 +3943,7 @@ async function init() {
   bindStreaming();
   bindShortcuts();
   bindImagesUi();
+  bindCardsUi();
   bindStudioModeUi();
   bindTransitionUi();
   bindCoopUi();
@@ -3584,6 +3985,20 @@ async function init() {
   loadStoredImages();
   initSignaling();
   connectRelay();
+
+  // Phase 3 : si on vient d'un take-over coop, on relance la session host avec
+  // le code initial pour que les autres co-pilots se reconnectent automatiquement.
+  let takeoverCode = '';
+  try { takeoverCode = sessionStorage.getItem('versetlive:coop-takeover') || ''; } catch (e) {}
+  if (takeoverCode && takeoverCode.length === 4) {
+    try { sessionStorage.removeItem('versetlive:coop-takeover'); } catch (e) {}
+    setTimeout(() => {
+      try {
+        coopStartHost(takeoverCode);
+        toast(`Tu es désormais le host (${takeoverCode}). Reconnecte tes caméras puis relance le stream.`, false);
+      } catch (e) { console.warn('takeover host start err', e); }
+    }, 500);
+  }
 }
 init();
 
