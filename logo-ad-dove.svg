@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 600" role="img" aria-label="Église Assemblée de Dieu Broukoi-Jérusalem — Colombe et Bible">
+  <title>AD Broukoi — Colombe du Saint-Esprit sur la Bible</title>
+  <defs>
+    <radialGradient id="bgDove" cx="0.5" cy="0.4" r="0.7">
+      <stop offset="0" stop-color="#2a3070"/>
+      <stop offset="0.6" stop-color="#1a1f4a"/>
+      <stop offset="1" stop-color="#0a0d24"/>
+    </radialGradient>
+    <linearGradient id="rayDove" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#D5A937" stop-opacity="0.85"/>
+      <stop offset="1" stop-color="#B38E29" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="doveBody" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#D6DEEF"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Fond rectangle arrondi -->
+  <rect x="16" y="16" width="480" height="480" rx="24" fill="url(#bgDove)" stroke="#B38E29" stroke-width="4"/>
+
+  <!-- Rayons de lumière descendant -->
+  <g opacity="0.55">
+    <path d="M 256 70 L 110 320 L 256 250 Z" fill="url(#rayDove)"/>
+    <path d="M 256 70 L 402 320 L 256 250 Z" fill="url(#rayDove)"/>
+    <path d="M 256 70 L 256 340 L 220 250 Z" fill="url(#rayDove)"/>
+    <path d="M 256 70 L 256 340 L 292 250 Z" fill="url(#rayDove)"/>
+  </g>
+
+  <!-- Colombe stylisée descendante -->
+  <g transform="translate(256 170)">
+    <!-- aile gauche -->
+    <path d="M 0 -10 C -60 -50 -110 -30 -130 30 C -100 10 -60 0 -10 10 Z" fill="url(#doveBody)" stroke="#B38E29" stroke-width="1.5"/>
+    <!-- aile droite -->
+    <path d="M 0 -10 C  60 -50 110 -30 130 30 C 100 10 60 0 10 10 Z" fill="url(#doveBody)" stroke="#B38E29" stroke-width="1.5"/>
+    <!-- corps -->
+    <ellipse cx="0" cy="10" rx="22" ry="32" fill="url(#doveBody)" stroke="#B38E29" stroke-width="1.5"/>
+    <!-- tête -->
+    <circle cx="0" cy="-22" r="14" fill="url(#doveBody)" stroke="#B38E29" stroke-width="1.5"/>
+    <!-- bec -->
+    <path d="M -4 -22 L -14 -18 L -4 -16 Z" fill="#D5A937"/>
+    <!-- oeil -->
+    <circle cx="4" cy="-24" r="1.6" fill="#131536"/>
+    <!-- queue -->
+    <path d="M -10 38 L 0 60 L 10 38 Z" fill="url(#doveBody)" stroke="#B38E29" stroke-width="1.2"/>
+  </g>
+
+  <!-- Bible ouverte en bas -->
+  <g transform="translate(256 380)">
+    <ellipse cx="0" cy="58" rx="160" ry="12" fill="#000" opacity="0.4"/>
+    <path d="M -150 -8 Q -75 -28 0 -8 L 0 60 Q -75 40 -150 60 Z" fill="#FCFCFC"/>
+    <path d="M  150 -8 Q  75 -28 0 -8 L 0 60 Q  75 40  150 60 Z" fill="#FCFCFC"/>
+    <g stroke="#322882" stroke-width="2" opacity="0.5">
+      <line x1="-130" y1="8"  x2="-20" y2="-2"/>
+      <line x1="-130" y1="22" x2="-20" y2="12"/>
+      <line x1="-130" y1="36" x2="-20" y2="26"/>
+      <line x1="130" y1="8"  x2="20" y2="-2"/>
+      <line x1="130" y1="22" x2="20" y2="12"/>
+      <line x1="130" y1="36" x2="20" y2="26"/>
+    </g>
+    <line x1="0" y1="-10" x2="0" y2="60" stroke="#322882" stroke-width="3"/>
+  </g>
+
+  <!-- Nom de l'église -->
+  <text x="256" y="540" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-weight="900" font-size="28" fill="#FCFCFC" letter-spacing="2">ASSEMBLÉE DE DIEU</text>
+  <text x="256" y="572" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-weight="700" font-size="18" fill="#B38E29" letter-spacing="6">BROUKOI · JÉRUSALEM</text>
+</svg>

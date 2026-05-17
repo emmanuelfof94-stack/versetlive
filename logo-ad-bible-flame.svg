@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 600" role="img" aria-label="Église Assemblée de Dieu Broukoi-Jérusalem — Bible, croix et flammes">
+  <title>AD Broukoi — Bible &amp; flammes pentecôtistes</title>
+  <defs>
+    <linearGradient id="bgBF" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1a1f4a"/>
+      <stop offset="1" stop-color="#131536"/>
+    </linearGradient>
+    <linearGradient id="goldBF" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#D5A937"/>
+      <stop offset="1" stop-color="#8E6B16"/>
+    </linearGradient>
+    <linearGradient id="flameBF" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFD55A"/>
+      <stop offset="0.55" stop-color="#E29512"/>
+      <stop offset="1" stop-color="#9B3A06"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Fond circulaire bleu nuit -->
+  <circle cx="256" cy="270" r="240" fill="url(#bgBF)" stroke="url(#goldBF)" stroke-width="6"/>
+
+  <!-- Flammes pentecôtistes (3 langues de feu) -->
+  <g transform="translate(256 90)">
+    <path d="M 0 0 C -22 28 -16 56 0 70 C 16 56 22 28 0 0 Z" fill="url(#flameBF)" stroke="#B38E29" stroke-width="1.2"/>
+    <path d="M -60 18 C -78 42 -72 68 -58 80 C -44 66 -42 42 -60 18 Z" fill="url(#flameBF)" stroke="#B38E29" stroke-width="1.2" opacity="0.92"/>
+    <path d="M 60 18 C 78 42 72 68 58 80 C 44 66 42 42 60 18 Z" fill="url(#flameBF)" stroke="#B38E29" stroke-width="1.2" opacity="0.92"/>
+  </g>
+
+  <!-- Croix latine au-dessus de la Bible -->
+  <g fill="#FCFCFC">
+    <rect x="246" y="180" width="20" height="120" rx="2"/>
+    <rect x="216" y="210" width="80" height="20" rx="2"/>
+  </g>
+
+  <!-- Bible ouverte -->
+  <g transform="translate(256 350)">
+    <!-- ombre -->
+    <ellipse cx="0" cy="78" rx="155" ry="14" fill="#000" opacity="0.45"/>
+    <!-- pages -->
+    <path d="M -150 -10 Q -75 -28 0 -10 L 0 70 Q -75 52 -150 70 Z" fill="#FCFCFC"/>
+    <path d="M  150 -10 Q  75 -28 0 -10 L 0 70 Q  75 52  150 70 Z" fill="#FCFCFC"/>
+    <!-- lignes pages -->
+    <g stroke="#322882" stroke-width="2" opacity="0.45">
+      <line x1="-130" y1="6"  x2="-20" y2="-4"/>
+      <line x1="-130" y1="20" x2="-20" y2="10"/>
+      <line x1="-130" y1="34" x2="-20" y2="24"/>
+      <line x1="-130" y1="48" x2="-20" y2="38"/>
+      <line x1="130" y1="6"  x2="20" y2="-4"/>
+      <line x1="130" y1="20" x2="20" y2="10"/>
+      <line x1="130" y1="34" x2="20" y2="24"/>
+      <line x1="130" y1="48" x2="20" y2="38"/>
+    </g>
+    <!-- reliure -->
+    <line x1="0" y1="-12" x2="0" y2="70" stroke="#322882" stroke-width="3"/>
+  </g>
+
+  <!-- Nom de l'église -->
+  <text x="256" y="540" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-weight="900" font-size="30" fill="#FCFCFC" letter-spacing="2">EGLISE A.D.</text>
+  <text x="256" y="575" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-weight="700" font-size="20" fill="#B38E29" letter-spacing="6">BROUKOI · JÉRUSALEM</text>
+</svg>

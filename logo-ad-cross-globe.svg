@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 600" role="img" aria-label="Église Assemblée de Dieu Broukoi-Jérusalem — Croix sur globe">
+  <title>AD Broukoi — Croix sur le globe (Grande Mission)</title>
+  <defs>
+    <linearGradient id="bgCG" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1f254d"/>
+      <stop offset="1" stop-color="#0c0e25"/>
+    </linearGradient>
+    <radialGradient id="globeGrad" cx="0.35" cy="0.35" r="0.7">
+      <stop offset="0" stop-color="#3a78d0"/>
+      <stop offset="0.7" stop-color="#204B9A"/>
+      <stop offset="1" stop-color="#0e1c44"/>
+    </radialGradient>
+    <linearGradient id="rayCG" x1="0.5" y1="0" x2="0.5" y2="1">
+      <stop offset="0" stop-color="#FFE07A" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#B38E29" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Fond hexagonal -->
+  <polygon points="256,8 488,140 488,400 256,540 24,400 24,140"
+           fill="url(#bgCG)" stroke="#B38E29" stroke-width="5"/>
+
+  <!-- Rayons rayonnants derrière la croix -->
+  <g transform="translate(256 220)" opacity="0.55">
+    <g>
+      <polygon points="0,-180 -14,-80 14,-80" fill="url(#rayCG)"/>
+      <polygon points="0,-180 -14,-80 14,-80" fill="url(#rayCG)" transform="rotate(30)"/>
+      <polygon points="0,-180 -14,-80 14,-80" fill="url(#rayCG)" transform="rotate(60)"/>
+      <polygon points="0,-180 -14,-80 14,-80" fill="url(#rayCG)" transform="rotate(-30)"/>
+      <polygon points="0,-180 -14,-80 14,-80" fill="url(#rayCG)" transform="rotate(-60)"/>
+    </g>
+  </g>
+
+  <!-- Globe -->
+  <g transform="translate(256 340)">
+    <circle r="120" fill="url(#globeGrad)" stroke="#B38E29" stroke-width="3"/>
+    <!-- Méridiens -->
+    <g fill="none" stroke="#B38E29" stroke-width="1.5" opacity="0.6">
+      <ellipse rx="120" ry="40"/>
+      <ellipse rx="120" ry="80"/>
+      <ellipse rx="40"  ry="120"/>
+      <ellipse rx="80"  ry="120"/>
+      <line x1="-120" y1="0" x2="120" y2="0"/>
+      <line x1="0" y1="-120" x2="0" y2="120"/>
+    </g>
+    <!-- continents stylisés (silhouettes) -->
+    <g fill="#FCFCFC" opacity="0.85">
+      <path d="M -75 -25 Q -60 -35 -40 -28 Q -30 -18 -45 -10 Q -68 -8 -75 -25 Z"/>
+      <path d="M -30 5 Q -10 -5 15 0 Q 30 12 18 28 Q -5 28 -18 18 Q -34 16 -30 5 Z"/>
+      <path d="M 35 -20 Q 60 -28 78 -15 Q 70 0 50 -5 Q 38 -8 35 -20 Z"/>
+      <path d="M 20 38 Q 45 30 65 42 Q 55 60 35 58 Q 22 50 20 38 Z"/>
+    </g>
+  </g>
+
+  <!-- Croix grande au sommet -->
+  <g fill="#FCFCFC" stroke="#B38E29" stroke-width="2.5">
+    <rect x="246" y="80" width="20" height="190" rx="2"/>
+    <rect x="210" y="130" width="92" height="20" rx="2"/>
+  </g>
+
+  <!-- Nom de l'église -->
+  <text x="256" y="555" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-weight="900" font-size="28" fill="#FCFCFC" letter-spacing="2">A.D. BROUKOI</text>
+  <text x="256" y="584" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-weight="700" font-size="16" fill="#B38E29" letter-spacing="6">JÉRUSALEM · MATTHIEU 28:19</text>
+</svg>
