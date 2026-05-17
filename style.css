@@ -2558,6 +2558,7 @@ input[type="time"] {
   min-width: 0;
 }
 .studio-monitor-frame {
+  position: relative;
   width: 100%;
   aspect-ratio: 16 / 9;
   background: #000;
@@ -2567,6 +2568,43 @@ input[type="time"] {
 .studio-monitor-frame canvas {
   width: 100%; height: 100%; display: block;
 }
+
+/* Zones sûres EBU R 95 : action-safe (95%) jaune, title-safe (90%) rouge.
+   Overlay purement CSS sur les moniteurs : n'affecte ni le captureStream du
+   canvas, ni le projecteur, ni le live RTMP. Toggle via body.safe-zones-on. */
+.studio-safe-zones {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  display: none;
+}
+body.safe-zones-on .studio-safe-zones { display: block; }
+.studio-safe-action, .studio-safe-title {
+  position: absolute;
+  pointer-events: none;
+}
+.studio-safe-action {
+  inset: 2.5% 2.5%;
+  border: 2px dashed rgba(255, 220, 0, 0.85);
+}
+.studio-safe-title {
+  inset: 5% 5%;
+  border: 2px dashed rgba(239, 68, 68, 0.85);
+}
+.studio-safe-zones::before, .studio-safe-zones::after {
+  content: '';
+  position: absolute;
+  background: rgba(255,255,255,0.18);
+  pointer-events: none;
+}
+.studio-safe-zones::before { left: 50%; top: 5%; bottom: 5%; width: 1px; }
+.studio-safe-zones::after  { top: 50%; left: 5%; right: 5%; height: 1px; }
+
+/* Modal Paramètres avancés */
+.studio-settings-row { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+.studio-settings-row select, .studio-settings-row input[type="text"] { flex: 1; min-width: 0; }
+.studio-settings-label { font-size: 12px; color: var(--text-secondary); min-width: 120px; }
+#bitrateModeInfo, #recordNamePreview { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12px; }
 .studio-monitor-label {
   display: flex;
   align-items: center;

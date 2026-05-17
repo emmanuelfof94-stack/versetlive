@@ -760,12 +760,6 @@ function renderFrame() {
     if (previousProgramScene) previousProgramScene = null;
     drawScene(programScene);
   }
-  // Zones sûres EBU R 95 : guides title-safe (90%) + action-safe (95%). Visibles
-  // uniquement sur le canvas studio à l'écran, pas dans le programStream (utilise
-  // un canvas séparé pour l'overlay UI → on dessine directement sur ctx, le
-  // captureStream re-use le même canvas donc les zones partiront aussi dans le
-  // stream. On évite donc en filtrant via `safeZonesOn` qui est local UI).
-  if (safeZonesOn) drawSafeZones(ctx);
 
   // ---------- Preview (uniquement si studio mode actif) ----------
   if (studioMode) {
@@ -773,41 +767,24 @@ function renderFrame() {
     previewCtx.fillStyle = '#000';
     previewCtx.fillRect(0, 0, OUTPUT_W, OUTPUT_H);
     drawScene(previewScene);
-    if (safeZonesOn) drawSafeZones(previewCtx);
     activeCtx = ctx;
   }
 
   requestAnimationFrame(renderFrame);
 }
 
-// Zones sûres EBU R 95 : action-safe 95% / title-safe 90%. Lignes pointillées
-// fines, désactivées par défaut. État local uniquement (n'affecte pas l'output
-// projecteur ni le stream — voir streamRender / outputStream qui captureStream
-// le canvas, donc les zones partiraient — mais le toggle est désactivé en
-// production typique avant le service).
-function drawSafeZones(c) {
-  c.save();
-  c.lineWidth = 2;
-  c.setLineDash([8, 6]);
-  // Action-safe (95%) — jaune
-  const aMx = OUTPUT_W * 0.025;
-  const aMy = OUTPUT_H * 0.025;
-  c.strokeStyle = 'rgba(255, 220, 0, 0.85)';
-  c.strokeRect(aMx, aMy, OUTPUT_W - aMx * 2, OUTPUT_H - aMy * 2);
-  // Title-safe (90%) — rouge
-  const tMx = OUTPUT_W * 0.05;
-  const tMy = OUTPUT_H * 0.05;
-  c.strokeStyle = 'rgba(239, 68, 68, 0.85)';
-  c.strokeRect(tMx, tMy, OUTPUT_W - tMx * 2, OUTPUT_H - tMy * 2);
-  // Centre + croix médiane (croix légère)
-  c.setLineDash([]);
-  c.lineWidth = 1;
-  c.strokeStyle = 'rgba(255, 255, 255, 0.25)';
-  c.beginPath();
-  c.moveTo(OUTPUT_W / 2, 0); c.lineTo(OUTPUT_W / 2, OUTPUT_H);
-  c.moveTo(0, OUTPUT_H / 2); c.lineTo(OUTPUT_W, OUTPUT_H / 2);
-  c.stroke();
-  c.restore();
+// Zones sûres EBU R 95 : on n'écrit pas sur le canvas (sinon le stream/projo
+// embarquerait les guides). On utilise un overlay CSS positionné par-dessus le
+// canvas dans l'UI uniquement. Voir studio.html / style.css.
+const SAFE_ZONES_KEY = 'versetlive:safe-zones';
+let safeZonesOn = localStorage.getItem(SAFE_ZONES_KEY) === '1';
+
+function setSafeZones(on) {
+  safeZonesOn = !!on;
+  try { localStorage.setItem(SAFE_ZONES_KEY, safeZonesOn ? '1' : '0'); } catch (e) {}
+  document.body.classList.toggle('safe-zones-on', safeZonesOn);
+  const btn = $('safeZonesBtn');
+  if (btn) btn.classList.toggle('active', safeZonesOn);
 }
 
 function updateProgramInfo() {
@@ -1087,6 +1064,99 @@ function bindQualitySelector() {
   }
   // Sync les canvas avec la qualité sauvegardée en localStorage.
   applyQualityToCanvases();
+
+  // Zones sûres EBU R 95 (overlay UI only)
+  const sz = $('safeZonesBtn');
+  if (sz) {
+    setSafeZones(safeZonesOn); // applique l'état initial à la classe body
+    sz.addEventListener('click', () => setSafeZones(!safeZonesOn));
+  }
+
+  // Paramètres avancés (bitrate + nom fichier)
+  bindSettingsModal();
+}
+
+function bindSettingsModal() {
+  const openBtn = $('openSettingsBtn');
+  const modal = $('settingsModal');
+  if (!openBtn || !modal) return;
+  openBtn.addEventListener('click', () => { refreshSettingsModal(); modal.classList.add('show'); });
+  $('settingsModalClose')?.addEventListener('click', () => modal.classList.remove('show'));
+  $('settingsModalOk')?.addEventListener('click', () => modal.classList.remove('show'));
+
+  const bSel = $('bitrateModeSelect');
+  if (bSel) {
+    bSel.value = bitrateMode;
+    bSel.addEventListener('change', (e) => {
+      setBitrateMode(e.target.value);
+      refreshSettingsModal();
+    });
+  }
+  const nameInp = $('recordNameInput');
+  if (nameInp) {
+    nameInp.value = recordNamePattern;
+    nameInp.addEventListener('input', (e) => { setRecordNamePattern(e.target.value); refreshSettingsModal(); });
+  }
+  const titleInp = $('recordTitleInput');
+  if (titleInp) {
+    titleInp.value = recordTitle;
+    titleInp.addEventListener('input', (e) => { setRecordTitle(e.target.value); refreshSettingsModal(); });
+  }
+}
+
+function refreshSettingsModal() {
+  const info = $('bitrateModeInfo');
+  if (info) {
+    const v = Math.round(streamBitrate() / 1000);
+    const r = Math.round(recordBitrate() / 1000);
+    const a = Math.round(audioBitrate() / 1000);
+    info.textContent = `Stream : ${v} kbps · Record : ${r} kbps · Audio : ${a} kbps (qualité ${currentQuality})`;
+  }
+  const prev = $('recordNamePreview');
+  if (prev) prev.textContent = 'Aperçu : ' + resolveRecordName() + '.webm';
+}
+
+// ============ Bitrate (preset Économique / Standard / Haute qualité) ============
+// Multiplie les valeurs de QUALITY_PRESETS pour adapter à la bande passante
+// disponible. Appliqué au prochain démarrage de record / stream.
+const BITRATE_MODE_KEY = 'versetlive:bitrate-mode';
+const BITRATE_MODES = {
+  eco:  { label: '⚡ Économique',  mul: 0.6, audio: 96_000 },
+  std:  { label: '⚖️ Standard',    mul: 1.0, audio: 128_000 },
+  high: { label: '✨ Haute qualité', mul: 1.7, audio: 192_000 },
+};
+let bitrateMode = BITRATE_MODES[localStorage.getItem(BITRATE_MODE_KEY)] ? localStorage.getItem(BITRATE_MODE_KEY) : 'std';
+function setBitrateMode(mode) {
+  if (!BITRATE_MODES[mode]) return;
+  bitrateMode = mode;
+  try { localStorage.setItem(BITRATE_MODE_KEY, mode); } catch (e) {}
+  toast(`Bitrate : ${BITRATE_MODES[mode].label} (effet au prochain démarrage du stream/record)`);
+}
+function streamBitrate() { return Math.round(QUALITY_PRESETS[currentQuality].streamBitrate * BITRATE_MODES[bitrateMode].mul); }
+function recordBitrate() { return Math.round(QUALITY_PRESETS[currentQuality].recordBitrate * BITRATE_MODES[bitrateMode].mul); }
+function audioBitrate()  { return BITRATE_MODES[bitrateMode].audio; }
+
+// ============ Nom de fichier d'enregistrement (pattern utilisateur) ============
+// Tokens supportés : {date} = YYYY-MM-DD, {time} = HH-mm, {title} = champ libre.
+const RECORD_NAME_KEY = 'versetlive:record-name';
+const RECORD_TITLE_KEY = 'versetlive:record-title';
+const RECORD_NAME_DEFAULT = 'versetlive-{date}-{time}';
+let recordNamePattern = localStorage.getItem(RECORD_NAME_KEY) || RECORD_NAME_DEFAULT;
+let recordTitle = localStorage.getItem(RECORD_TITLE_KEY) || '';
+function setRecordNamePattern(p) { recordNamePattern = p || RECORD_NAME_DEFAULT; try { localStorage.setItem(RECORD_NAME_KEY, recordNamePattern); } catch (e) {} }
+function setRecordTitle(t) { recordTitle = (t || '').trim(); try { localStorage.setItem(RECORD_TITLE_KEY, recordTitle); } catch (e) {} }
+function resolveRecordName() {
+  const d = new Date();
+  const pad = (n) => String(n).padStart(2, '0');
+  const tokens = {
+    '{date}': `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`,
+    '{time}': `${pad(d.getHours())}-${pad(d.getMinutes())}`,
+    '{title}': (recordTitle || 'service').replace(/[\\/:*?"<>|]+/g, '').replace(/\s+/g, '-'),
+  };
+  let name = recordNamePattern;
+  for (const [k, v] of Object.entries(tokens)) name = name.split(k).join(v);
+  // Nettoyage : caractères interdits dans les noms de fichier
+  return name.replace(/[\\/:*?"<>|]+/g, '').replace(/\s+/g, '-').slice(0, 120) || 'versetlive';
 }
 
 // ============ Enregistrement ============
@@ -1100,7 +1170,11 @@ function toggleRecord() {
   recordedChunks = [];
   const mime = pickMime();
   try {
-    mediaRecorder = new MediaRecorder(programStream, { mimeType: mime, videoBitsPerSecond: QUALITY_PRESETS[currentQuality].recordBitrate });
+    mediaRecorder = new MediaRecorder(programStream, {
+      mimeType: mime,
+      videoBitsPerSecond: recordBitrate(),
+      audioBitsPerSecond: audioBitrate(),
+    });
   } catch (e) {
     toast('MediaRecorder non supporté : ' + e.message, true);
     return;
@@ -1110,10 +1184,9 @@ function toggleRecord() {
     const blob = new Blob(recordedChunks, { type: mime });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
     const ext = mime.includes('mp4') ? 'mp4' : 'webm';
     a.href = url;
-    a.download = `versetlive-${ts}.${ext}`;
+    a.download = `${resolveRecordName()}.${ext}`;
     document.body.appendChild(a);
     a.click();
     setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000);
@@ -2479,8 +2552,8 @@ function startStreaming() {
   try {
     streamRecorder = new MediaRecorder(programStream, {
       mimeType: mime,
-      videoBitsPerSecond: QUALITY_PRESETS[currentQuality].streamBitrate,
-      audioBitsPerSecond: 128_000
+      videoBitsPerSecond: streamBitrate(),
+      audioBitsPerSecond: audioBitrate(),
     });
   } catch (e) {
     toast('MediaRecorder: ' + e.message, true);

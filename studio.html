@@ -27,6 +27,8 @@
         <option value="720p">📐 720p · CPU léger</option>
         <option value="1080p">📐 1080p · qualité maxi</option>
       </select>
+      <button class="btn" id="safeZonesBtn" title="Affiche les zones sûres EBU R 95 (title-safe 90% rouge / action-safe 95% jaune) sur les moniteurs Programme & Preview. N'apparaît pas dans le stream ni sur le projecteur.">🎯 Zones sûres</button>
+      <button class="btn" id="openSettingsBtn" title="Bitrate stream/record, nom du fichier d'enregistrement, etc.">⚙️ Paramètres</button>
       <button class="btn btn-danger" id="recordBtn">⏺ Enregistrer</button>
       <button class="btn" id="openScheduleBtn" title="Planifier un live YouTube à l'avance">📅 Planifier</button>
       <button class="btn" id="helpStudioBtn" title="Aide — premiers pas, raccourcis, dépannage (touche ?)">❔ Aide</button>
@@ -221,6 +223,10 @@
           <div class="studio-monitor-frame">
             <canvas id="previewCanvas" width="1280" height="720"></canvas>
             <video id="coopPreviewVideo" class="studio-coop-video" autoplay playsinline muted></video>
+            <div class="studio-safe-zones" aria-hidden="true">
+              <div class="studio-safe-action"></div>
+              <div class="studio-safe-title"></div>
+            </div>
           </div>
           <button class="btn btn-primary studio-take-btn" id="takeBtn" title="Envoie la preview vers le programme (Entrée)">▶ Envoyer en direct (Entrée)</button>
         </div>
@@ -232,6 +238,10 @@
           <div class="studio-monitor-frame">
             <canvas id="programCanvas" width="1280" height="720"></canvas>
             <video id="coopProgramVideo" class="studio-coop-video" autoplay playsinline muted></video>
+            <div class="studio-safe-zones" aria-hidden="true">
+              <div class="studio-safe-action"></div>
+              <div class="studio-safe-title"></div>
+            </div>
           </div>
           <div class="studio-program-info" id="programInfo">1920×1080 · 30 fps · Aucune caméra</div>
         </div>
@@ -663,6 +673,47 @@
       <div class="modal-footer">
         <div style="flex:1;"></div>
         <button class="btn" id="coopModalOk">Fermer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Paramètres avancés (bitrate, nom fichier, etc.) -->
+  <div class="modal-backdrop" id="settingsModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>⚙️ Paramètres avancés</h2>
+        <button class="modal-close" id="settingsModalClose">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="section" style="margin-bottom:14px;">
+          <div class="section-title"><span>📊 Bitrate vidéo / audio</span></div>
+          <div class="studio-hint">Adapte selon ta bande passante. Effectif au prochain démarrage du stream ou du record.</div>
+          <div class="studio-settings-row">
+            <select id="bitrateModeSelect">
+              <option value="eco">⚡ Économique — ~60% du débit (faible bande passante)</option>
+              <option value="std">⚖️ Standard — débit recommandé (par défaut)</option>
+              <option value="high">✨ Haute qualité — ~170% du débit (fibre + matériel performant)</option>
+            </select>
+          </div>
+          <div class="studio-hint" id="bitrateModeInfo" style="margin-top:6px;"></div>
+        </div>
+        <div class="section">
+          <div class="section-title"><span>📁 Nom du fichier d'enregistrement</span></div>
+          <div class="studio-hint">Tokens disponibles : <code>{date}</code>, <code>{time}</code>, <code>{title}</code>. Exemple : <code>service-{date}-{title}</code>.</div>
+          <div class="studio-settings-row">
+            <label class="studio-settings-label" for="recordNameInput">Pattern</label>
+            <input type="text" id="recordNameInput" placeholder="versetlive-{date}-{time}">
+          </div>
+          <div class="studio-settings-row">
+            <label class="studio-settings-label" for="recordTitleInput">Titre du service (token {title})</label>
+            <input type="text" id="recordTitleInput" placeholder="ex. culte-dimanche">
+          </div>
+          <div class="studio-hint" id="recordNamePreview" style="margin-top:6px;"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <div style="flex:1;"></div>
+        <button class="btn btn-primary" id="settingsModalOk">Fermer</button>
       </div>
     </div>
   </div>
