@@ -283,6 +283,7 @@ function renderSources() {
     if (filtersOpen) {
       const panel = document.createElement('div');
       panel.className = 'studio-source-filters';
+      const ptt = getPttBinding(s);
       panel.innerHTML = `
         <label class="studio-source-filter-mirror">
           <input type="checkbox" data-filter="mirror" ${filters.mirror ? 'checked' : ''}>
@@ -306,6 +307,19 @@ function renderSources() {
         <div class="studio-source-filter-actions">
           <button class="btn btn-sm" data-action="filter-reset">Réinitialiser</button>
         </div>
+        ${hasAudio ? `
+        <div class="studio-source-ptt">
+          <div class="studio-source-ptt-title">🎙 Raccourci audio</div>
+          <div class="studio-source-ptt-row">
+            <select data-action="ptt-mode">
+              <option value="off"${ptt.mode === 'off' ? ' selected' : ''}>— Aucun</option>
+              <option value="ptt"${ptt.mode === 'ptt' ? ' selected' : ''}>Push-to-talk (maintenir = micro ON)</option>
+              <option value="ptm"${ptt.mode === 'ptm' ? ' selected' : ''}>Push-to-mute (maintenir = micro OFF)</option>
+            </select>
+            <button class="btn btn-sm" data-action="ptt-bind" ${ptt.mode === 'off' ? 'disabled' : ''}>${ptt.key ? 'Touche : ' + escapeHtml(ptt.key) : 'Choisir touche'}</button>
+          </div>
+          <div class="studio-source-ptt-hint">Maintenir la touche pendant le service ${ptt.mode === 'ptt' ? 'active' : 'coupe'} cette source.</div>
+        </div>` : ''}
       `;
       card.appendChild(panel);
     }
@@ -325,6 +339,16 @@ function renderSources() {
         filtersStore[s.deviceId || s.id] = defaultFilters();
         saveFiltersStore();
         renderSources();
+      } else if (action === 'ptt-bind') {
+        captureNextKeyFor(s, t);
+      }
+    });
+    // Changement du mode PTT (select n'envoie pas 'click' mais 'change')
+    card.addEventListener('change', (e) => {
+      const t = e.target;
+      if (t.dataset && t.dataset.action === 'ptt-mode') {
+        setPttBinding(s, { mode: t.value });
+        renderSources();
       }
     });
     card.addEventListener('input', (e) => {
@@ -341,7 +365,7 @@ function renderSources() {
       } else if (t.dataset.action === 'volume') {
         const v = parseInt(t.value, 10);
         s.audioGainValue = v / 100;
-        if (s.audioGain) s.audioGain.gain.value = s.audioGainValue;
+        applyPttGain(s); // PTT-aware (multiplie par 0 si la touche est en mode mute)
         const valEl = card.querySelector('.studio-source-volume-val');
         if (valEl) valEl.textContent = v + ' %';
       }
@@ -787,6 +811,93 @@ function setSafeZones(on) {
   if (btn) btn.classList.toggle('active', safeZonesOn);
 }
 
+// ============ Multiview : grille d'aperçus live des scènes ============
+// Rend chaque scène sur un mini-canvas (480×270) en réutilisant drawScene via
+// un scale 2D. Tourne à 5 fps pour rester léger (12 minis × 5 fps = 60 redraw/s).
+const MULTIVIEW_KEY = 'versetlive:multiview';
+const MULTIVIEW_MAX = 12;
+const MULTIVIEW_FPS = 5;
+let multiviewOn = localStorage.getItem(MULTIVIEW_KEY) === '1';
+let multiviewTimer = null;
+let multiviewLastSig = '';
+
+function setMultiview(on) {
+  multiviewOn = !!on;
+  try { localStorage.setItem(MULTIVIEW_KEY, multiviewOn ? '1' : '0'); } catch (e) {}
+  const container = $('multiviewContainer');
+  const btn = $('multiviewBtn');
+  if (container) container.hidden = !multiviewOn;
+  if (btn) btn.classList.toggle('active', multiviewOn);
+  if (multiviewOn) startMultiview(); else stopMultiview();
+}
+
+function startMultiview() {
+  rebuildMultiviewGrid();
+  if (multiviewTimer) clearInterval(multiviewTimer);
+  multiviewTimer = setInterval(renderMultiviewFrame, Math.round(1000 / MULTIVIEW_FPS));
+}
+
+function stopMultiview() {
+  if (multiviewTimer) { clearInterval(multiviewTimer); multiviewTimer = null; }
+}
+
+// Reconstruit la grille seulement quand la liste de scènes change (signature simple).
+function rebuildMultiviewGrid() {
+  const grid = $('multiviewGrid');
+  if (!grid) return;
+  const scenes = buildSceneList().slice(0, MULTIVIEW_MAX);
+  const sig = scenes.map(s => s.key).join('|');
+  if (sig === multiviewLastSig && grid.children.length === scenes.length) return;
+  multiviewLastSig = sig;
+  grid.innerHTML = '';
+  scenes.forEach((sc, i) => {
+    const cell = document.createElement('div');
+    cell.className = 'studio-multiview-cell';
+    cell.dataset.idx = i;
+    cell.innerHTML = `
+      <canvas width="480" height="270"></canvas>
+      <div class="studio-multiview-tag">${i + 1}</div>
+      <div class="studio-multiview-label">${escapeHtml(sc.label)}</div>
+    `;
+    cell.addEventListener('click', () => {
+      const list = buildSceneList();
+      const target = list[i] && list[i].scene;
+      if (!target) return;
+      if (studioMode) setPreviewScene(target);
+      else setScene(target);
+    });
+    grid.appendChild(cell);
+  });
+}
+
+function renderMultiviewFrame() {
+  if (!multiviewOn) return;
+  rebuildMultiviewGrid();
+  const grid = $('multiviewGrid');
+  if (!grid) return;
+  const scenes = buildSceneList().slice(0, MULTIVIEW_MAX);
+  const prevActive = activeCtx;
+  const programKey = sceneKey(programScene);
+  const previewKey = sceneKey(previewScene);
+  for (let i = 0; i < scenes.length; i++) {
+    const cell = grid.children[i];
+    if (!cell) continue;
+    const canvas = cell.querySelector('canvas');
+    if (!canvas) continue;
+    const c = canvas.getContext('2d');
+    c.save();
+    c.fillStyle = '#000';
+    c.fillRect(0, 0, canvas.width, canvas.height);
+    c.scale(canvas.width / OUTPUT_W, canvas.height / OUTPUT_H);
+    activeCtx = c;
+    try { drawScene(scenes[i].scene); } catch (e) {}
+    c.restore();
+    cell.classList.toggle('program', scenes[i].key === programKey);
+    cell.classList.toggle('preview', studioMode && scenes[i].key === previewKey && scenes[i].key !== programKey);
+  }
+  activeCtx = prevActive;
+}
+
 function updateProgramInfo() {
   const info = $('programInfo');
   const label = sources.length
@@ -1072,6 +1183,15 @@ function bindQualitySelector() {
     sz.addEventListener('click', () => setSafeZones(!safeZonesOn));
   }
 
+  // Multiview (toggleable)
+  const mv = $('multiviewBtn');
+  if (mv) {
+    setMultiview(multiviewOn); // applique l'état initial
+    mv.addEventListener('click', () => setMultiview(!multiviewOn));
+  }
+  const mvClose = $('multiviewCloseBtn');
+  if (mvClose) mvClose.addEventListener('click', () => setMultiview(false));
+
   // Paramètres avancés (bitrate + nom fichier)
   bindSettingsModal();
 }
@@ -1102,6 +1222,15 @@ function bindSettingsModal() {
     titleInp.value = recordTitle;
     titleInp.addEventListener('input', (e) => { setRecordTitle(e.target.value); refreshSettingsModal(); });
   }
+
+  // Replay buffer
+  const rbToggle = $('replayBufferToggle');
+  if (rbToggle) rbToggle.addEventListener('click', () => {
+    if (isReplayBufferOn()) stopReplayBuffer(); else startReplayBuffer();
+  });
+  const rbSave = $('replayBufferSave');
+  if (rbSave) rbSave.addEventListener('click', () => saveReplayBuffer());
+  updateReplayBufferUi();
 }
 
 function refreshSettingsModal() {
@@ -1158,6 +1287,101 @@ function resolveRecordName() {
   // Nettoyage : caractères interdits dans les noms de fichier
   return name.replace(/[\\/:*?"<>|]+/g, '').replace(/\s+/g, '-').slice(0, 120) || 'versetlive';
 }
+
+// ============ Replay buffer (capture continue) ============
+// MediaRecorder ne permet pas de trim binaire le webm. On accumule donc tous
+// les chunks depuis l'activation du buffer. Au clic "Sauver", on stoppe le
+// recorder (force le flush du dernier chunk), on sauve le blob complet, puis
+// on relance un nouveau buffer immédiatement. La séquence sauvée couvre
+// "depuis l'activation jusqu'à maintenant".
+let replayBufferRecorder = null;
+let replayBufferChunks = [];
+let replayBufferStartedAt = 0;
+
+function isReplayBufferOn() {
+  return !!(replayBufferRecorder && replayBufferRecorder.state === 'recording');
+}
+
+function startReplayBuffer() {
+  if (isReplayBufferOn()) return;
+  if (!programStream) rebuildProgramStream();
+  const mime = pickMime();
+  try {
+    replayBufferRecorder = new MediaRecorder(programStream, {
+      mimeType: mime,
+      videoBitsPerSecond: recordBitrate(),
+      audioBitsPerSecond: audioBitrate(),
+    });
+  } catch (e) {
+    toast('Replay buffer : ' + e.message, true);
+    return;
+  }
+  replayBufferChunks = [];
+  replayBufferStartedAt = Date.now();
+  replayBufferRecorder.ondataavailable = (e) => { if (e.data.size > 0) replayBufferChunks.push(e.data); };
+  replayBufferRecorder.start(1000);
+  updateReplayBufferUi();
+  toast('📼 Replay buffer activé');
+}
+
+function stopReplayBuffer() {
+  if (!replayBufferRecorder) return;
+  try { if (replayBufferRecorder.state === 'recording') replayBufferRecorder.stop(); } catch (e) {}
+  replayBufferRecorder = null;
+  replayBufferChunks = [];
+  replayBufferStartedAt = 0;
+  updateReplayBufferUi();
+}
+
+// Stoppe → sauve → redémarre. Sauve "depuis activation → maintenant".
+async function saveReplayBuffer() {
+  if (!isReplayBufferOn()) { toast('Le replay buffer n\'est pas actif', true); return; }
+  const mime = replayBufferRecorder.mimeType || pickMime();
+  // Stop, attendre le dernier chunk
+  const done = new Promise(res => { replayBufferRecorder.onstop = res; });
+  try { replayBufferRecorder.stop(); } catch (e) {}
+  await done;
+  const blob = new Blob(replayBufferChunks, { type: mime });
+  const ext = mime.includes('mp4') ? 'mp4' : 'webm';
+  const dur = Math.round((Date.now() - replayBufferStartedAt) / 1000);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${resolveRecordName()}-replay-${dur}s.${ext}`;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000);
+  if (window.VideoLibrary) {
+    const niceName = `Replay ${dur}s ${new Date().toLocaleString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`;
+    window.VideoLibrary.addRecording(blob, niceName).catch(err => console.warn('save replay to lib failed', err));
+  }
+  toast(`📼 Replay ${dur}s sauvé`);
+  // Redémarre un nouveau buffer immédiatement
+  replayBufferRecorder = null;
+  replayBufferChunks = [];
+  startReplayBuffer();
+}
+
+function updateReplayBufferUi() {
+  const btn = $('replayBufferToggle');
+  const saveBtn = $('replayBufferSave');
+  const info = $('replayBufferInfo');
+  if (btn) btn.textContent = isReplayBufferOn() ? '⏹ Arrêter le buffer' : '📼 Activer le buffer';
+  if (saveBtn) saveBtn.disabled = !isReplayBufferOn();
+  if (info) {
+    if (isReplayBufferOn()) {
+      const dur = Math.round((Date.now() - replayBufferStartedAt) / 1000);
+      const bytes = replayBufferChunks.reduce((acc, b) => acc + b.size, 0);
+      const mo = (bytes / 1024 / 1024).toFixed(1);
+      info.textContent = `Buffer actif depuis ${dur} s · ${mo} Mo en RAM`;
+    } else {
+      info.textContent = 'Buffer désactivé.';
+    }
+  }
+}
+
+// Met à jour l'info en RAM toutes les secondes quand le buffer tourne.
+setInterval(() => { if (isReplayBufferOn()) updateReplayBufferUi(); }, 1000);
 
 // ============ Enregistrement ============
 function toggleRecord() {
@@ -2708,6 +2932,101 @@ function bindShortcuts() {
   });
 }
 
+// ============ Push-to-talk / Push-to-mute par source audio ============
+// Bindings stockés par deviceId (ou source.id en fallback). Mode 'off' = pas
+// de raccourci, 'ptt' = audio coupé sauf quand la touche est maintenue,
+// 'ptm' = audio passé sauf quand la touche est maintenue.
+const PTT_BINDINGS_KEY = 'versetlive:ptt-bindings';
+function loadPttBindings() {
+  try { return JSON.parse(localStorage.getItem(PTT_BINDINGS_KEY) || '{}'); }
+  catch (e) { return {}; }
+}
+let pttBindings = loadPttBindings();
+function savePttBindings() { try { localStorage.setItem(PTT_BINDINGS_KEY, JSON.stringify(pttBindings)); } catch (e) {} }
+function pttIdFor(source) { return source.deviceId || ('id:' + source.id); }
+function getPttBinding(source) {
+  const id = pttIdFor(source);
+  return pttBindings[id] || { mode: 'off', key: '' };
+}
+function setPttBinding(source, partial) {
+  const id = pttIdFor(source);
+  const cur = pttBindings[id] || { mode: 'off', key: '' };
+  pttBindings[id] = { ...cur, ...partial };
+  if (pttBindings[id].mode === 'off') delete pttBindings[id];
+  savePttBindings();
+  applyPttGain(source);
+}
+// Quand une touche est maintenue : recalcule le gain effectif appliqué au GainNode.
+function applyPttGain(source) {
+  if (!source.audioGain) return;
+  const b = getPttBinding(source);
+  let g = source.audioGainValue ?? 1.0;
+  if (b.mode === 'ptt') g = source.pttActive ? g : 0;
+  else if (b.mode === 'ptm') g = source.pttActive ? 0 : g;
+  source.audioGain.gain.value = g;
+}
+const pttKeysDown = new Set();
+window.addEventListener('keydown', (e) => {
+  if (e.repeat) return;
+  // Ignore si on tape dans un input/textarea/contenteditable ou si modificateur
+  const t = e.target;
+  if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  const key = pttNormalizeKey(e.key);
+  if (!key) return;
+  pttKeysDown.add(key);
+  sources.forEach(s => {
+    const b = getPttBinding(s);
+    if (b.mode !== 'off' && b.key === key) {
+      s.pttActive = true;
+      applyPttGain(s);
+    }
+  });
+});
+window.addEventListener('keyup', (e) => {
+  const key = pttNormalizeKey(e.key);
+  if (!key) return;
+  pttKeysDown.delete(key);
+  sources.forEach(s => {
+    const b = getPttBinding(s);
+    if (b.mode !== 'off' && b.key === key) {
+      s.pttActive = false;
+      applyPttGain(s);
+    }
+  });
+});
+function pttNormalizeKey(k) {
+  if (!k) return '';
+  if (k === ' ') return 'Space';
+  if (k.length === 1) return k.toLowerCase();
+  return k; // Shift, Control, etc.
+}
+
+// Capture la prochaine touche pressée pour binder le raccourci PTT/PTM.
+function captureNextKeyFor(source, btn) {
+  if (!btn) return;
+  const original = btn.textContent;
+  btn.textContent = 'Appuie sur une touche…';
+  btn.classList.add('btn-primary');
+  const onKey = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.key === 'Escape') {
+      cleanup();
+      btn.textContent = original;
+      btn.classList.remove('btn-primary');
+      return;
+    }
+    const key = pttNormalizeKey(e.key);
+    if (!key) return;
+    setPttBinding(source, { key });
+    cleanup();
+    renderSources();
+  };
+  function cleanup() { window.removeEventListener('keydown', onKey, true); }
+  window.addEventListener('keydown', onKey, true);
+}
+
 // ============ Audio des téléphones (routing optionnel) ============
 function connectSourceAudio(source) {
   if (!source || source.audioRouted) return;
@@ -2717,9 +3036,11 @@ function connectSourceAudio(source) {
   if (!audioDest) rebuildAudioGraph();
   try {
     if (source.audioGainValue == null) source.audioGainValue = 1.0;
+    if (source.pttActive == null) source.pttActive = false;
     source.audioSrc = audioCtx.createMediaStreamSource(source.stream);
     source.audioGain = audioCtx.createGain();
     source.audioGain.gain.value = source.audioGainValue;
+    applyPttGain(source); // si binding PTM, démarre déjà passé ; PTT démarre coupé
     source.audioAnalyser = audioCtx.createAnalyser();
     source.audioAnalyser.fftSize = 256;
     source.audioSrc.connect(source.audioGain);

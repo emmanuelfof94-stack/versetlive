@@ -707,6 +707,15 @@
           </div>
           <div class="studio-hint" id="bitrateModeInfo" style="margin-top:6px;"></div>
         </div>
+        <div class="section" style="margin-bottom:14px;">
+          <div class="section-title"><span>📼 Replay buffer</span></div>
+          <div class="studio-hint">Capture continue en RAM. Au clic « Sauver », tu télécharges la séquence depuis l'activation jusqu'à maintenant, puis le buffer redémarre. Utile pour récupérer un moment fort après coup. <strong>Attention :</strong> consomme de la RAM (≈ <code>recordBitrate × durée</code>).</div>
+          <div class="studio-settings-row">
+            <button class="btn" id="replayBufferToggle">📼 Activer le buffer</button>
+            <button class="btn btn-primary" id="replayBufferSave" disabled>💾 Sauver maintenant</button>
+          </div>
+          <div class="studio-hint" id="replayBufferInfo" style="margin-top:6px;">Buffer désactivé.</div>
+        </div>
         <div class="section">
           <div class="section-title"><span>📁 Nom du fichier d'enregistrement</span></div>
           <div class="studio-hint">Tokens disponibles : <code>{date}</code>, <code>{time}</code>, <code>{title}</code>. Exemple : <code>service-{date}-{title}</code>.</div>
