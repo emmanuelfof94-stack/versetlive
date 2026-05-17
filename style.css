@@ -3510,3 +3510,38 @@ body.coop-mode .studio-coop-video { display: block; }
 body.coop-mode #programCanvas, body.coop-mode #previewCanvas { visibility: hidden; }
 body.coop-mode .studio-col-left { display: none; }
 body.coop-mode .studio-program-info { opacity: 0.6; }
+
+/* Partage caméra co-pilot → host (phase 2) */
+body.coop-mode .studio-coop-share-section { display: block; }
+.studio-coop-share-section { display: none; }
+.studio-coop-share-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+}
+.studio-coop-share-row select {
+  flex: 1;
+  padding: 6px 8px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  border-radius: 4px;
+  font-size: 13px;
+}
+.studio-coop-shared-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.studio-coop-shared-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 4px;
+  font-size: 13px;
+}
+.studio-coop-shared-item-label { flex: 1; }

@@ -80,6 +80,22 @@
       opts.onStatus && opts.onStatus(`Session ${code} prête`, 'ok');
     });
 
+    // Caméra contribuée par un co-pilot : il appelle peer avec son flux webcam.
+    // metadata = { kind: 'camera-contrib', deviceLabel, copilotName? }
+    peer.on('call', (call) => {
+      call.answer(); // pas de stream en retour
+      call.on('stream', (stream) => {
+        const meta = call.metadata || {};
+        const copilotEntry = copilots.get(call.peer);
+        const copilotName = (copilotEntry && copilotEntry.meta && copilotEntry.meta.name) || meta.copilotName || 'Co-pilot';
+        if (opts.onCoPilotCamera) {
+          try {
+            opts.onCoPilotCamera(stream, { peer: call.peer, name: copilotName, deviceLabel: meta.deviceLabel || '' }, call);
+          } catch (e) { console.warn('onCoPilotCamera err', e); }
+        }
+      });
+    });
+
     peer.on('connection', (conn) => {
       const copilotId = conn.peer;
       const entry = {
@@ -290,6 +306,19 @@
       requestState() {
         if (!hostConn || !hostConn.open) return;
         try { hostConn.send({ type: 'request-state' }); } catch (e) {}
+      },
+      // Phase 2 : partager une caméra locale au host. Retourne l'objet call
+      // (utilisable pour .close() côté co-pilot quand on stoppe le partage).
+      shareCamera(stream, meta) {
+        const hostPeerId = COOP_PEER_PREFIX + code;
+        const call = peer.call(hostPeerId, stream, {
+          metadata: {
+            kind: 'camera-contrib',
+            deviceLabel: (meta && meta.deviceLabel) || '',
+            copilotName: (meta && meta.copilotName) || opts.name || 'Co-pilot',
+          },
+        });
+        return call;
       },
       leave() {
         try { hostConn && hostConn.close(); } catch (e) {}
