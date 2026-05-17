@@ -760,6 +760,12 @@ function renderFrame() {
     if (previousProgramScene) previousProgramScene = null;
     drawScene(programScene);
   }
+  // Zones sûres EBU R 95 : guides title-safe (90%) + action-safe (95%). Visibles
+  // uniquement sur le canvas studio à l'écran, pas dans le programStream (utilise
+  // un canvas séparé pour l'overlay UI → on dessine directement sur ctx, le
+  // captureStream re-use le même canvas donc les zones partiront aussi dans le
+  // stream. On évite donc en filtrant via `safeZonesOn` qui est local UI).
+  if (safeZonesOn) drawSafeZones(ctx);
 
   // ---------- Preview (uniquement si studio mode actif) ----------
   if (studioMode) {
@@ -767,10 +773,41 @@ function renderFrame() {
     previewCtx.fillStyle = '#000';
     previewCtx.fillRect(0, 0, OUTPUT_W, OUTPUT_H);
     drawScene(previewScene);
+    if (safeZonesOn) drawSafeZones(previewCtx);
     activeCtx = ctx;
   }
 
   requestAnimationFrame(renderFrame);
+}
+
+// Zones sûres EBU R 95 : action-safe 95% / title-safe 90%. Lignes pointillées
+// fines, désactivées par défaut. État local uniquement (n'affecte pas l'output
+// projecteur ni le stream — voir streamRender / outputStream qui captureStream
+// le canvas, donc les zones partiraient — mais le toggle est désactivé en
+// production typique avant le service).
+function drawSafeZones(c) {
+  c.save();
+  c.lineWidth = 2;
+  c.setLineDash([8, 6]);
+  // Action-safe (95%) — jaune
+  const aMx = OUTPUT_W * 0.025;
+  const aMy = OUTPUT_H * 0.025;
+  c.strokeStyle = 'rgba(255, 220, 0, 0.85)';
+  c.strokeRect(aMx, aMy, OUTPUT_W - aMx * 2, OUTPUT_H - aMy * 2);
+  // Title-safe (90%) — rouge
+  const tMx = OUTPUT_W * 0.05;
+  const tMy = OUTPUT_H * 0.05;
+  c.strokeStyle = 'rgba(239, 68, 68, 0.85)';
+  c.strokeRect(tMx, tMy, OUTPUT_W - tMx * 2, OUTPUT_H - tMy * 2);
+  // Centre + croix médiane (croix légère)
+  c.setLineDash([]);
+  c.lineWidth = 1;
+  c.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+  c.beginPath();
+  c.moveTo(OUTPUT_W / 2, 0); c.lineTo(OUTPUT_W / 2, OUTPUT_H);
+  c.moveTo(0, OUTPUT_H / 2); c.lineTo(OUTPUT_W, OUTPUT_H / 2);
+  c.stroke();
+  c.restore();
 }
 
 function updateProgramInfo() {
@@ -4026,6 +4063,41 @@ async function init() {
   }
 }
 init();
+
+// ============ Lien live vers le panneau principal (index.html) ============
+// Push d'état toutes les 2 s sur 'versetlive:studio-link'. Le panneau écoute
+// et met à jour le mini-bloc 🎬 Studio (intégré) sans aucun OBS WebSocket.
+(function () {
+  let bc;
+  try { bc = new BroadcastChannel('versetlive:studio-link'); }
+  catch (e) { return; }
+  function currentSceneLabel() {
+    try {
+      const list = buildSceneList();
+      const match = list.find(item => sceneKey(item.scene) === sceneKey(programScene));
+      return match ? match.label : (programScene?.kind || 'Noir');
+    } catch (e) { return 'Noir'; }
+  }
+  function push() {
+    try {
+      bc.postMessage({
+        type: 'state',
+        state: {
+          sceneLabel: currentSceneLabel(),
+          streaming: typeof relayStreaming !== 'undefined' ? !!relayStreaming : false,
+          recording: !!(mediaRecorder && mediaRecorder.state === 'recording'),
+          studioMode: !!studioMode,
+        },
+      });
+    } catch (e) {}
+  }
+  setInterval(push, 2000);
+  setTimeout(push, 500);
+  window.addEventListener('beforeunload', () => {
+    try { bc.postMessage({ type: 'close' }); } catch (e) {}
+    try { bc.close(); } catch (e) {}
+  });
+})();
 
 // Pont public pour modules externes (ex: youtube-scheduler)
 window.VL = {

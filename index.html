@@ -17,10 +17,8 @@
         <div class="status-dot" id="liveDot"></div>
         <span id="liveStatus">En attente</span>
       </div>
-      <button class="btn" id="helpBtn">❔ Aide OBS</button>
       <button class="btn" id="openPresenterBtn" title="Vue présentateur (orateur)">👁 Présentateur</button>
       <a class="btn btn-primary" href="studio.html" target="_blank" title="Mixeur multi-caméras + enregistrement + sortie projecteur">🎬 Studio</a>
-      <button class="btn" id="openObsBtn">📺 Ouvrir vue OBS</button>
       <button class="btn btn-danger" id="clearLiveBtn">⏹ Effacer écran</button>
     </div>
   </div>
@@ -97,9 +95,13 @@
           <div class="field">
             <label>Couleur d'accent</label>
             <div class="color-row">
-              <input type="color" id="titleAccent" value="#d4af37">
-              <input type="text" id="titleAccentHex" value="#d4af37">
+              <input type="color" id="titleAccent" value="#B38E29">
+              <input type="text" id="titleAccentHex" value="#B38E29">
             </div>
+          </div>
+          <div class="field">
+            <label>Logo affiché sur le titre</label>
+            <div class="logo-picker" id="logoPicker"></div>
           </div>
           <button class="btn btn-success btn-block" id="sendTitleBtn">▶ Diffuser le titre</button>
 
@@ -326,141 +328,34 @@
         </div>
 
         <div class="section">
-          <div class="section-title obs-section-header">
-            <span>🎬 Contrôle OBS</span>
-            <div class="obs-conn-status">
-              <span class="obs-conn-dot disconnected" id="obsConnDot"></span>
-              <span id="obsConnLabel">Déconnecté</span>
+          <div class="section-title">
+            <span>🎬 Studio (intégré)</span>
+            <div class="studio-link-status">
+              <span class="studio-link-dot" id="studioLinkDot"></span>
+              <span id="studioLinkLabel">Fermé</span>
             </div>
           </div>
 
-          <div class="obs-actions-row">
-            <button class="btn btn-sm btn-primary" id="obsConnectBtn">🔌 Connecter</button>
-            <button class="btn btn-sm" id="obsSettingsBtn" title="Paramètres de connexion">⚙</button>
-            <button class="btn btn-sm" id="obsRefreshBtn" title="Rafraîchir">↻</button>
-            <button class="btn btn-sm" id="obsHelpBtn" title="Raccourcis clavier">⌨</button>
+          <div class="studio-link-card">
+            <div class="studio-link-row">
+              <span class="studio-link-row-label">Scène à l'écran</span>
+              <span class="studio-link-row-value" id="studioLinkScene">—</span>
+            </div>
+            <div class="studio-link-row">
+              <span class="studio-link-row-label">Diffusion</span>
+              <span class="studio-link-badge" id="studioLinkStreamBadge">arrêtée</span>
+            </div>
+            <div class="studio-link-row">
+              <span class="studio-link-row-label">Enregistrement</span>
+              <span class="studio-link-badge" id="studioLinkRecordBadge">arrêté</span>
+            </div>
           </div>
 
-          <div class="obs-panel-content" id="obsPanelContent">
+          <a class="btn btn-primary btn-block" id="openStudioBtn" href="studio.html" target="_blank" title="Ouvrir le Studio (caméras, scènes, stream, enregistrement, cartes)">🎬 Ouvrir le Studio</a>
 
-            <!-- Scènes -->
-            <div class="obs-sub" data-key="scenes">
-              <div class="obs-sub-head"><span class="obs-caret">▾</span><span>📷 Scènes</span></div>
-              <div class="obs-sub-body">
-                <div class="obs-scenes-list" id="obsScenesList">
-                  <div class="obs-empty">Connectez-vous à OBS</div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Aperçu live -->
-            <div class="obs-sub" data-key="preview">
-              <div class="obs-sub-head"><span class="obs-caret">▾</span><span>🖥 Aperçu live</span></div>
-              <div class="obs-sub-body">
-                <div class="obs-row">
-                  <label>Rafraîchissement</label>
-                  <select id="obsPreviewFps">
-                    <option value="0">Désactivé</option>
-                    <option value="1">1 fps</option>
-                    <option value="2" selected>2 fps</option>
-                    <option value="5">5 fps</option>
-                  </select>
-                </div>
-                <div class="obs-thumbs" id="obsThumbs">
-                  <div class="obs-thumb" id="obsThumbPreview" style="display:none;">
-                    <div class="obs-thumb-badge prv">PRV</div>
-                    <img id="obsThumbPreviewImg" alt="Aperçu Preview">
-                    <div class="obs-thumb-empty">en attente…</div>
-                  </div>
-                  <div class="obs-thumb" id="obsThumbProgram">
-                    <div class="obs-thumb-badge pgm">● LIVE</div>
-                    <img id="obsThumbProgramImg" alt="Aperçu Program">
-                    <div class="obs-thumb-empty">en attente…</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Studio mode & transitions -->
-            <div class="obs-sub" data-key="studio">
-              <div class="obs-sub-head"><span class="obs-caret">▾</span><span>🎬 Studio & transitions</span></div>
-              <div class="obs-sub-body">
-                <label class="obs-toggle-row">
-                  <span>Mode studio (PVW/PGM)</span>
-                  <input type="checkbox" id="obsStudioMode">
-                </label>
-                <div id="obsPreviewWrap" style="display:none;">
-                  <div class="obs-subtitle">Aperçu (cliquer pour pré-sélectionner)</div>
-                  <div class="obs-scenes-list" id="obsPreviewList"></div>
-                  <button class="btn btn-primary btn-block" id="obsTransitionBtn">⇆ Transition</button>
-                </div>
-                <div class="obs-row">
-                  <label>Transition</label>
-                  <select id="obsTransitionType"></select>
-                </div>
-                <div class="obs-row">
-                  <label>Durée</label>
-                  <div class="range-row">
-                    <input type="range" id="obsTransitionDuration" min="0" max="3000" step="50" value="300">
-                    <span class="range-value" id="obsTransitionDurationVal">300 ms</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Mixeur audio -->
-            <div class="obs-sub" data-key="audio">
-              <div class="obs-sub-head"><span class="obs-caret">▾</span><span>🎚 Mixeur audio</span></div>
-              <div class="obs-sub-body">
-                <div class="obs-mixer" id="obsMixer">
-                  <div class="obs-empty">—</div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Sources visibles -->
-            <div class="obs-sub" data-key="sources">
-              <div class="obs-sub-head"><span class="obs-caret">▾</span><span>👁 Sources de la scène</span></div>
-              <div class="obs-sub-body">
-                <div class="obs-sources" id="obsSources">
-                  <div class="obs-empty">—</div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Diffusion & enregistrement -->
-            <div class="obs-sub" data-key="broadcast">
-              <div class="obs-sub-head"><span class="obs-caret">▾</span><span>📡 Diffusion</span></div>
-              <div class="obs-sub-body">
-                <button class="btn btn-block obs-stream-btn" id="obsStreamBtn">▶ Démarrer le stream</button>
-                <div class="obs-info" id="obsStreamInfo" style="display:none;"></div>
-
-                <div class="obs-record-row" style="margin-top:8px;">
-                  <button class="btn obs-record-btn" id="obsRecordBtn">⏺ Démarrer l'enreg.</button>
-                  <button class="btn btn-sm" id="obsRecordPauseBtn" title="Pause / Reprendre" style="display:none;">⏸</button>
-                </div>
-                <div class="obs-info" id="obsRecordInfo" style="display:none;"></div>
-
-                <div class="obs-subtitle">Replay buffer</div>
-                <div class="obs-actions-row">
-                  <button class="btn btn-sm" id="obsReplayToggleBtn">▶ Démarrer</button>
-                  <button class="btn btn-sm btn-success" id="obsReplaySaveBtn" disabled>💾 Sauver</button>
-                </div>
-                <div class="obs-info" id="obsReplayInfo" style="display:none;">Replay buffer actif</div>
-              </div>
-            </div>
-
-            <!-- Stats -->
-            <div class="obs-sub" data-key="stats">
-              <div class="obs-sub-head"><span class="obs-caret">▾</span><span>📊 Stats</span></div>
-              <div class="obs-sub-body">
-                <div class="obs-stats" id="obsStats">
-                  <div class="obs-empty">—</div>
-                </div>
-              </div>
-            </div>
-
-          </div>
+          <p class="studio-link-hint">
+            Toutes les commandes (caméras, scènes, transitions, stream, enregistrement, cartes) se font depuis l'onglet Studio. Le verset et les chants sélectionnés ici s'y synchronisent automatiquement.
+          </p>
         </div>
 
         <div class="section">
@@ -468,120 +363,6 @@
           <div id="historyList"></div>
         </div>
 
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal Aide OBS -->
-  <div class="modal-backdrop" id="helpModal">
-    <div class="modal">
-      <h2>📺 Comment utiliser avec OBS Studio</h2>
-      <p>VersetLive génère une page d'affichage transparente que vous pouvez ajouter comme <strong>source navigateur</strong> dans OBS.</p>
-
-      <h3>Étape 1 — Ajouter une source navigateur dans OBS</h3>
-      <ol>
-        <li>Dans OBS Studio, cliquez sur <code>+</code> sous "Sources"</li>
-        <li>Choisissez <strong>"Source du navigateur"</strong></li>
-        <li>Donnez un nom (ex: <code>Versets</code>) et validez</li>
-      </ol>
-
-      <h3>Étape 2 — Configurer l'URL</h3>
-      <p>Cliquez sur <strong>"Ouvrir vue OBS"</strong> en haut à droite : la page d'affichage s'ouvre. Copiez l'URL complète depuis la barre d'adresse de votre navigateur, puis collez-la dans le champ <strong>URL</strong> d'OBS.</p>
-      <p>Réglages recommandés dans OBS :</p>
-      <ul>
-        <li>Largeur : <code>1920</code></li>
-        <li>Hauteur : <code>1080</code></li>
-        <li>Cochez <strong>"Arrière-plan transparent"</strong> (CSS personnalisé : <code>body { background: transparent !important; }</code>)</li>
-        <li>Cochez <strong>"Rafraîchir le navigateur lorsque la scène devient active"</strong></li>
-      </ul>
-
-      <h3>Étape 3 — Diffuser un verset</h3>
-      <ol>
-        <li>Sélectionnez un verset dans le panneau gauche</li>
-        <li>Cliquez sur <strong>▶ Diffuser</strong> (ou double-clic sur un verset)</li>
-        <li>Le verset apparaît instantanément dans OBS et sur votre flux</li>
-      </ol>
-
-      <h3>Astuce</h3>
-      <p>La page OBS et ce panneau de contrôle se synchronisent automatiquement via <code>BroadcastChannel</code> et <code>localStorage</code>. Tant que les deux pages sont sur la même origine (même URL de base), tout est instantané.</p>
-
-      <h3>Hors ligne</h3>
-      <p>L'onglet <strong>Manuel</strong> permet de saisir n'importe quel verset à la main si vous n'avez pas accès à internet (l'API <code>bolls.life</code> est utilisée pour récupérer les textes en ligne).</p>
-
-      <div style="text-align:right; margin-top:20px;">
-        <button class="btn btn-primary" id="closeHelp">Compris</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal Raccourcis OBS -->
-  <div class="modal-backdrop" id="obsShortcutsModal">
-    <div class="modal">
-      <div class="modal-header">
-        <h2>⌨ Raccourcis OBS</h2>
-        <button class="modal-close" id="obsShortcutsClose">×</button>
-      </div>
-      <div class="modal-body">
-        <p>Raccourcis actifs uniquement quand OBS est connecté et qu'aucun champ texte n'a le focus.</p>
-        <table class="shortcuts-table">
-          <tr><td><kbd>1</kbd>–<kbd>9</kbd></td><td>Basculer sur la scène n° N</td></tr>
-          <tr><td><kbd>S</kbd></td><td>Démarrer / arrêter le stream</td></tr>
-          <tr><td><kbd>R</kbd></td><td>Démarrer / arrêter l'enregistrement</td></tr>
-          <tr><td><kbd>P</kbd></td><td>Pause / reprendre l'enregistrement</td></tr>
-          <tr><td><kbd>B</kbd></td><td>Sauvegarder le replay buffer</td></tr>
-          <tr><td><kbd>M</kbd></td><td>Mute / unmute toutes les sources audio</td></tr>
-          <tr><td><kbd>T</kbd></td><td>Déclencher la transition (mode studio)</td></tr>
-          <tr><td><kbd>Esc</kbd></td><td>Effacer l'écran VersetLive</td></tr>
-        </table>
-      </div>
-      <div class="modal-footer">
-        <div style="flex:1;"></div>
-        <button class="btn btn-primary" id="obsShortcutsOk">Fermer</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal Paramètres OBS -->
-  <div class="modal-backdrop" id="obsSettingsModal">
-    <div class="modal">
-      <div class="modal-header">
-        <h2>🎬 Paramètres OBS</h2>
-        <button class="modal-close" id="obsSettingsClose">×</button>
-      </div>
-      <div class="modal-body">
-        <p>Pour piloter OBS, active d'abord le serveur WebSocket dans OBS Studio :</p>
-        <ol>
-          <li>Dans OBS : menu <strong>Outils</strong> → <strong>Paramètres du serveur WebSocket</strong></li>
-          <li>Coche <strong>« Activer le serveur WebSocket »</strong> (port par défaut : <code>4455</code>)</li>
-          <li>Coche <strong>« Activer l'authentification »</strong> et copie le mot de passe</li>
-          <li>Renseigne ces infos ci-dessous puis clique sur <strong>Enregistrer</strong></li>
-        </ol>
-
-        <div class="form-grid" style="margin-top:16px;">
-          <div class="field span-2">
-            <label>Hôte</label>
-            <input type="text" id="obsHost" value="localhost" placeholder="localhost ou adresse IP">
-          </div>
-          <div class="field">
-            <label>Port</label>
-            <input type="number" id="obsPort" value="4455" min="1" max="65535">
-          </div>
-          <div class="field span-3">
-            <label>Mot de passe</label>
-            <input type="password" id="obsPassword" placeholder="Laisser vide si auth désactivée">
-          </div>
-          <div class="field span-3">
-            <label class="checkbox-label">
-              <input type="checkbox" id="obsAutoConnect">
-              Se connecter automatiquement au démarrage
-            </label>
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <div style="flex:1;"></div>
-        <button class="btn" id="obsSettingsCancel">Annuler</button>
-        <button class="btn btn-primary" id="obsSettingsSave">Enregistrer & connecter</button>
       </div>
     </div>
   </div>
@@ -670,7 +451,7 @@
   <script src="songselect-import.js"></script>
   <script src="titles.js"></script>
   <script src="timer.js"></script>
-  <script src="obs-control.js"></script>
+  <script src="studio-link.js"></script>
   <script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>

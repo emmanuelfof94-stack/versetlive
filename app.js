@@ -138,7 +138,6 @@ const els = {
   nextBtn: document.getElementById('nextVerseBtn'),
   sendLiveBtn: document.getElementById('sendLiveBtn'),
   clearLiveBtn: document.getElementById('clearLiveBtn'),
-  openObsBtn: document.getElementById('openObsBtn'),
 
   liveDot: document.getElementById('liveDot'),
   liveStatus: document.getElementById('liveStatus'),
@@ -147,9 +146,6 @@ const els = {
 
   historyList: document.getElementById('historyList'),
   toast: document.getElementById('toast'),
-  helpBtn: document.getElementById('helpBtn'),
-  helpModal: document.getElementById('helpModal'),
-  closeHelp: document.getElementById('closeHelp'),
 
   fontFamily: document.getElementById('fontFamily'),
   fontSize: document.getElementById('fontSize'),
@@ -533,12 +529,6 @@ els.nextBtn.addEventListener('click', () => {
   if (activeIndex < chapterVerses.length - 1) { selectVerse(activeIndex + 1); sendCurrentVerse(); }
 });
 
-els.openObsBtn.addEventListener('click', () => {
-  const url = new URL('obs.html', window.location.href).href;
-  window.open(url, 'obs-display', 'width=1280,height=720');
-  navigator.clipboard?.writeText(url).then(() => toast('URL OBS copiée : ' + url)).catch(() => toast('URL : ' + url));
-});
-
 const openPresenterBtn = document.getElementById('openPresenterBtn');
 if (openPresenterBtn) {
   openPresenterBtn.addEventListener('click', () => {
@@ -700,13 +690,6 @@ els.bgColorHex.addEventListener('change', () => {
     els.bgColor.value = els.bgColorHex.value;
     broadcastStyleOnly();
   }
-});
-
-// Help modal
-els.helpBtn.addEventListener('click', () => els.helpModal.classList.add('show'));
-els.closeHelp.addEventListener('click', () => els.helpModal.classList.remove('show'));
-els.helpModal.addEventListener('click', e => {
-  if (e.target === els.helpModal) els.helpModal.classList.remove('show');
 });
 
 // Keyboard shortcuts
