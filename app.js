@@ -234,13 +234,19 @@ function broadcastStyleOnly() {
   postToPreview({ type: 'style', payload: getStyle() });
 }
 
-function broadcastVerse(reference, text, translation) {
+// meta (optionnel) : pour les chants, porte les métadonnées de navigation
+//   { kind: 'song', songId, songTitle, songNumber, sectionIndex, totalSections,
+//     sectionLabel, sectionType }
+// Le studio (et plus tard les co-pilots) utilisent ces champs pour afficher
+// un panneau « 🎵 Chant actif » avec ses propres contrôles ◀/▶ Section.
+function broadcastVerse(reference, text, translation, meta) {
   const state = {
     reference,
     text,
     translation: translation || currentTranslation,
     style: getStyle(),
     ts: Date.now(),
+    ...(meta || {}),
   };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   bc?.postMessage({ type: 'show', payload: state });

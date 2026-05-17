@@ -135,6 +135,27 @@
 
       <div class="section">
         <div class="section-title">
+          <span>🎵 Chant</span>
+          <button class="btn btn-sm" id="clearSongStudioBtn" title="Effacer le chant à l'écran">🗑</button>
+        </div>
+        <div class="studio-song-preview" id="songStatus">
+          <div class="studio-empty">Aucun chant affiché.<br><small>Tape un numéro ci-dessous ou diffuse depuis l'onglet principal (onglet Chants).</small></div>
+        </div>
+        <div class="studio-song-nav" style="display:flex; gap:6px; margin-top:8px;">
+          <button class="btn btn-sm" id="prevSongSectionBtn" style="flex:1;" title="Section précédente du chant en cours" disabled>◀ Section</button>
+          <button class="btn btn-sm" id="nextSongSectionBtn" style="flex:1;" title="Section suivante du chant en cours" disabled>Section ▶</button>
+        </div>
+        <div class="studio-song-goto" style="display:flex; gap:6px; margin-top:6px;">
+          <input type="text" id="songNumberInputStudio" placeholder="N° (ex : 123)" inputmode="numeric" style="flex:1; padding:6px 8px; border-radius:4px; border:1px solid #444; background:#1a1a1a; color:inherit; font-size:13px;">
+          <button class="btn btn-sm btn-primary" id="songNumberGoStudioBtn" title="Diffuser ce chant (commence à la section 1)">→</button>
+        </div>
+        <div class="studio-hint" style="line-height:1.4; padding:4px 0 0; font-size:11px; color:#777;">
+          Nécessite l'onglet panneau principal ouvert. Le numéro cherche dans les chants des Chants de Victoire (recueil 1926).
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">
           <span>🎬 Intro / Outro</span>
           <button class="btn btn-sm" id="openIntroOutroBtn">Configurer</button>
         </div>

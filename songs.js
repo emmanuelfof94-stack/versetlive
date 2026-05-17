@@ -224,12 +224,7 @@ function playCurrentStep() {
   activeSectionIndex = sectionIdx;
   // Diffuse la section sur l'écran OBS
   const sec = song.sections[sectionIdx];
-  if (sec) {
-    const reference = `${song.title}${song.number ? ' (n°' + song.number + ')' : ''} — ${sec.label || ''}`;
-    if (typeof broadcastVerse === 'function') {
-      broadcastVerse(reference, sec.text, song.book || 'Chant');
-    }
-  }
+  if (sec) pushSongSection(song, sectionIdx, sec);
   renderSongDetail();
   scheduleNextStep();
 }
@@ -521,11 +516,100 @@ function sendActiveSection() {
   if (!song) return;
   const sec = (song.sections || [])[activeSectionIndex];
   if (!sec) return;
+  pushSongSection(song, activeSectionIndex, sec);
+}
+
+// Diffuse la section avec les métadonnées chant complètes : le studio
+// (et plus tard les co-pilots) peut afficher un panneau dédié et naviguer
+// entre sections sans avoir à connaître la structure du chant.
+function pushSongSection(song, sectionIdx, sec) {
+  if (typeof broadcastVerse !== 'function') return;
+  const sections = song.sections || [];
   const reference = `${song.title}${song.number ? ' (n°' + song.number + ')' : ''} — ${sec.label || ''}`;
-  // broadcastVerse vient de app.js
-  if (typeof broadcastVerse === 'function') {
-    broadcastVerse(reference, sec.text, song.book || 'Chant');
+  broadcastVerse(reference, sec.text, song.book || 'Chant', {
+    kind: 'song',
+    songId: song.id,
+    songTitle: song.title || '',
+    songNumber: song.number || null,
+    songBook: song.book || '',
+    sectionIndex: sectionIdx,
+    totalSections: sections.length,
+    sectionLabel: sec.label || '',
+    sectionType: sec.type || 'verse',
+  });
+}
+
+// ============ songNav : pilotage depuis le studio ============
+// Le studio envoie { type: 'songNav', action, payload? } via BroadcastChannel.
+// Actions :
+//   - 'nextSection' / 'prevSection' : navigue dans le chant actif
+//   - 'stop' : efface l'écran (clearLive) + stoppe auto-play
+//   - 'showByNumber' : payload = numéro (string ou int) → charge ce chant
+//   - 'showById' : payload = { songId, sectionIndex? }
+try {
+  const songsBc = new BroadcastChannel('versetlive');
+  songsBc.addEventListener('message', (event) => {
+    const msg = event.data;
+    if (!msg || msg.type !== 'songNav') return;
+    handleSongNav(msg.action, msg.payload, songsBc);
+  });
+} catch (e) {}
+
+function handleSongNav(action, payload, bc) {
+  const ack = (ok, reason) => { try { bc && bc.postMessage({ type: 'songNavAck', ok, reason }); } catch (e) {} };
+
+  if (action === 'stop') {
+    if (typeof stopAutoPlay === 'function') stopAutoPlay(true);
+    if (typeof clearLive === 'function') clearLive();
+    return ack(true);
   }
+
+  if (action === 'nextSection' || action === 'prevSection') {
+    const song = allSongs.find(s => s.id === activeSongId);
+    if (!song) return ack(false, 'no-active-song');
+    const sections = song.sections || [];
+    if (!sections.length) return ack(false, 'no-sections');
+    let next = activeSectionIndex;
+    if (action === 'nextSection') {
+      if (activeSectionIndex >= sections.length - 1) return ack(false, 'end-of-song');
+      next = activeSectionIndex + 1;
+    } else {
+      if (activeSectionIndex <= 0) return ack(false, 'start-of-song');
+      next = activeSectionIndex - 1;
+    }
+    // Stoppe l'auto-play (navigation manuelle = override)
+    if (typeof stopAutoPlay === 'function' && autoState && autoState.active) stopAutoPlay(true);
+    activeSectionIndex = next;
+    pushSongSection(song, next, sections[next]);
+    if (typeof renderSongDetail === 'function') renderSongDetail();
+    return ack(true);
+  }
+
+  if (action === 'showByNumber') {
+    const num = String(payload || '').trim();
+    if (!num) return ack(false, 'parse');
+    const song = allSongs.find(s => String(s.number || '') === num);
+    if (!song) return ack(false, 'song-not-found');
+    activeSongId = song.id;
+    activeSectionIndex = 0;
+    const sec = (song.sections || [])[0];
+    if (sec) pushSongSection(song, 0, sec);
+    if (typeof renderSongDetail === 'function') renderSongDetail();
+    return ack(true);
+  }
+
+  if (action === 'showById' && payload && payload.songId) {
+    const song = allSongs.find(s => s.id === payload.songId);
+    if (!song) return ack(false, 'song-not-found');
+    activeSongId = song.id;
+    activeSectionIndex = Number.isInteger(payload.sectionIndex) ? payload.sectionIndex : 0;
+    const sec = (song.sections || [])[activeSectionIndex];
+    if (sec) pushSongSection(song, activeSectionIndex, sec);
+    if (typeof renderSongDetail === 'function') renderSongDetail();
+    return ack(true);
+  }
+
+  ack(false, 'unknown-action');
 }
 
 // ====== EDITOR MODAL ======

@@ -1108,13 +1108,19 @@ function applyVerseState(state) {
   verseState = state;
   if (typeof coopBroadcast === 'function') coopBroadcast();
   renderVerseStatus();
-  if (state && state.reference) syncBookChapterSelectsFromRef(state.reference);
+  renderSongStatus();
+  if (state && state.reference && state.kind !== 'song') syncBookChapterSelectsFromRef(state.reference);
 }
 
 function renderVerseStatus() {
   const el = $('verseStatus');
   if (!verseState) {
     el.innerHTML = '<div class="studio-empty">Aucun verset affiché.<br><small>Diffuse depuis l\'onglet principal.</small></div>';
+    return;
+  }
+  // Un chant occupe le panneau dédié 🎵 plus bas — ici on signale juste.
+  if (verseState.kind === 'song') {
+    el.innerHTML = '<div class="studio-empty">— Chant en cours (voir panneau 🎵) —</div>';
     return;
   }
   if (verseState.kind === 'title') {
@@ -1132,6 +1138,35 @@ function renderVerseStatus() {
   } else {
     el.innerHTML = '<div class="studio-empty">Écran effacé.</div>';
   }
+}
+
+function renderSongStatus() {
+  const el = $('songStatus');
+  if (!el) return;
+  const prevBtn = $('prevSongSectionBtn');
+  const nextBtn = $('nextSongSectionBtn');
+  if (!verseState || verseState.kind !== 'song') {
+    el.innerHTML = '<div class="studio-empty">Aucun chant affiché.<br><small>Tape un numéro ci-dessous ou diffuse depuis l\'onglet principal (onglet Chants).</small></div>';
+    if (prevBtn) prevBtn.disabled = true;
+    if (nextBtn) nextBtn.disabled = true;
+    return;
+  }
+  const idx = verseState.sectionIndex ?? 0;
+  const total = verseState.totalSections ?? 0;
+  const sectionLabel = verseState.sectionLabel || `Section ${idx + 1}`;
+  const sectionType = verseState.sectionType || 'verse';
+  const numberBadge = verseState.songNumber ? `<span class="studio-song-number">n°${escapeHtml(String(verseState.songNumber))}</span>` : '';
+  el.innerHTML = `
+    <div class="studio-verse-kind">🎵 Chant actif ${numberBadge}</div>
+    <div class="studio-song-title">${escapeHtml(verseState.songTitle || '')}</div>
+    <div class="studio-song-section">
+      <span class="studio-song-section-badge type-${escapeHtml(sectionType)}">${escapeHtml(sectionLabel)}</span>
+      <span class="studio-song-progress">${idx + 1} / ${total || '?'}</span>
+    </div>
+    <div class="studio-song-text">${escapeHtml((verseState.text || '').slice(0, 220))}${(verseState.text || '').length > 220 ? '…' : ''}</div>
+  `;
+  if (prevBtn) prevBtn.disabled = idx <= 0;
+  if (nextBtn) nextBtn.disabled = total ? idx >= total - 1 : true;
 }
 
 // Init depuis localStorage
@@ -1163,6 +1198,18 @@ try {
         'book-not-found': 'Livre introuvable',
       };
       toast(reasons[msg.reason] || ('Navigation : ' + msg.reason), true);
+    }
+    else if (msg.type === 'songNavAck' && !msg.ok) {
+      const reasons = {
+        'no-active-song': 'Aucun chant sélectionné dans le panneau',
+        'no-sections': 'Le chant n\'a aucune section',
+        'end-of-song': 'Dernière section du chant',
+        'start-of-song': 'Première section du chant',
+        'parse': 'Numéro invalide',
+        'song-not-found': 'Numéro de chant introuvable',
+        'unknown-action': 'Action chant inconnue',
+      };
+      toast(reasons[msg.reason] || ('Chant : ' + msg.reason), true);
     }
     // Forward to TV (si connectée)
     sendToTv(msg);
@@ -1202,6 +1249,35 @@ function bindVerseNav() {
   });
   populateBookSelect();
   bindBookChapterSelectors();
+}
+
+// ============ Navigation chants depuis le studio ============
+function navigateSongFromStudio(action, payload) {
+  if (!verseBc) {
+    toast('Navigation chants non supportée (BroadcastChannel)', true);
+    return;
+  }
+  verseBc.postMessage({ type: 'songNav', action, payload });
+}
+
+function bindSongNav() {
+  const prev = $('prevSongSectionBtn');
+  if (prev) prev.addEventListener('click', () => navigateSongFromStudio('prevSection'));
+  const next = $('nextSongSectionBtn');
+  if (next) next.addEventListener('click', () => navigateSongFromStudio('nextSection'));
+  const clear = $('clearSongStudioBtn');
+  if (clear) clear.addEventListener('click', () => navigateSongFromStudio('stop'));
+  const input = $('songNumberInputStudio');
+  const go = $('songNumberGoStudioBtn');
+  const sendNumber = () => {
+    const num = input?.value.trim();
+    if (!num) return;
+    navigateSongFromStudio('showByNumber', num);
+  };
+  if (go) go.addEventListener('click', sendNumber);
+  if (input) input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); sendNumber(); }
+  });
 }
 
 // ============ Sélecteurs livre/chapitre (delegate au panneau via nav) ============
@@ -3169,6 +3245,7 @@ async function init() {
   bindTransitionUi();
   bindCoopUi();
   bindVerseNav();
+  bindSongNav();
   bindQualitySelector();
   applyStudioModeUi();
   applyTransitionUi();
