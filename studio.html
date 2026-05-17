@@ -28,6 +28,7 @@
         <option value="1080p">📐 1080p · qualité maxi</option>
       </select>
       <button class="btn" id="safeZonesBtn" title="Affiche les zones sûres EBU R 95 (title-safe 90% rouge / action-safe 95% jaune) sur les moniteurs Programme & Preview. N'apparaît pas dans le stream ni sur le projecteur.">🎯 Zones sûres</button>
+      <button class="btn" id="multiviewBtn" title="Affiche une grille d'aperçus live des scènes (cliquables pour Take rapide)">📑 Multiview</button>
       <button class="btn" id="openSettingsBtn" title="Bitrate stream/record, nom du fichier d'enregistrement, etc.">⚙️ Paramètres</button>
       <button class="btn btn-danger" id="recordBtn">⏺ Enregistrer</button>
       <button class="btn" id="openScheduleBtn" title="Planifier un live YouTube à l'avance">📅 Planifier</button>
@@ -245,6 +246,15 @@
           </div>
           <div class="studio-program-info" id="programInfo">1920×1080 · 30 fps · Aucune caméra</div>
         </div>
+      </div>
+
+      <!-- Multiview : grille d'aperçus live des scènes (5 fps) -->
+      <div class="studio-multiview" id="multiviewContainer" hidden>
+        <div class="studio-multiview-head">
+          <span>📑 Multiview — clic = Take direct (ou Preview en mode Studio)</span>
+          <button class="btn btn-sm" id="multiviewCloseBtn">×</button>
+        </div>
+        <div class="studio-multiview-grid" id="multiviewGrid"></div>
       </div>
 
       <!-- Bandeau mode co-pilot (visible uniquement quand body.coop-mode) -->
@@ -826,6 +836,7 @@
       <div class="modal-body">
         <div class="studio-help-tabs">
           <button class="studio-help-tab active" data-help-tab="start">🚀 Premiers pas</button>
+          <button class="studio-help-tab" data-help-tab="phonecams">📱 Caméras phone</button>
           <button class="studio-help-tab" data-help-tab="shortcuts">⌨ Raccourcis</button>
           <button class="studio-help-tab" data-help-tab="streaming">📡 Streaming</button>
           <button class="studio-help-tab" data-help-tab="tv">📺 TV</button>
@@ -853,6 +864,59 @@
             <li>Active le mode <kbd>🔴 Direct</kbd> (Preview/Program) pour préparer la scène suivante avant de l'envoyer en direct.</li>
             <li>La sortie projecteur (<kbd>📽</kbd>) ouvre une fenêtre à glisser sur ton second écran ou à diriger vers un câble HDMI.</li>
             <li>Pour une TV sans câble, utilise <kbd>📺 TV</kbd> — voir l'onglet TV.</li>
+          </ul>
+        </div>
+
+        <!-- Caméras phone -->
+        <div class="studio-help-pane" data-help-pane="phonecams">
+          <h3>Utiliser un téléphone comme caméra</h3>
+          <p>Trois options, du plus simple au plus avancé. Tu peux mélanger : 1 webcam USB + 1 Iriun + 1 QR en même temps, c'est OK.</p>
+
+          <h3>1. Iriun Webcam <span style="color:#22c55e; font-size:12px;">— recommandé pour un usage régulier</span></h3>
+          <p>App tierce qui transforme ton téléphone en webcam système. Une fois installée, le téléphone apparaît dans la liste des caméras USB comme n'importe quelle webcam — aucune config dans VersetLive.</p>
+          <ol>
+            <li>Sur le Mac : télécharge l'app desktop depuis <a href="https://iriun.com/" target="_blank">iriun.com</a> et installe-la.</li>
+            <li>Sur le téléphone : installe <strong>Iriun Webcam</strong> depuis l'App Store (iOS) ou Play Store (Android).</li>
+            <li>Lance les deux apps avec Mac + téléphone sur le <strong>même Wi-Fi</strong>. La détection est automatique.</li>
+            <li>Dans le Studio : clique <kbd>+ Ajouter caméra</kbd> → la caméra Iriun apparaît dans la liste, choisis-la.</li>
+          </ol>
+          <ul>
+            <li><strong>Pour qui :</strong> usage récurrent, mêmes téléphones tous les dimanches, qualité fiable.</li>
+            <li><strong>Coût :</strong> gratuit jusqu'à 1080p avec un petit watermark Iriun. Version Pro (~15 $) pour 4K et logo retiré.</li>
+            <li><strong>USB possible :</strong> au lieu du Wi-Fi, branche le téléphone en USB pour une latence quasi nulle (Android : activer le débogage USB ; iPhone : voir option 3).</li>
+          </ul>
+
+          <h3>2. QR Code intégré VersetLive</h3>
+          <p>La solution sans rien à installer sur le téléphone.</p>
+          <ol>
+            <li>Dans le Studio, regarde la section <strong>📱 Caméras à distance</strong> : un QR code et un code de salle s'affichent.</li>
+            <li>Sur le téléphone : flashe le QR (ou tape l'URL manuellement).</li>
+            <li>Accepte les autorisations caméra + micro dans le navigateur.</li>
+            <li>La caméra du téléphone apparaît côté Studio dans la liste des sources.</li>
+          </ol>
+          <ul>
+            <li><strong>Pour qui :</strong> invités, dépannage, sessions ponctuelles, téléphones qu'on n'utilise qu'une fois.</li>
+            <li><strong>Coût :</strong> gratuit, zéro install.</li>
+            <li><strong>Limites :</strong> à refaire à chaque session, dépend de la stabilité WebRTC du navigateur mobile.</li>
+          </ul>
+
+          <h3>3. Continuité de la caméra (iPhone + macOS 13+)</h3>
+          <p>Apple a un système natif où l'iPhone branché en USB (ou même proche en sans-fil) devient une webcam macOS sans aucune app.</p>
+          <ol>
+            <li>iPhone connecté avec le même Apple ID que le Mac.</li>
+            <li>Branche l'iPhone en USB (ou laisse-le à proximité, écran éteint).</li>
+            <li>Dans le Studio : clique <kbd>+ Ajouter caméra</kbd> → ton iPhone apparaît comme caméra système.</li>
+          </ol>
+          <ul>
+            <li><strong>Pour qui :</strong> qualité max, latence minimale, déjà dans l'écosystème Apple.</li>
+            <li><strong>Limites :</strong> iPhone + macOS 13 (Ventura) ou plus uniquement.</li>
+          </ul>
+
+          <h3>Conseils Wi-Fi</h3>
+          <ul>
+            <li>Mac et téléphones sur la même bande <strong>5 GHz</strong> : la latence chute par rapport au 2,4 GHz.</li>
+            <li>Évite les VPN sur le téléphone — ils cassent la découverte locale (Iriun et QR code WebRTC).</li>
+            <li>Si plusieurs caméras saturent le Wi-Fi : passe-en au moins une en USB.</li>
           </ul>
         </div>
 
