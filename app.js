@@ -7,6 +7,33 @@ const HISTORY_KEY = 'versetlive:history';
 
 const bc = (() => { try { return new BroadcastChannel(CHANNEL_NAME); } catch { return null; } })();
 
+// Charge un chapitre par (livre, chapitre) et place activeIndex sur le
+// verset demandé (1-indexé, ou dernier verset si verseNum === 'last').
+// Utilisé par la nav cross-chapitre du studio.
+async function loadChapterAt(book, chap, verseNum) {
+  const verses = await fetchChapter(currentTranslation, book.id, chap);
+  if (!verses || !verses.length) throw new Error('Chapitre vide');
+  chapterVerses = verses.map(vx => ({
+    num: vx.verse,
+    text: cleanVerseHtml(vx.text),
+    reference: `${book.name} ${chap}:${vx.verse}`,
+  }));
+  currentBookName = book.name;
+  currentChapter = chap;
+  if (verseNum === 'last') activeIndex = chapterVerses.length - 1;
+  else activeIndex = chapterVerses.findIndex(cv => cv.num === verseNum);
+  if (activeIndex < 0) activeIndex = 0;
+  // Synchroniser les sélecteurs du panneau si présents.
+  if (els.book) els.book.value = book.id;
+  if (els.chapter) {
+    els.chapter.innerHTML = Array.from({ length: book.chapters }, (_, i) =>
+      `<option value="${i + 1}">${i + 1}</option>`
+    ).join('');
+    els.chapter.value = chap;
+  }
+  renderVerseList();
+}
+
 // Reçoit les commandes de navigation envoyées par le studio (sans
 // devoir revenir manuellement sur cet onglet). Le studio envoie
 // { type: 'nav', action: 'prev'|'next'|'clear'|'showRef', payload? }.
@@ -18,14 +45,45 @@ bc?.addEventListener('message', async (event) => {
       selectVerse(activeIndex + 1);
       sendCurrentVerse();
     } else {
-      bc?.postMessage({ type: 'navAck', ok: false, reason: 'end-of-chapter' });
+      // Cross-chapitre : aller au verset 1 du chapitre suivant.
+      // Cross-livre si on est au dernier chapitre du livre courant.
+      const curBook = BIBLE_BOOKS.find(b => b.name === currentBookName);
+      if (!curBook) { bc?.postMessage({ type: 'navAck', ok: false, reason: 'end-of-chapter' }); return; }
+      let nextBook = curBook;
+      let nextChap = currentChapter + 1;
+      if (nextChap > curBook.chapters) {
+        nextBook = BIBLE_BOOKS.find(b => b.id === curBook.id + 1);
+        if (!nextBook) { bc?.postMessage({ type: 'navAck', ok: false, reason: 'end-of-bible' }); return; }
+        nextChap = 1;
+      }
+      try {
+        await loadChapterAt(nextBook, nextChap, 1);
+        sendCurrentVerse();
+      } catch (e) {
+        bc?.postMessage({ type: 'navAck', ok: false, reason: 'fetch-' + (e.message || 'error') });
+      }
     }
   } else if (msg.action === 'prev') {
     if (activeIndex > 0) {
       selectVerse(activeIndex - 1);
       sendCurrentVerse();
     } else {
-      bc?.postMessage({ type: 'navAck', ok: false, reason: 'start-of-chapter' });
+      // Cross-chapitre : aller au dernier verset du chapitre précédent.
+      const curBook = BIBLE_BOOKS.find(b => b.name === currentBookName);
+      if (!curBook) { bc?.postMessage({ type: 'navAck', ok: false, reason: 'start-of-chapter' }); return; }
+      let prevBook = curBook;
+      let prevChap = currentChapter - 1;
+      if (prevChap < 1) {
+        prevBook = BIBLE_BOOKS.find(b => b.id === curBook.id - 1);
+        if (!prevBook) { bc?.postMessage({ type: 'navAck', ok: false, reason: 'start-of-bible' }); return; }
+        prevChap = prevBook.chapters;
+      }
+      try {
+        await loadChapterAt(prevBook, prevChap, 'last');
+        sendCurrentVerse();
+      } catch (e) {
+        bc?.postMessage({ type: 'navAck', ok: false, reason: 'fetch-' + (e.message || 'error') });
+      }
     }
   } else if (msg.action === 'clear') {
     clearLive();
@@ -42,18 +100,9 @@ bc?.addEventListener('message', async (event) => {
       b.short.toLowerCase() === bookName
     );
     if (!book) { bc?.postMessage({ type: 'navAck', ok: false, reason: 'book-not-found' }); return; }
+    if (chap < 1 || chap > book.chapters) { bc?.postMessage({ type: 'navAck', ok: false, reason: 'chapter-out-of-range' }); return; }
     try {
-      const verses = await fetchChapter(currentTranslation, book.id, chap);
-      chapterVerses = verses.map(vx => ({
-        num: vx.verse,
-        text: cleanVerseHtml(vx.text),
-        reference: `${book.name} ${chap}:${vx.verse}`,
-      }));
-      currentBookName = book.name;
-      currentChapter = chap;
-      activeIndex = chapterVerses.findIndex(cv => cv.num === verseNum);
-      if (activeIndex < 0) activeIndex = 0;
-      renderVerseList();
+      await loadChapterAt(book, chap, verseNum);
       sendCurrentVerse();
     } catch (e) {
       bc?.postMessage({ type: 'navAck', ok: false, reason: 'fetch-' + (e.message || 'error') });

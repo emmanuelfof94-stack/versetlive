@@ -1108,6 +1108,7 @@ function applyVerseState(state) {
   verseState = state;
   if (typeof coopBroadcast === 'function') coopBroadcast();
   renderVerseStatus();
+  if (state && state.reference) syncBookChapterSelectsFromRef(state.reference);
 }
 
 function renderVerseStatus() {
@@ -1155,6 +1156,9 @@ try {
       const reasons = {
         'end-of-chapter': 'Dernier verset du chapitre',
         'start-of-chapter': 'Premier verset du chapitre',
+        'end-of-bible': 'Fin de la Bible atteinte',
+        'start-of-bible': 'Début de la Bible atteint',
+        'chapter-out-of-range': 'Numéro de chapitre hors limites',
         'parse': 'Référence invalide — exemple : Jean 3:16',
         'book-not-found': 'Livre introuvable',
       };
@@ -1196,6 +1200,67 @@ function bindVerseNav() {
   if (input) input.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') { e.preventDefault(); sendRef(); }
   });
+  populateBookSelect();
+  bindBookChapterSelectors();
+}
+
+// ============ Sélecteurs livre/chapitre (delegate au panneau via nav) ============
+function populateBookSelect() {
+  const bookSel = $('bookSelectStudio');
+  if (!bookSel || typeof BIBLE_BOOKS === 'undefined') return;
+  bookSel.innerHTML = BIBLE_BOOKS.map(b => `<option value="${b.id}">${b.short} · ${b.name}</option>`).join('');
+}
+
+function populateChapterSelect(bookId) {
+  const chapSel = $('chapterSelectStudio');
+  if (!chapSel || typeof BIBLE_BOOKS === 'undefined') return;
+  const book = BIBLE_BOOKS.find(b => b.id == bookId);
+  if (!book) { chapSel.innerHTML = ''; return; }
+  const current = parseInt(chapSel.value || '1', 10);
+  chapSel.innerHTML = Array.from({ length: book.chapters }, (_, i) =>
+    `<option value="${i + 1}">${i + 1}</option>`
+  ).join('');
+  if (current >= 1 && current <= book.chapters) chapSel.value = String(current);
+}
+
+function bindBookChapterSelectors() {
+  const bookSel = $('bookSelectStudio');
+  const chapSel = $('chapterSelectStudio');
+  if (!bookSel || !chapSel) return;
+  populateChapterSelect(bookSel.value);
+  bookSel.addEventListener('change', () => {
+    populateChapterSelect(bookSel.value);
+    const book = BIBLE_BOOKS.find(b => b.id == bookSel.value);
+    if (book) navigateVerseFromStudio('showRef', `${book.name} 1:1`);
+  });
+  chapSel.addEventListener('change', () => {
+    const book = BIBLE_BOOKS.find(b => b.id == bookSel.value);
+    if (book) navigateVerseFromStudio('showRef', `${book.name} ${chapSel.value}:1`);
+  });
+}
+
+// Garde les selects livre/chapitre synchronisés avec la référence en cours.
+// Appelé depuis applyVerseState pour refléter aussi les changements faits
+// depuis le panneau ou via la nav cross-chapitre.
+function syncBookChapterSelectsFromRef(reference) {
+  if (!reference || typeof BIBLE_BOOKS === 'undefined') return;
+  const m = String(reference).match(/^(.+?)\s+(\d+)(?::\d+)?$/);
+  if (!m) return;
+  const bookName = m[1].trim().toLowerCase();
+  const chap = m[2];
+  const book = BIBLE_BOOKS.find(b =>
+    b.name.toLowerCase() === bookName ||
+    b.short.toLowerCase() === bookName ||
+    b.name.toLowerCase().startsWith(bookName)
+  );
+  if (!book) return;
+  const bookSel = $('bookSelectStudio');
+  const chapSel = $('chapterSelectStudio');
+  if (bookSel && String(bookSel.value) !== String(book.id)) {
+    bookSel.value = String(book.id);
+    populateChapterSelect(book.id);
+  }
+  if (chapSel) chapSel.value = chap;
 }
 
 // Storage fallback (autre onglet)
