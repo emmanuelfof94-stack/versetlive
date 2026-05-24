@@ -713,7 +713,11 @@
         </div>
         <div class="section" style="margin-bottom:14px;">
           <div class="section-title"><span>📼 Replay buffer</span></div>
-          <div class="studio-hint">Capture continue en RAM. Au clic « Sauver », tu télécharges la séquence depuis l'activation jusqu'à maintenant, puis le buffer redémarre. Utile pour récupérer un moment fort après coup. <strong>Attention :</strong> consomme de la RAM (≈ <code>recordBitrate × durée</code>).</div>
+          <div class="studio-hint">Capture <em>en boucle</em> les <strong>N dernières secondes</strong> en RAM (ring buffer). Au clic « Sauver », tu télécharges cette fenêtre glissante, puis le buffer continue. Idéal pour rattraper un moment fort. RAM bornée ≈ <code>recordBitrate × N</code>.</div>
+          <div class="studio-settings-row">
+            <label class="studio-settings-label" for="replayBufferDuration">Fenêtre (s)</label>
+            <input type="number" id="replayBufferDuration" min="15" max="600" step="15" value="60" style="width:80px;">
+          </div>
           <div class="studio-settings-row">
             <button class="btn" id="replayBufferToggle">📼 Activer le buffer</button>
             <button class="btn btn-primary" id="replayBufferSave" disabled>💾 Sauver maintenant</button>

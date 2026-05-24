@@ -917,14 +917,33 @@ function setMultiview(on) {
   if (multiviewOn) startMultiview(); else stopMultiview();
 }
 
+// Allège le multiview quand plusieurs encodeurs tournent en parallèle (record + stream +
+// replay buffer = 3 pass d'encodage du canvas). Garder 5 fps pendant ces moments
+// saturait le CPU sur Mac modeste, d'où le freeze observé pendant le filmage.
+function getMultiviewIntervalMs() {
+  const recording = !!(mediaRecorder && mediaRecorder.state === 'recording');
+  const streaming = !!relayStreaming;
+  const buffering = isReplayBufferOn();
+  const load = (recording ? 1 : 0) + (streaming ? 1 : 0) + (buffering ? 1 : 0);
+  if (load >= 3) return 1000; // 1 fps
+  if (load >= 2) return 500;  // 2 fps
+  if (load >= 1) return 333;  // 3 fps
+  return Math.round(1000 / MULTIVIEW_FPS); // 5 fps par défaut
+}
+
 function startMultiview() {
   rebuildMultiviewGrid();
-  if (multiviewTimer) clearInterval(multiviewTimer);
-  multiviewTimer = setInterval(renderMultiviewFrame, Math.round(1000 / MULTIVIEW_FPS));
+  if (multiviewTimer) { clearTimeout(multiviewTimer); multiviewTimer = null; }
+  const tick = () => {
+    if (!multiviewOn) return;
+    try { renderMultiviewFrame(); } catch (e) {}
+    multiviewTimer = setTimeout(tick, getMultiviewIntervalMs());
+  };
+  tick();
 }
 
 function stopMultiview() {
-  if (multiviewTimer) { clearInterval(multiviewTimer); multiviewTimer = null; }
+  if (multiviewTimer) { clearTimeout(multiviewTimer); multiviewTimer = null; }
 }
 
 // Reconstruit la grille seulement quand la liste de scènes change (signature simple).
@@ -1331,6 +1350,11 @@ function bindSettingsModal() {
   });
   const rbSave = $('replayBufferSave');
   if (rbSave) rbSave.addEventListener('click', () => saveReplayBuffer());
+  const rbDur = $('replayBufferDuration');
+  if (rbDur) {
+    rbDur.value = String(replayBufferMaxSeconds);
+    rbDur.addEventListener('change', (e) => setReplayBufferMaxSeconds(e.target.value));
+  }
   updateReplayBufferUi();
 }
 
@@ -1389,15 +1413,38 @@ function resolveRecordName() {
   return name.replace(/[\\/:*?"<>|]+/g, '').replace(/\s+/g, '-').slice(0, 120) || 'versetlive';
 }
 
-// ============ Replay buffer (capture continue) ============
-// MediaRecorder ne permet pas de trim binaire le webm. On accumule donc tous
-// les chunks depuis l'activation du buffer. Au clic "Sauver", on stoppe le
-// recorder (force le flush du dernier chunk), on sauve le blob complet, puis
-// on relance un nouveau buffer immédiatement. La séquence sauvée couvre
-// "depuis l'activation jusqu'à maintenant".
+// ============ Replay buffer (ring buffer des N dernières secondes) ============
+// On garde le tout premier chunk (header EBML + tracks + segment info de webm) +
+// une fenêtre glissante des N derniers chunks (timeslice = 1 s → 1 chunk/s).
+// Précédemment on accumulait sans limite : ~6 Mbps × heures = plusieurs Go de RAM,
+// donc freeze du navigateur en service long. Le ring buffer cap la RAM à
+// ~recordBitrate × replayBufferMaxSeconds (≈ 45 Mo pour 60 s à 6 Mbps).
+const REPLAY_BUFFER_KEY = 'versetlive:replay-buffer-seconds';
+const REPLAY_BUFFER_MIN_S = 15;
+const REPLAY_BUFFER_MAX_S = 600;
 let replayBufferRecorder = null;
-let replayBufferChunks = [];
+let replayBufferHeader = null;     // tout premier chunk (init EBML)
+let replayBufferRecent = [];       // fenêtre glissante des N derniers chunks
 let replayBufferStartedAt = 0;
+let replayBufferMaxSeconds = (function () {
+  const raw = parseInt(localStorage.getItem(REPLAY_BUFFER_KEY), 10);
+  if (!Number.isFinite(raw)) return 60;
+  return Math.max(REPLAY_BUFFER_MIN_S, Math.min(REPLAY_BUFFER_MAX_S, raw));
+})();
+
+function setReplayBufferMaxSeconds(s) {
+  const v = Math.max(REPLAY_BUFFER_MIN_S, Math.min(REPLAY_BUFFER_MAX_S, parseInt(s, 10) || 60));
+  replayBufferMaxSeconds = v;
+  try { localStorage.setItem(REPLAY_BUFFER_KEY, String(v)); } catch (e) {}
+  trimReplayBuffer();
+  updateReplayBufferUi();
+}
+
+function trimReplayBuffer() {
+  while (replayBufferRecent.length > replayBufferMaxSeconds) {
+    replayBufferRecent.shift();
+  }
+}
 
 function isReplayBufferOn() {
   return !!(replayBufferRecorder && replayBufferRecorder.state === 'recording');
@@ -1406,6 +1453,15 @@ function isReplayBufferOn() {
 function startReplayBuffer() {
   if (isReplayBufferOn()) return;
   if (!programStream) rebuildProgramStream();
+
+  // Avertir si on cumule 3 encodeurs MediaRecorder en parallèle (record + stream + replay).
+  // Chaque encodeur = un pass d'encodage vidéo sur le canvas 1080p. Sur Mac modeste ça
+  // sature le CPU et cause du freeze pendant le filmage.
+  const recordingOn = !!(mediaRecorder && mediaRecorder.state === 'recording');
+  if (recordingOn && relayStreaming) {
+    toast('⚠ Record + Stream + Replay = 3 encodeurs. Si ça lague, coupe le multiview ou baisse la qualité.', false);
+  }
+
   const mime = pickMime();
   try {
     replayBufferRecorder = new MediaRecorder(programStream, {
@@ -1417,34 +1473,43 @@ function startReplayBuffer() {
     toast('Replay buffer : ' + e.message, true);
     return;
   }
-  replayBufferChunks = [];
+  replayBufferHeader = null;
+  replayBufferRecent = [];
   replayBufferStartedAt = Date.now();
-  replayBufferRecorder.ondataavailable = (e) => { if (e.data.size > 0) replayBufferChunks.push(e.data); };
+  replayBufferRecorder.ondataavailable = (e) => {
+    if (!e.data || e.data.size === 0) return;
+    if (!replayBufferHeader) replayBufferHeader = e.data;
+    else { replayBufferRecent.push(e.data); trimReplayBuffer(); }
+  };
   replayBufferRecorder.start(1000);
   updateReplayBufferUi();
-  toast('📼 Replay buffer activé');
+  toast(`📼 Replay buffer actif (fenêtre glissante de ${replayBufferMaxSeconds} s)`);
 }
 
 function stopReplayBuffer() {
   if (!replayBufferRecorder) return;
   try { if (replayBufferRecorder.state === 'recording') replayBufferRecorder.stop(); } catch (e) {}
   replayBufferRecorder = null;
-  replayBufferChunks = [];
+  replayBufferHeader = null;
+  replayBufferRecent = [];
   replayBufferStartedAt = 0;
   updateReplayBufferUi();
 }
 
-// Stoppe → sauve → redémarre. Sauve "depuis activation → maintenant".
+// Force le flush du dernier chunk → concat (header + chunks récents) → télécharge → redémarre.
 async function saveReplayBuffer() {
   if (!isReplayBufferOn()) { toast('Le replay buffer n\'est pas actif', true); return; }
   const mime = replayBufferRecorder.mimeType || pickMime();
-  // Stop, attendre le dernier chunk
   const done = new Promise(res => { replayBufferRecorder.onstop = res; });
   try { replayBufferRecorder.stop(); } catch (e) {}
   await done;
-  const blob = new Blob(replayBufferChunks, { type: mime });
+  const parts = [];
+  if (replayBufferHeader) parts.push(replayBufferHeader);
+  parts.push(...replayBufferRecent);
+  const blob = new Blob(parts, { type: mime });
   const ext = mime.includes('mp4') ? 'mp4' : 'webm';
-  const dur = Math.round((Date.now() - replayBufferStartedAt) / 1000);
+  // Durée effective = nombre de chunks récents (≈ 1 chunk/s)
+  const dur = replayBufferRecent.length;
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
@@ -1457,9 +1522,9 @@ async function saveReplayBuffer() {
     window.VideoLibrary.addRecording(blob, niceName).catch(err => console.warn('save replay to lib failed', err));
   }
   toast(`📼 Replay ${dur}s sauvé`);
-  // Redémarre un nouveau buffer immédiatement
   replayBufferRecorder = null;
-  replayBufferChunks = [];
+  replayBufferHeader = null;
+  replayBufferRecent = [];
   startReplayBuffer();
 }
 
@@ -1467,16 +1532,19 @@ function updateReplayBufferUi() {
   const btn = $('replayBufferToggle');
   const saveBtn = $('replayBufferSave');
   const info = $('replayBufferInfo');
+  const durInp = $('replayBufferDuration');
   if (btn) btn.textContent = isReplayBufferOn() ? '⏹ Arrêter le buffer' : '📼 Activer le buffer';
   if (saveBtn) saveBtn.disabled = !isReplayBufferOn();
+  if (durInp && document.activeElement !== durInp) durInp.value = String(replayBufferMaxSeconds);
   if (info) {
     if (isReplayBufferOn()) {
-      const dur = Math.round((Date.now() - replayBufferStartedAt) / 1000);
-      const bytes = replayBufferChunks.reduce((acc, b) => acc + b.size, 0);
-      const mo = (bytes / 1024 / 1024).toFixed(1);
-      info.textContent = `Buffer actif depuis ${dur} s · ${mo} Mo en RAM`;
+      const recentSec = replayBufferRecent.length;
+      const allBytes = ((replayBufferHeader && replayBufferHeader.size) || 0)
+        + replayBufferRecent.reduce((acc, b) => acc + b.size, 0);
+      const mo = (allBytes / 1024 / 1024).toFixed(1);
+      info.textContent = `Fenêtre ${recentSec}/${replayBufferMaxSeconds} s · ${mo} Mo en RAM`;
     } else {
-      info.textContent = 'Buffer désactivé.';
+      info.textContent = `Buffer désactivé. Conservera les ${replayBufferMaxSeconds} dernières secondes une fois activé.`;
     }
   }
 }
