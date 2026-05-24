@@ -159,6 +159,15 @@ const els = {
   bgColorHex: document.getElementById('bgColorHex'),
   bgOpacity: document.getElementById('bgOpacity'),
   bgOpacityVal: document.getElementById('bgOpacityVal'),
+  bgImageInput: document.getElementById('bgImageInput'),
+  bgImagePreview: document.getElementById('bgImagePreview'),
+  bgImagePreviewField: document.getElementById('bgImagePreviewField'),
+  bgImageClearBtn: document.getElementById('bgImageClearBtn'),
+  bgImageDim: document.getElementById('bgImageDim'),
+  bgImageDimVal: document.getElementById('bgImageDimVal'),
+  bgImageDimField: document.getElementById('bgImageDimField'),
+  bgImageFit: document.getElementById('bgImageFit'),
+  bgImageFitField: document.getElementById('bgImageFitField'),
   vAlign: document.getElementById('vAlign'),
   showRef: document.getElementById('showRef'),
   animation: document.getElementById('animation'),
@@ -177,6 +186,11 @@ function toast(msg) {
   toast._t = setTimeout(() => els.toast.classList.remove('show'), 2200);
 }
 
+// Image de fond optionnelle : dataURL (généralement JPEG compressé ≤ 1080p). Stockée
+// dans le style pour que tous les receveurs (obs.html, tv.html via PeerJS, studio
+// si verseState.style.bgImage est lu) la reçoivent inline.
+let bgImageDataUrl = null;
+
 function getStyle() {
   return {
     fontFamily: els.fontFamily.value,
@@ -187,6 +201,9 @@ function getStyle() {
     bgType: els.bgType.value,
     bgColor: els.bgColor.value,
     bgOpacity: parseFloat(els.bgOpacity.value),
+    bgImage: bgImageDataUrl,
+    bgImageDim: parseFloat(els.bgImageDim.value),
+    bgImageFit: els.bgImageFit.value,
     vAlign: els.vAlign.value,
     showRef: els.showRef.value,
     animation: els.animation.value,
@@ -194,7 +211,22 @@ function getStyle() {
 }
 
 function persistStyle() {
-  localStorage.setItem(STYLE_KEY, JSON.stringify(getStyle()));
+  try {
+    localStorage.setItem(STYLE_KEY, JSON.stringify(getStyle()));
+  } catch (e) {
+    // QuotaExceededError typique quand l'image de fond est trop grosse :
+    // on enregistre alors le style sans l'image (l'image continue à diffuser
+    // via BroadcastChannel mais ne survivra pas à un reload).
+    if (e && e.name === 'QuotaExceededError' && bgImageDataUrl) {
+      try {
+        const slim = { ...getStyle(), bgImage: null };
+        localStorage.setItem(STYLE_KEY, JSON.stringify(slim));
+        toast('Image trop volumineuse pour le stockage local — elle ne survivra pas à un rechargement.');
+      } catch (e2) { console.warn('persistStyle fallback failed', e2); }
+    } else {
+      console.warn('persistStyle failed', e);
+    }
+  }
 }
 
 function restoreStyle() {
@@ -209,16 +241,60 @@ function restoreStyle() {
     if (s.bgType) els.bgType.value = s.bgType;
     if (s.bgColor) { els.bgColor.value = s.bgColor; els.bgColorHex.value = s.bgColor; }
     if (s.bgOpacity != null) els.bgOpacity.value = s.bgOpacity;
+    if (s.bgImage) bgImageDataUrl = s.bgImage;
+    if (s.bgImageDim != null) els.bgImageDim.value = s.bgImageDim;
+    if (s.bgImageFit) els.bgImageFit.value = s.bgImageFit;
     if (s.vAlign) els.vAlign.value = s.vAlign;
     if (s.showRef) els.showRef.value = s.showRef;
     if (s.animation) els.animation.value = s.animation;
     refreshRangeLabels();
+    updateBgImageUi();
   } catch {}
 }
 
 function refreshRangeLabels() {
   els.fontSizeVal.textContent = parseFloat(els.fontSize.value).toFixed(1);
   els.bgOpacityVal.textContent = parseFloat(els.bgOpacity.value).toFixed(2);
+  if (els.bgImageDimVal) els.bgImageDimVal.textContent = parseFloat(els.bgImageDim.value).toFixed(2);
+}
+
+// ===== Image de fond =====
+// Compresse en JPEG ≤ 1920×1080 q=0.85 pour rester sous le quota localStorage
+// (≈ 5-10 Mo selon navigateur) et garder le broadcast/PeerJS rapide.
+async function loadAndCompressImage(file, maxW = 1920, maxH = 1080, quality = 0.85) {
+  const rawDataUrl = await new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result);
+    r.onerror = () => rej(new Error('Lecture fichier impossible'));
+    r.readAsDataURL(file);
+  });
+  const img = await new Promise((res, rej) => {
+    const i = new Image();
+    i.onload = () => res(i);
+    i.onerror = () => rej(new Error('Image illisible'));
+    i.src = rawDataUrl;
+  });
+  // Si l'image rentre dans les bornes et est déjà légère, on garde tel quel
+  // (préserve la transparence PNG le cas échéant).
+  if (img.naturalWidth <= maxW && img.naturalHeight <= maxH && file.size < 600_000) {
+    return rawDataUrl;
+  }
+  const ratio = Math.min(maxW / img.naturalWidth, maxH / img.naturalHeight, 1);
+  const w = Math.max(1, Math.round(img.naturalWidth * ratio));
+  const h = Math.max(1, Math.round(img.naturalHeight * ratio));
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  c.getContext('2d').drawImage(img, 0, 0, w, h);
+  return c.toDataURL('image/jpeg', quality);
+}
+
+function updateBgImageUi() {
+  const has = !!bgImageDataUrl;
+  if (has) els.bgImagePreview.src = bgImageDataUrl;
+  else els.bgImagePreview.removeAttribute('src');
+  els.bgImagePreviewField.style.display = has ? '' : 'none';
+  els.bgImageDimField.style.display = has ? '' : 'none';
+  els.bgImageFitField.style.display = has ? '' : 'none';
 }
 
 function broadcastStyleOnly() {
@@ -691,6 +767,33 @@ els.bgColorHex.addEventListener('change', () => {
     broadcastStyleOnly();
   }
 });
+
+// Image de fond : pick, clear, dim, fit
+els.bgImageInput.addEventListener('change', async (e) => {
+  const f = e.target.files && e.target.files[0];
+  if (!f) return;
+  try {
+    bgImageDataUrl = await loadAndCompressImage(f);
+    updateBgImageUi();
+    broadcastStyleOnly();
+    toast('🖼 Image de fond mise à jour');
+  } catch (err) {
+    toast('Impossible de charger l\'image : ' + err.message);
+  } finally {
+    e.target.value = ''; // permet de re-sélectionner le même fichier
+  }
+});
+els.bgImageClearBtn.addEventListener('click', () => {
+  bgImageDataUrl = null;
+  updateBgImageUi();
+  broadcastStyleOnly();
+  toast('Image de fond retirée');
+});
+els.bgImageDim.addEventListener('input', () => {
+  els.bgImageDimVal.textContent = parseFloat(els.bgImageDim.value).toFixed(2);
+  broadcastStyleOnly();
+});
+els.bgImageFit.addEventListener('change', broadcastStyleOnly);
 
 // Keyboard shortcuts
 document.addEventListener('keydown', e => {

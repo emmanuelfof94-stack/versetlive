@@ -10,6 +10,7 @@ const verseTextEl = document.getElementById('verseText');
 const refTopEl = document.getElementById('refTop');
 const refBottomEl = document.getElementById('refBottom');
 const bgLayer = document.getElementById('bgLayer');
+const bgImageLayer = document.getElementById('bgImageLayer');
 const titleContent = document.getElementById('titleContent');
 const titleMainEl = document.getElementById('titleMainEl');
 const titleSubEl = document.getElementById('titleSubEl');
@@ -55,7 +56,29 @@ function applyStyle(style) {
   refTopEl.style.display = refPos === 'above' ? 'block' : 'none';
   refBottomEl.style.display = refPos === 'below' ? 'block' : 'none';
 
-  // Arrière-plan
+  // Image de fond (couche derrière la couche de fond couleur/dégradé/bandeau).
+  // L'image elle-même est mise en background-image, et l'assombrissement
+  // optionnel est appliqué via un second layer (linear-gradient noir transparent).
+  const bgImage = s.bgImage;
+  const bgImageFit = s.bgImageFit === 'contain' ? 'contain' : 'cover';
+  const bgImageDim = s.bgImageDim != null ? Math.max(0, Math.min(1, s.bgImageDim)) : 0;
+  if (bgImageLayer) {
+    if (bgImage) {
+      if (bgImageDim > 0) {
+        bgImageLayer.style.background =
+          `linear-gradient(rgba(0,0,0,${bgImageDim}), rgba(0,0,0,${bgImageDim})), ` +
+          `url("${bgImage}") center / ${bgImageFit} no-repeat`;
+      } else {
+        bgImageLayer.style.background = `url("${bgImage}") center / ${bgImageFit} no-repeat`;
+      }
+      bgImageLayer.classList.add('show');
+    } else {
+      bgImageLayer.style.background = '';
+      bgImageLayer.classList.remove('show');
+    }
+  }
+
+  // Arrière-plan (couche couleur/dégradé/bandeau au-dessus de l'image)
   const bgType = s.bgType || 'transparent';
   const bgColor = s.bgColor || '#000000';
   const bgOpacity = s.bgOpacity != null ? s.bgOpacity : 0.5;

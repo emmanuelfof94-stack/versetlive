@@ -267,6 +267,35 @@
         </div>
 
         <div class="section">
+          <div class="section-title">🖼 Image de fond</div>
+          <div class="field">
+            <label>Choisir une image (PNG / JPG / WebP, photos iPhone supportées)</label>
+            <input type="file" id="bgImageInput" accept="image/*">
+          </div>
+          <div class="field" id="bgImagePreviewField" style="display:none;">
+            <label>Aperçu</label>
+            <div class="bg-image-preview-row" style="display:flex; gap:10px; align-items:center;">
+              <img id="bgImagePreview" alt="" style="max-width:120px; max-height:68px; border-radius:6px; background:#000; object-fit:cover;">
+              <button type="button" class="btn btn-sm btn-danger" id="bgImageClearBtn" title="Retirer l'image de fond">× Retirer</button>
+            </div>
+          </div>
+          <div class="field" id="bgImageDimField" style="display:none;">
+            <label>Assombrir l'image (lisibilité du texte)</label>
+            <div class="range-row">
+              <input type="range" id="bgImageDim" min="0" max="1" step="0.05" value="0.4">
+              <span class="range-value" id="bgImageDimVal">0.4</span>
+            </div>
+          </div>
+          <div class="field" id="bgImageFitField" style="display:none;">
+            <label>Cadrage</label>
+            <select id="bgImageFit">
+              <option value="cover" selected>Couvrir (cover — peut rogner)</option>
+              <option value="contain">Contenir (contain — bandes noires possibles)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="section">
           <div class="section-title">Affichage</div>
           <div class="field">
             <label>Position verticale</label>

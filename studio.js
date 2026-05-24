@@ -536,6 +536,41 @@ function drawImageContain(imgEl, x, y, w, h) {
   activeCtx.drawImage(imgEl, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh);
 }
 
+// Cover : remplit la zone, peut rogner. Contain : tient dans la zone, peut laisser des bandes.
+function drawImageCover(imgEl, x, y, w, h, mode) {
+  if (!imgEl || !imgEl.complete || !imgEl.naturalWidth) return;
+  if (mode === 'contain') return drawImageContain(imgEl, x, y, w, h);
+  const sAR = imgEl.naturalWidth / imgEl.naturalHeight;
+  const dAR = w / h;
+  let sx, sy, sw, sh;
+  if (sAR > dAR) {
+    sh = imgEl.naturalHeight;
+    sw = sh * dAR;
+    sx = (imgEl.naturalWidth - sw) / 2;
+    sy = 0;
+  } else {
+    sw = imgEl.naturalWidth;
+    sh = sw / dAR;
+    sx = 0;
+    sy = (imgEl.naturalHeight - sh) / 2;
+  }
+  activeCtx.drawImage(imgEl, sx, sy, sw, sh, x, y, w, h);
+}
+
+// Cache d'images de fond par dataURL (clé) → Image. Évite de recréer l'<img>
+// à chaque frame quand verseState.style.bgImage est stable.
+let _bgImageCacheKey = null;
+let _bgImageCacheImg = null;
+function getCachedBgImage(dataUrl) {
+  if (!dataUrl) return null;
+  if (_bgImageCacheKey === dataUrl && _bgImageCacheImg) return _bgImageCacheImg;
+  const img = new Image();
+  img.src = dataUrl;
+  _bgImageCacheKey = dataUrl;
+  _bgImageCacheImg = img;
+  return img;
+}
+
 function drawLogoOverlay() {
   if (!logoOverlayEnabled || !logoOverlayId) return;
   const img = imageSources.find(i => i.id === logoOverlayId);
@@ -550,9 +585,23 @@ function drawLogoOverlay() {
 function drawVerseOverlay(area) {
   if (!verseState) return;
   const { x, y, w, h } = area;
+  const style = verseState.style || {};
+
+  // Image de fond optionnelle (sous le fond couleur/dégradé/bandeau).
+  // Cachée par dataURL pour éviter de recréer un Image() à chaque frame.
+  if (style.bgImage) {
+    const img = getCachedBgImage(style.bgImage);
+    if (img && img.complete && img.naturalWidth) {
+      drawImageCover(img, x, y, w, h, style.bgImageFit || 'cover');
+      const dim = style.bgImageDim != null ? Math.max(0, Math.min(1, style.bgImageDim)) : 0;
+      if (dim > 0) {
+        activeCtx.fillStyle = `rgba(0,0,0,${dim})`;
+        activeCtx.fillRect(x, y, w, h);
+      }
+    }
+  }
 
   // Fond du verset
-  const style = verseState.style || {};
   const bgType = style.bgType || 'transparent';
   if (bgType !== 'transparent') {
     const bgColor = style.bgColor || '#000000';
