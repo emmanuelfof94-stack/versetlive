@@ -93,15 +93,27 @@ function saveFiltersStore() {
   try { localStorage.setItem(FILTERS_KEY, JSON.stringify(filtersStore)); } catch (e) {}
 }
 function defaultFilters() {
-  return { mirror: false, brightness: 100, contrast: 100, saturation: 100 };
+  return { mirror: false, brightness: 100, contrast: 100, saturation: 100, zoom: 100 };
 }
 function getFiltersFor(source) {
   const key = source.deviceId || source.id;
   if (!filtersStore[key]) filtersStore[key] = defaultFilters();
+  // Migration : ajoute le champ zoom aux filtres existants enregistrés avant cette version.
+  if (filtersStore[key].zoom == null) filtersStore[key].zoom = 100;
   return filtersStore[key];
 }
 function hasNonDefaultFilter(f) {
-  return f.mirror || f.brightness !== 100 || f.contrast !== 100 || f.saturation !== 100;
+  return f.mirror || f.brightness !== 100 || f.contrast !== 100 || f.saturation !== 100 || (f.zoom || 100) !== 100;
+}
+// Applique zoom + miroir au <video> de preview en CSS. L'inline transform écrase
+// la règle .mirror du CSS, donc on combine les deux ici dès qu'un zoom est actif.
+function applyPreviewZoom(videoEl, filters) {
+  const z = Math.max(100, Math.min(300, filters.zoom || 100)) / 100;
+  const t = [];
+  if (filters.mirror) t.push('scaleX(-1)');
+  if (z > 1) t.push(`scale(${z})`);
+  videoEl.style.transform = t.join(' ');
+  videoEl.style.transformOrigin = '50% 50%';
 }
 
 // ============ DOM ============
@@ -262,6 +274,7 @@ function renderSources() {
     liveVideo.playsInline = true;
     if (filters.mirror) liveVideo.classList.add('mirror');
     liveVideo.style.filter = `brightness(${filters.brightness}%) contrast(${filters.contrast}%) saturate(${filters.saturation}%)`;
+    applyPreviewZoom(liveVideo, filters);
     previewDiv.appendChild(liveVideo);
 
     // Audio routé → volume slider + VU
@@ -305,6 +318,11 @@ function renderSources() {
           <label>Saturation</label>
           <input type="range" data-filter="saturation" min="0" max="200" step="1" value="${filters.saturation}">
           <span class="studio-source-filter-val">${filters.saturation} %</span>
+        </div>
+        <div class="studio-source-filter-row">
+          <label>Zoom (punch-in)</label>
+          <input type="range" data-filter="zoom" min="100" max="300" step="5" value="${filters.zoom || 100}">
+          <span class="studio-source-filter-val">${filters.zoom || 100} %</span>
         </div>
         <div class="studio-source-filter-actions">
           <button class="btn btn-sm" data-action="filter-reset">Réinitialiser</button>
@@ -364,6 +382,7 @@ function renderSources() {
         // Sync CSS preview live
         liveVideo.classList.toggle('mirror', !!filters.mirror);
         liveVideo.style.filter = `brightness(${filters.brightness}%) contrast(${filters.contrast}%) saturate(${filters.saturation}%)`;
+        applyPreviewZoom(liveVideo, filters);
       } else if (t.dataset.action === 'volume') {
         const v = parseInt(t.value, 10);
         s.audioGainValue = v / 100;
@@ -469,6 +488,18 @@ function drawVideoCover(video, x, y, w, h, source) {
     sy = (video.videoHeight - sh) / 2;
   }
   const filters = source ? getFiltersFor(source) : null;
+  // Punch-in numérique : on rogne un cadre plus serré dans la zone source.
+  // zoom=100 → pas de zoom, zoom=300 → x3 (l'image source effective fait un tiers).
+  // Centré sur le milieu du cadre cover.
+  if (filters) {
+    const z = Math.max(100, Math.min(300, filters.zoom || 100)) / 100;
+    if (z > 1) {
+      const newSw = sw / z, newSh = sh / z;
+      sx = sx + (sw - newSw) / 2;
+      sy = sy + (sh - newSh) / 2;
+      sw = newSw; sh = newSh;
+    }
+  }
   if (filters && hasNonDefaultFilter(filters)) {
     activeCtx.save();
     activeCtx.filter = `brightness(${filters.brightness}%) contrast(${filters.contrast}%) saturate(${filters.saturation}%)`;

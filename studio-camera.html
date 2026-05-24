@@ -66,12 +66,64 @@
     /* ÉCRAN LIVE */
     .live { position: fixed; inset: 0; display: none; }
     .live.show { display: block; }
-    .live video {
-      width: 100%; height: 100%; object-fit: cover;
+    .live canvas#preview {
+      width: 100%; height: 100%; display: block;
       background: #000;
-      transform: scaleX(1);
+      touch-action: none; /* on capture pinch + drag nous-mêmes */
+      object-fit: cover;
     }
-    .live video.mirror { transform: scaleX(-1); }
+    .live canvas#preview.mirror { transform: scaleX(-1); }
+    /* Vidéo source : invisible, sert juste à pomper les frames de la caméra dans le canvas. */
+    .live video#srcVideo {
+      position: absolute; width: 1px; height: 1px;
+      opacity: 0; pointer-events: none; z-index: -1;
+    }
+
+    /* Indicateur zoom (badge en haut à droite) */
+    .zoom-badge {
+      pointer-events: none;
+      position: fixed; top: 14px; right: 14px;
+      padding: 6px 12px; border-radius: 999px;
+      background: rgba(0,0,0,0.55);
+      backdrop-filter: blur(4px);
+      font-size: 13px; font-weight: 700;
+      letter-spacing: 0.5px;
+      opacity: 0;
+      transition: opacity 0.25s;
+    }
+    .zoom-badge.show { opacity: 1; }
+
+    /* Colonne de zoom à droite : −  slider vertical  + */
+    .zoom-col {
+      pointer-events: auto;
+      position: fixed; right: 14px; top: 50%; transform: translateY(-50%);
+      display: flex; flex-direction: column; align-items: center;
+      gap: 10px;
+      background: rgba(0,0,0,0.45);
+      padding: 10px 8px; border-radius: 16px;
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(255,255,255,0.15);
+    }
+    .zoom-btn {
+      width: 40px; height: 40px; border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.25);
+      background: rgba(0,0,0,0.5); color: white;
+      font-size: 22px; font-weight: 700; line-height: 1;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: opacity 0.15s;
+    }
+    .zoom-btn:active { opacity: 0.6; }
+    .zoom-btn[disabled] { opacity: 0.35; }
+    .zoom-slider-wrap {
+      height: 140px; display: flex; align-items: center; justify-content: center;
+    }
+    /* Slider rendu vertical */
+    .zoom-slider {
+      -webkit-appearance: slider-vertical;
+      appearance: slider-vertical;
+      writing-mode: bt-lr;
+      width: 18px; height: 140px;
+    }
 
     .live-overlay {
       position: fixed; inset: 0;
@@ -153,7 +205,19 @@
 
   <!-- Écran en direct -->
   <div class="live" id="liveScreen">
-    <video id="preview" autoplay playsinline muted></video>
+    <canvas id="preview" width="1280" height="720"></canvas>
+    <video id="srcVideo" autoplay playsinline muted></video>
+
+    <!-- Badge zoom + colonne de zoom (apparaissent dès qu'un geste/clic démarre) -->
+    <div class="zoom-badge" id="zoomBadge">1.0× zoom</div>
+    <div class="zoom-col" id="zoomCol">
+      <button class="zoom-btn" id="zoomInBtn" aria-label="Zoomer">+</button>
+      <div class="zoom-slider-wrap">
+        <input class="zoom-slider" id="zoomSlider" type="range" min="100" max="500" step="5" value="100">
+      </div>
+      <button class="zoom-btn" id="zoomOutBtn" aria-label="Dézoomer">−</button>
+    </div>
+
     <div class="live-overlay">
       <div class="live-topbar">
         <span class="live-status-pill"><span class="live-dot" id="liveDot"></span><span id="liveStatusText">Connexion…</span></span>
