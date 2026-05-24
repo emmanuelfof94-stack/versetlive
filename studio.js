@@ -105,6 +105,12 @@ function getFiltersFor(source) {
 function hasNonDefaultFilter(f) {
   return f.mirror || f.brightness !== 100 || f.contrast !== 100 || f.saturation !== 100 || (f.zoom || 100) !== 100;
 }
+// Sous-prédicat : faut-il invoquer ctx.filter (couleurs) ? Le zoom est appliqué
+// via crop de la source — ne nécessite PAS ctx.filter. Tester ctx.filter pour rien
+// déclenche un buffer off-screen côté navigateur, ce qui pourrit les perfs.
+function hasColorFilter(f) {
+  return f.brightness !== 100 || f.contrast !== 100 || f.saturation !== 100;
+}
 // Applique zoom + miroir au <video> de preview en CSS. L'inline transform écrase
 // la règle .mirror du CSS, donc on combine les deux ici dès qu'un zoom est actif.
 function applyPreviewZoom(videoEl, filters) {
@@ -500,10 +506,14 @@ function drawVideoCover(video, x, y, w, h, source) {
       sw = newSw; sh = newSh;
     }
   }
-  if (filters && hasNonDefaultFilter(filters)) {
+  const needsFilter = filters && hasColorFilter(filters);
+  const needsMirror = filters && filters.mirror;
+  if (needsFilter || needsMirror) {
     activeCtx.save();
-    activeCtx.filter = `brightness(${filters.brightness}%) contrast(${filters.contrast}%) saturate(${filters.saturation}%)`;
-    if (filters.mirror) {
+    if (needsFilter) {
+      activeCtx.filter = `brightness(${filters.brightness}%) contrast(${filters.contrast}%) saturate(${filters.saturation}%)`;
+    }
+    if (needsMirror) {
       activeCtx.translate(x + w, y);
       activeCtx.scale(-1, 1);
       activeCtx.drawImage(video, sx, sy, sw, sh, 0, 0, w, h);
@@ -800,16 +810,32 @@ function drawScene(s) {
   // 'black' → rien à dessiner
 }
 
-function renderFrame() {
+// Cap le rendu à OUTPUT_FPS (30) pour éviter de dessiner à la fréquence native
+// du moniteur (60-120 Hz sur Mac récent), ce qui faisait travailler captureStream,
+// les 3 MediaRecorders (record + stream + replay) et le projecteur à 2-4× le débit
+// utile. Conséquence observée : latence, saccades et baisse de bitrate par les
+// encodeurs sous-CPU.
+const RENDER_INTERVAL_MS = 1000 / OUTPUT_FPS;
+let lastRenderTime = 0;
+function renderFrame(now) {
+  const ts = now || performance.now();
+  const elapsed = ts - lastRenderTime;
+  if (elapsed < RENDER_INTERVAL_MS - 2) {
+    requestAnimationFrame(renderFrame);
+    return;
+  }
+  // Aligne sur la grille 30 fps (évite la dérive cumulée)
+  lastRenderTime = ts - (elapsed % RENDER_INTERVAL_MS);
+
   // ---------- Program ----------
   activeCtx = ctx;
   ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, OUTPUT_W, OUTPUT_H);
 
-  const elapsed = performance.now() - transitionStart;
+  const tElapsed = performance.now() - transitionStart;
   const transDur = transitionCfg.kind === 'cut' ? 0 : transitionCfg.durationMs;
-  if (previousProgramScene && transDur > 0 && elapsed < transDur) {
-    const t = elapsed / transDur; // 0 → 1
+  if (previousProgramScene && transDur > 0 && tElapsed < transDur) {
+    const t = tElapsed / transDur; // 0 → 1
     applyTransition(transitionCfg.kind, t, previousProgramScene, programScene);
   } else {
     if (previousProgramScene) previousProgramScene = null;
