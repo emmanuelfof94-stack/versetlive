@@ -1742,7 +1742,34 @@ function applyVerseState(state) {
   if (typeof coopBroadcast === 'function') coopBroadcast();
   renderVerseStatus();
   renderSongStatus();
+  syncStudioSceneScaleUI();
   if (state && state.reference && state.kind !== 'song') syncBookChapterSelectsFromRef(state.reference);
+}
+
+// ===== Réduction du bloc verset (image + texte) depuis le studio =====
+// Le curseur modifie verseState.style.sceneScale : le canvas le lit à chaque
+// frame (sortie projetée), et on rediffuse le style aux autres surfaces
+// (obs/tv via BroadcastChannel + TV PeerJS) pour rester synchro avec le panneau.
+function setStudioSceneScale(v) {
+  const scale = Math.max(0.1, Math.min(1, parseFloat(v)));
+  const style = { ...(verseState?.style || {}), sceneScale: scale };
+  const newState = { ...(verseState || {}), style };
+  verseBc?.postMessage({ type: 'style', payload: style });
+  sendToTv({ type: 'style', payload: style });
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(newState)); } catch (e) {}
+  applyVerseState(newState);
+}
+
+function syncStudioSceneScaleUI() {
+  const slider = document.getElementById('studioSceneScale');
+  if (!slider) return;
+  const val = document.getElementById('studioSceneScaleVal');
+  // Ne pas écraser la valeur pendant que l'utilisateur fait glisser le curseur.
+  if (document.activeElement === slider) return;
+  const s = verseState && verseState.style ? verseState.style.sceneScale : null;
+  const scale = (s != null) ? Math.max(0.1, Math.min(1, s)) : 1;
+  slider.value = scale;
+  if (val) val.textContent = Math.round(scale * 100) + '%';
 }
 
 function renderVerseStatus() {
@@ -1879,6 +1906,18 @@ function bindVerseNav() {
   if (go) go.addEventListener('click', sendRef);
   if (input) input.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') { e.preventDefault(); sendRef(); }
+  });
+  const scale = $('studioSceneScale');
+  const scaleVal = $('studioSceneScaleVal');
+  if (scale) scale.addEventListener('input', () => {
+    if (scaleVal) scaleVal.textContent = Math.round(parseFloat(scale.value) * 100) + '%';
+    setStudioSceneScale(scale.value);
+  });
+  const scaleReset = $('studioSceneScaleReset');
+  if (scaleReset) scaleReset.addEventListener('click', () => {
+    if (scale) scale.value = 1;
+    if (scaleVal) scaleVal.textContent = '100%';
+    setStudioSceneScale(1);
   });
   populateBookSelect();
   bindBookChapterSelectors();
