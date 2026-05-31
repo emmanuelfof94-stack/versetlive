@@ -877,16 +877,11 @@ function drawScene(s) {
 // encodeurs sous-CPU.
 const RENDER_INTERVAL_MS = 1000 / OUTPUT_FPS;
 let lastRenderTime = 0;
-function renderFrame(now) {
-  const ts = now || performance.now();
-  const elapsed = ts - lastRenderTime;
-  if (elapsed < RENDER_INTERVAL_MS - 2) {
-    requestAnimationFrame(renderFrame);
-    return;
-  }
-  // Aligne sur la grille 30 fps (évite la dérive cumulée)
-  lastRenderTime = ts - (elapsed % RENDER_INTERVAL_MS);
 
+// Dessine une frame (program + preview) sur les canvas. Séparé de l'ordonnancement
+// pour pouvoir être piloté soit par requestAnimationFrame (au premier plan), soit par
+// le timer de secours (en arrière-plan, voir bgRenderTimer plus bas).
+function drawProgramFrame() {
   // ---------- Program ----------
   activeCtx = ctx;
   ctx.fillStyle = '#000';
@@ -910,8 +905,38 @@ function renderFrame(now) {
     drawScene(previewScene);
     activeCtx = ctx;
   }
+}
 
+// Tente un rendu si l'intervalle 30 fps est écoulé. Renvoie true si une frame a été
+// dessinée. La grille temporelle évite la dérive cumulée et déduplique les appels
+// quand rAF et le timer de secours tournent en même temps.
+function renderTick() {
+  const ts = performance.now();
+  const elapsed = ts - lastRenderTime;
+  if (elapsed < RENDER_INTERVAL_MS - 2) return false;
+  lastRenderTime = ts - (elapsed % RENDER_INTERVAL_MS);
+  drawProgramFrame();
+  return true;
+}
+
+// Boucle au premier plan : fluide, calée sur le compositeur.
+function renderFrame() {
+  renderTick();
   requestAnimationFrame(renderFrame);
+}
+
+// Boucle de secours en arrière-plan. Chrome gèle requestAnimationFrame à ~1 Hz quand
+// l'onglet n'est pas visible : le canvas ne serait plus repeint, donc captureStream()
+// — et avec lui le projecteur, la TV, l'enregistrement et la diffusion RTMP — se
+// figerait. Un onglet qui joue du son (keepAlive) est en revanche exempté du throttling
+// des timers, donc ce setInterval continue à ~30 fps et maintient le canvas vivant.
+// Le check document.hidden laisse rAF gérer le premier plan (pas de double dessin).
+let bgRenderTimer = null;
+function startBgRenderLoop() {
+  if (bgRenderTimer) return;
+  bgRenderTimer = setInterval(() => {
+    if (document.hidden) renderTick();
+  }, RENDER_INTERVAL_MS);
 }
 
 // ============ Moteur de transitions ============
@@ -1676,6 +1701,7 @@ function toggleRecord() {
     return;
   }
   if (!programStream) rebuildProgramStream();
+  startKeepAlive(); // garde le canvas vivant en arrière-plan (sinon l'enregistrement gèle)
 
   recordedChunks = [];
   const mime = pickMime();
@@ -2672,6 +2698,7 @@ function captureAndSendSnapshot() {
 
 function startTvSnapshots() {
   if (tvSnapshotTimer) return;
+  startKeepAlive(); // garde le canvas vivant en arrière-plan (sinon la TV gèle)
   sendToTv({ type: 'tv-mode', mode: 'snapshot' });
   tvSnapshotTimer = setInterval(captureAndSendSnapshot, TV_SNAPSHOT_INTERVAL_MS);
 }
@@ -2818,6 +2845,7 @@ function startTvVideo() {
     return;
   }
   if (!programStream) rebuildProgramStream();
+  startKeepAlive(); // garde le canvas vivant en arrière-plan (sinon la TV gèle)
   if (!programStream || !programStream.getVideoTracks().length) {
     toast('Aucune source vidéo dans le programme. Ajoute une caméra d\'abord.', true);
     /* toggle supprimé — mode sélectionné via radio buttons */
@@ -4749,6 +4777,7 @@ async function init() {
   startAudioMeter();
   startSourceVuLoop();
   requestAnimationFrame(renderFrame);
+  startBgRenderLoop();
   rebuildProgramStream();
   await refreshDeviceList();
   loadStoredImages();
