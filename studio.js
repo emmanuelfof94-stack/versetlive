@@ -584,8 +584,19 @@ function drawLogoOverlay() {
 
 function drawVerseOverlay(area) {
   if (!verseState) return;
-  const { x, y, w, h } = area;
   const style = verseState.style || {};
+
+  // Réduction manuelle du bloc image + verset (réglée depuis le panneau).
+  // On dessine tout (image, fond, texte) dans une sous-zone centrée plus petite ;
+  // la police est mise à l'échelle d'autant pour rester proportionnée.
+  // Neutralisée (1) pour les titres, qui gardent leur pleine taille.
+  const sceneScale = verseState.kind === 'title'
+    ? 1
+    : (style.sceneScale != null ? Math.max(0.1, Math.min(1, style.sceneScale)) : 1);
+  const w = area.w * sceneScale;
+  const h = area.h * sceneScale;
+  const x = area.x + (area.w - w) / 2;
+  const y = area.y + (area.h - h) / 2;
 
   // Image de fond optionnelle (sous le fond couleur/dégradé/bandeau).
   // Cachée par dataURL pour éviter de recréer un Image() à chaque frame.
@@ -624,8 +635,8 @@ function drawVerseOverlay(area) {
   // Style texte
   const fontFamily = style.fontFamily || 'Georgia, serif';
   const fontSizeVw = style.fontSize || 4.5;
-  // 4.5vw → en px sur 1920 = 4.5/100 * 1920 = 86.4
-  const fontSizePx = Math.round((fontSizeVw / 100) * OUTPUT_W);
+  // 4.5vw → en px sur 1920 = 4.5/100 * 1920 = 86.4 (réduit avec le bloc)
+  const fontSizePx = Math.round((fontSizeVw / 100) * OUTPUT_W * sceneScale);
   const refSizePx = Math.max(Math.round(fontSizePx * 0.5), 28);
   const color = style.textColor || '#ffffff';
   const align = style.textAlign || 'center';

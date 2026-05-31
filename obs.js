@@ -21,9 +21,21 @@ const isPreview = new URLSearchParams(window.location.search).get('preview') ===
 if (isPreview) document.body.classList.add('preview-mode');
 
 let currentState = null;
+// Mode courant : la réduction de taille (sceneScale) s'applique aux versets,
+// pas aux titres (qui ont leurs propres fonds plein écran / bandeaux).
+let currentMode = 'verse';
 
-function applyStyle(style) {
+function applyStyle(style, isTitle) {
   const s = style || {};
+  const titleMode = isTitle !== undefined ? isTitle : (currentMode === 'title');
+
+  // Réduction manuelle du bloc image + verset (1 = 100 %, jusqu'à 0.1 = 10 %).
+  // Appliquée au .stage via variable CSS ; neutralisée (1) pour les titres.
+  const sceneScale = titleMode
+    ? 1
+    : (s.sceneScale != null ? Math.max(0.1, Math.min(1, s.sceneScale)) : 1);
+  stage.style.setProperty('--scene-scale', sceneScale);
+
   // Alignement vertical
   stage.classList.remove('v-top', 'v-center', 'v-bottom');
   if (s.vAlign === 'top') stage.classList.add('v-top');
@@ -134,7 +146,8 @@ function shadeColor(hex, percent) {
 
 function showVerse(state) {
   currentState = state;
-  applyStyle(state.style || {});
+  currentMode = 'verse';
+  applyStyle(state.style || {}, false);
 
   // Cacher le titre s'il était visible
   titleContent.classList.remove('visible', 'active');
@@ -171,7 +184,8 @@ function clearVerse() {
 
 function showTitle(payload) {
   const p = payload || {};
-  applyStyle(p.style || {});
+  currentMode = 'title';
+  applyStyle(p.style || {}, true);
 
   // Cacher le contenu verset et activer le contenu titre
   content.classList.remove('visible');

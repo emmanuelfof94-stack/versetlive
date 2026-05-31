@@ -168,6 +168,8 @@ const els = {
   bgImageDimField: document.getElementById('bgImageDimField'),
   bgImageFit: document.getElementById('bgImageFit'),
   bgImageFitField: document.getElementById('bgImageFitField'),
+  sceneScale: document.getElementById('sceneScale'),
+  sceneScaleVal: document.getElementById('sceneScaleVal'),
   vAlign: document.getElementById('vAlign'),
   showRef: document.getElementById('showRef'),
   animation: document.getElementById('animation'),
@@ -204,6 +206,7 @@ function getStyle() {
     bgImage: bgImageDataUrl,
     bgImageDim: parseFloat(els.bgImageDim.value),
     bgImageFit: els.bgImageFit.value,
+    sceneScale: parseFloat(els.sceneScale.value),
     vAlign: els.vAlign.value,
     showRef: els.showRef.value,
     animation: els.animation.value,
@@ -244,6 +247,7 @@ function restoreStyle() {
     if (s.bgImage) bgImageDataUrl = s.bgImage;
     if (s.bgImageDim != null) els.bgImageDim.value = s.bgImageDim;
     if (s.bgImageFit) els.bgImageFit.value = s.bgImageFit;
+    if (s.sceneScale != null) els.sceneScale.value = s.sceneScale;
     if (s.vAlign) els.vAlign.value = s.vAlign;
     if (s.showRef) els.showRef.value = s.showRef;
     if (s.animation) els.animation.value = s.animation;
@@ -256,6 +260,7 @@ function refreshRangeLabels() {
   els.fontSizeVal.textContent = parseFloat(els.fontSize.value).toFixed(1);
   els.bgOpacityVal.textContent = parseFloat(els.bgOpacity.value).toFixed(2);
   if (els.bgImageDimVal) els.bgImageDimVal.textContent = parseFloat(els.bgImageDim.value).toFixed(2);
+  if (els.sceneScaleVal) els.sceneScaleVal.textContent = Math.round(parseFloat(els.sceneScale.value) * 100) + '%';
 }
 
 // ===== Image de fond =====
@@ -747,7 +752,7 @@ document.querySelectorAll('.tab').forEach(tab => {
 });
 
 // Style live updates
-['fontFamily','fontSize','textColor','textShadow','textAlign','bgType','bgColor','bgOpacity','vAlign','showRef','animation']
+['fontFamily','fontSize','textColor','textShadow','textAlign','bgType','bgColor','bgOpacity','sceneScale','vAlign','showRef','animation']
   .forEach(k => els[k].addEventListener('input', () => {
     refreshRangeLabels();
     if (k === 'textColor') els.textColorHex.value = els.textColor.value;
