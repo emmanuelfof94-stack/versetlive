@@ -1595,6 +1595,7 @@ function isReplayBufferOn() {
 function startReplayBuffer() {
   if (isReplayBufferOn()) return;
   if (!programStream) rebuildProgramStream();
+  startKeepAlive(); // garde le canvas vivant en arrière-plan (sinon le replay buffer fige les frames)
 
   // Avertir si on cumule 3 encodeurs MediaRecorder en parallèle (record + stream + replay).
   // Chaque encodeur = un pass d'encodage vidéo sur le canvas 1080p. Sur Mac modeste ça
@@ -4201,6 +4202,7 @@ function coopUpdateDotUi() {
 
 function coopStartHost(code) {
   if (coopHost) coopHost.stop();
+  startKeepAlive(); // garde le canvas vivant en arrière-plan (sinon le flux vers les co-pilotes gèle)
   coopHost = VLCoop.startHost({
     code,
     hostName: 'Studio principal',
