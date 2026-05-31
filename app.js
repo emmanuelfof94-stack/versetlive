@@ -170,6 +170,7 @@ const els = {
   bgImageFitField: document.getElementById('bgImageFitField'),
   sceneScale: document.getElementById('sceneScale'),
   sceneScaleVal: document.getElementById('sceneScaleVal'),
+  sceneScaleReset: document.getElementById('sceneScaleReset'),
   vAlign: document.getElementById('vAlign'),
   showRef: document.getElementById('showRef'),
   animation: document.getElementById('animation'),
@@ -799,6 +800,11 @@ els.bgImageDim.addEventListener('input', () => {
   broadcastStyleOnly();
 });
 els.bgImageFit.addEventListener('change', broadcastStyleOnly);
+els.sceneScaleReset.addEventListener('click', () => {
+  els.sceneScale.value = 1;
+  refreshRangeLabels();
+  broadcastStyleOnly();
+});
 
 // Keyboard shortcuts
 document.addEventListener('keydown', e => {
