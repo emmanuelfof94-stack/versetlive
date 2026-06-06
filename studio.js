@@ -36,6 +36,12 @@ let nextSourceId = 1;
 // Sources image (logo, photo prédicateur, annonces...)
 const imageSources = []; // [{ id, name, dataUrl, imgEl }]
 let nextImageId = 1;
+// Taille des images plein écran (scènes 🖼 image / image+verset), 0.1..1 = part de l'écran.
+const FULL_IMAGE_SCALE_KEY = 'versetlive:full-image-scale';
+let fullImageScale = (() => {
+  const v = parseFloat(localStorage.getItem(FULL_IMAGE_SCALE_KEY));
+  return (v >= 0.1 && v <= 1) ? v : 1;
+})();
 let logoOverlayId = null; // image id utilisée en overlay coin
 let logoOverlayEnabled = false;
 
@@ -611,11 +617,15 @@ function drawVerseOverlay(area) {
   if (style.bgImage) {
     const img = getCachedBgImage(style.bgImage);
     if (img && img.complete && img.naturalWidth) {
-      drawImageCover(img, x, y, w, h, style.bgImageFit || 'cover');
+      // Taille de l'image de fond, réglable indépendamment du bloc (1 = pleine zone).
+      const bgScale = style.bgImageScale != null ? Math.max(0.1, Math.min(1, style.bgImageScale)) : 1;
+      const iw = w * bgScale, ih = h * bgScale;
+      const ix = x + (w - iw) / 2, iy = y + (h - ih) / 2;
+      drawImageCover(img, ix, iy, iw, ih, style.bgImageFit || 'cover');
       const dim = style.bgImageDim != null ? Math.max(0, Math.min(1, style.bgImageDim)) : 0;
       if (dim > 0) {
         activeCtx.fillStyle = `rgba(0,0,0,${dim})`;
-        activeCtx.fillRect(x, y, w, h);
+        activeCtx.fillRect(ix, iy, iw, ih);
       }
     }
   }
@@ -846,7 +856,12 @@ function drawScene(s) {
     drawLogoOverlay();
   } else if (s.kind === 'image' || s.kind === 'image+verse') {
     const img = getImageForScene(s);
-    if (img && img.imgEl) drawImageContain(img.imgEl, 0, 0, OUTPUT_W, OUTPUT_H);
+    if (img && img.imgEl) {
+      // Taille réglable de l'image plein écran (centrée, marge autour si < 100 %).
+      const sc = Math.max(0.1, Math.min(1, fullImageScale));
+      const iw = OUTPUT_W * sc, ih = OUTPUT_H * sc;
+      drawImageContain(img.imgEl, (OUTPUT_W - iw) / 2, (OUTPUT_H - ih) / 2, iw, ih);
+    }
     if (s.kind === 'image+verse') {
       const h = OUTPUT_H * 0.30;
       activeCtx.fillStyle = 'rgba(0,0,0,0.55)';
@@ -1820,6 +1835,21 @@ function setStudioSceneOffset(axis, v) {
   applyVerseState(newState);
 }
 
+// ===== Taille des images plein écran (scènes image) depuis le studio =====
+function setFullImageScale(v) {
+  fullImageScale = Math.max(0.1, Math.min(1, parseFloat(v) || 1));
+  try { localStorage.setItem(FULL_IMAGE_SCALE_KEY, fullImageScale); } catch (e) {}
+  syncFullImageScaleUI();
+}
+
+function syncFullImageScaleUI() {
+  const slider = document.getElementById('studioFullImageScale');
+  if (!slider) return;
+  if (document.activeElement !== slider) slider.value = fullImageScale;
+  const val = document.getElementById('studioFullImageScaleVal');
+  if (val) val.textContent = Math.round(fullImageScale * 100) + '%';
+}
+
 function syncStudioSceneOffsetUI() {
   [['studioSceneOffsetX', 'studioSceneOffsetXVal', 'sceneOffsetX'],
    ['studioSceneOffsetY', 'studioSceneOffsetYVal', 'sceneOffsetY']].forEach(([sliderId, valId, key]) => {
@@ -1997,6 +2027,20 @@ function bindVerseNav() {
       setStudioSceneOffset(key, 0);
     });
   });
+  // Curseur taille image plein écran
+  const fullImg = $('studioFullImageScale');
+  const fullImgVal = $('studioFullImageScaleVal');
+  if (fullImg) fullImg.addEventListener('input', () => {
+    if (fullImgVal) fullImgVal.textContent = Math.round(parseFloat(fullImg.value) * 100) + '%';
+    setFullImageScale(fullImg.value);
+  });
+  const fullImgReset = $('studioFullImageScaleReset');
+  if (fullImgReset) fullImgReset.addEventListener('click', () => {
+    if (fullImg) fullImg.value = 1;
+    if (fullImgVal) fullImgVal.textContent = '100%';
+    setFullImageScale(1);
+  });
+  syncFullImageScaleUI();
   populateBookSelect();
   bindBookChapterSelectors();
 }

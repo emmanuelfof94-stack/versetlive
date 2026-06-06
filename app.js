@@ -168,6 +168,10 @@ const els = {
   bgImageDimField: document.getElementById('bgImageDimField'),
   bgImageFit: document.getElementById('bgImageFit'),
   bgImageFitField: document.getElementById('bgImageFitField'),
+  bgImageScale: document.getElementById('bgImageScale'),
+  bgImageScaleVal: document.getElementById('bgImageScaleVal'),
+  bgImageScaleField: document.getElementById('bgImageScaleField'),
+  bgImageScaleReset: document.getElementById('bgImageScaleReset'),
   sceneScale: document.getElementById('sceneScale'),
   sceneScaleVal: document.getElementById('sceneScaleVal'),
   sceneScaleReset: document.getElementById('sceneScaleReset'),
@@ -213,6 +217,7 @@ function getStyle() {
     bgImage: bgImageDataUrl,
     bgImageDim: parseFloat(els.bgImageDim.value),
     bgImageFit: els.bgImageFit.value,
+    bgImageScale: parseFloat(els.bgImageScale.value),
     sceneScale: parseFloat(els.sceneScale.value),
     sceneOffsetX: parseFloat(els.sceneOffsetX.value),
     sceneOffsetY: parseFloat(els.sceneOffsetY.value),
@@ -256,6 +261,7 @@ function restoreStyle() {
     if (s.bgImage) bgImageDataUrl = s.bgImage;
     if (s.bgImageDim != null) els.bgImageDim.value = s.bgImageDim;
     if (s.bgImageFit) els.bgImageFit.value = s.bgImageFit;
+    if (s.bgImageScale != null) els.bgImageScale.value = s.bgImageScale;
     if (s.sceneScale != null) els.sceneScale.value = s.sceneScale;
     if (s.sceneOffsetX != null) els.sceneOffsetX.value = s.sceneOffsetX;
     if (s.sceneOffsetY != null) els.sceneOffsetY.value = s.sceneOffsetY;
@@ -271,6 +277,7 @@ function refreshRangeLabels() {
   els.fontSizeVal.textContent = parseFloat(els.fontSize.value).toFixed(1);
   els.bgOpacityVal.textContent = parseFloat(els.bgOpacity.value).toFixed(2);
   if (els.bgImageDimVal) els.bgImageDimVal.textContent = parseFloat(els.bgImageDim.value).toFixed(2);
+  if (els.bgImageScaleVal) els.bgImageScaleVal.textContent = Math.round(parseFloat(els.bgImageScale.value) * 100) + '%';
   if (els.sceneScaleVal) els.sceneScaleVal.textContent = Math.round(parseFloat(els.sceneScale.value) * 100) + '%';
   if (els.sceneOffsetXVal) els.sceneOffsetXVal.textContent = Math.round(parseFloat(els.sceneOffsetX.value) * 200) + '%';
   if (els.sceneOffsetYVal) els.sceneOffsetYVal.textContent = Math.round(parseFloat(els.sceneOffsetY.value) * 200) + '%';
@@ -313,6 +320,7 @@ function updateBgImageUi() {
   els.bgImagePreviewField.style.display = has ? '' : 'none';
   els.bgImageDimField.style.display = has ? '' : 'none';
   els.bgImageFitField.style.display = has ? '' : 'none';
+  els.bgImageScaleField.style.display = has ? '' : 'none';
 }
 
 function broadcastStyleOnly() {
@@ -765,7 +773,7 @@ document.querySelectorAll('.tab').forEach(tab => {
 });
 
 // Style live updates
-['fontFamily','fontSize','textColor','textShadow','textAlign','bgType','bgColor','bgOpacity','sceneScale','sceneOffsetX','sceneOffsetY','vAlign','showRef','animation']
+['fontFamily','fontSize','textColor','textShadow','textAlign','bgType','bgColor','bgOpacity','sceneScale','sceneOffsetX','sceneOffsetY','bgImageScale','vAlign','showRef','animation']
   .forEach(k => els[k].addEventListener('input', () => {
     refreshRangeLabels();
     if (k === 'textColor') els.textColorHex.value = els.textColor.value;
@@ -824,6 +832,11 @@ els.sceneOffsetXReset.addEventListener('click', () => {
 });
 els.sceneOffsetYReset.addEventListener('click', () => {
   els.sceneOffsetY.value = 0;
+  refreshRangeLabels();
+  broadcastStyleOnly();
+});
+els.bgImageScaleReset.addEventListener('click', () => {
+  els.bgImageScale.value = 1;
   refreshRangeLabels();
   broadcastStyleOnly();
 });

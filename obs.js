@@ -89,9 +89,14 @@ function applyStyle(style, isTitle) {
       } else {
         bgImageLayer.style.background = `url("${bgImage}") center / ${bgImageFit} no-repeat`;
       }
+      // Taille de l'image de fond (1 = plein écran) : on rétrécit le calque vers
+      // le centre, ce qui laisse une marge autour comme sur le canvas studio.
+      const bgScale = s.bgImageScale != null ? Math.max(0.1, Math.min(1, s.bgImageScale)) : 1;
+      bgImageLayer.style.transform = bgScale < 1 ? `scale(${bgScale})` : '';
       bgImageLayer.classList.add('show');
     } else {
       bgImageLayer.style.background = '';
+      bgImageLayer.style.transform = '';
       bgImageLayer.classList.remove('show');
     }
   }
