@@ -39,7 +39,15 @@ async function loadChapterAt(book, chap, verseNum) {
 // { type: 'nav', action: 'prev'|'next'|'clear'|'showRef', payload? }.
 bc?.addEventListener('message', async (event) => {
   const msg = event.data;
-  if (!msg || msg.type !== 'nav') return;
+  if (!msg) return;
+  // Style modifié ailleurs (studio) : on resynchronise les contrôles pour que
+  // getStyle() reste à jour et n'écrase pas ces réglages au prochain changement
+  // local. On ne rediffuse pas (les autres surfaces ont déjà reçu le message).
+  if (msg.type === 'style' && msg.payload) {
+    applyStyleToControls(msg.payload);
+    return;
+  }
+  if (msg.type !== 'nav') return;
   if (msg.action === 'next') {
     if (activeIndex < chapterVerses.length - 1) {
       selectVerse(activeIndex + 1);
@@ -246,30 +254,40 @@ function persistStyle() {
   }
 }
 
+// Applique un objet style aux contrôles du panneau (sans rien rediffuser).
+// Utilisé au démarrage (restoreStyle) et à la réception d'un style modifié
+// ailleurs (studio), pour que getStyle() reste à jour et n'écrase pas ces
+// réglages au prochain changement local. Ne pas écraser un curseur en cours
+// de manipulation par l'utilisateur.
+function applyStyleToControls(s) {
+  if (!s) return;
+  const busy = (el) => document.activeElement === el;
+  if (s.fontFamily) els.fontFamily.value = s.fontFamily;
+  if (s.fontSize != null && !busy(els.fontSize)) els.fontSize.value = s.fontSize;
+  if (s.textColor) { els.textColor.value = s.textColor; els.textColorHex.value = s.textColor; }
+  if (s.textShadow) els.textShadow.value = s.textShadow;
+  if (s.textAlign) els.textAlign.value = s.textAlign;
+  if (s.bgType) els.bgType.value = s.bgType;
+  if (s.bgColor) { els.bgColor.value = s.bgColor; els.bgColorHex.value = s.bgColor; }
+  if (s.bgOpacity != null && !busy(els.bgOpacity)) els.bgOpacity.value = s.bgOpacity;
+  if (s.bgImage !== undefined) bgImageDataUrl = s.bgImage || null;
+  if (s.bgImageDim != null && !busy(els.bgImageDim)) els.bgImageDim.value = s.bgImageDim;
+  if (s.bgImageFit) els.bgImageFit.value = s.bgImageFit;
+  if (s.bgImageScale != null && !busy(els.bgImageScale)) els.bgImageScale.value = s.bgImageScale;
+  if (s.sceneScale != null && !busy(els.sceneScale)) els.sceneScale.value = s.sceneScale;
+  if (s.sceneOffsetX != null && !busy(els.sceneOffsetX)) els.sceneOffsetX.value = s.sceneOffsetX;
+  if (s.sceneOffsetY != null && !busy(els.sceneOffsetY)) els.sceneOffsetY.value = s.sceneOffsetY;
+  if (s.vAlign) els.vAlign.value = s.vAlign;
+  if (s.showRef) els.showRef.value = s.showRef;
+  if (s.animation) els.animation.value = s.animation;
+  refreshRangeLabels();
+  updateBgImageUi();
+}
+
 function restoreStyle() {
   try {
     const s = JSON.parse(localStorage.getItem(STYLE_KEY) || 'null');
-    if (!s) return;
-    if (s.fontFamily) els.fontFamily.value = s.fontFamily;
-    if (s.fontSize != null) els.fontSize.value = s.fontSize;
-    if (s.textColor) { els.textColor.value = s.textColor; els.textColorHex.value = s.textColor; }
-    if (s.textShadow) els.textShadow.value = s.textShadow;
-    if (s.textAlign) els.textAlign.value = s.textAlign;
-    if (s.bgType) els.bgType.value = s.bgType;
-    if (s.bgColor) { els.bgColor.value = s.bgColor; els.bgColorHex.value = s.bgColor; }
-    if (s.bgOpacity != null) els.bgOpacity.value = s.bgOpacity;
-    if (s.bgImage) bgImageDataUrl = s.bgImage;
-    if (s.bgImageDim != null) els.bgImageDim.value = s.bgImageDim;
-    if (s.bgImageFit) els.bgImageFit.value = s.bgImageFit;
-    if (s.bgImageScale != null) els.bgImageScale.value = s.bgImageScale;
-    if (s.sceneScale != null) els.sceneScale.value = s.sceneScale;
-    if (s.sceneOffsetX != null) els.sceneOffsetX.value = s.sceneOffsetX;
-    if (s.sceneOffsetY != null) els.sceneOffsetY.value = s.sceneOffsetY;
-    if (s.vAlign) els.vAlign.value = s.vAlign;
-    if (s.showRef) els.showRef.value = s.showRef;
-    if (s.animation) els.animation.value = s.animation;
-    refreshRangeLabels();
-    updateBgImageUi();
+    applyStyleToControls(s);
   } catch {}
 }
 
