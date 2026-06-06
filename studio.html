@@ -262,6 +262,7 @@
           </div>
           <div class="studio-monitor-frame">
             <canvas id="programCanvas" width="1280" height="720"></canvas>
+            <div id="perfHud" hidden style="position:absolute; top:8px; left:8px; z-index:5; background:rgba(0,0,0,0.6); color:#cfc; font:11px/1.4 ui-monospace,monospace; padding:5px 8px; border-radius:5px; pointer-events:none; white-space:pre;">perf</div>
             <video id="coopProgramVideo" class="studio-coop-video" autoplay playsinline muted></video>
             <div class="studio-safe-zones" aria-hidden="true">
               <div class="studio-safe-action"></div>
@@ -734,6 +735,22 @@
             </select>
           </div>
           <div class="studio-hint" id="bitrateModeInfo" style="margin-top:6px;"></div>
+        </div>
+        <div class="section" style="margin-bottom:14px;">
+          <div class="section-title"><span>🚀 Performance / latence</span></div>
+          <div class="studio-hint">Réduit les saccades du projecteur quand plusieurs encodeurs (record + stream + replay) tournent en même temps.</div>
+          <div class="studio-settings-row">
+            <label class="studio-logo-label"><input type="checkbox" id="perfSmoothPriority" checked> ⚡ Priorité fluidité (allège l'aperçu/multiview sous charge)</label>
+          </div>
+          <div class="studio-settings-row">
+            <label class="studio-logo-label"><input type="checkbox" id="perfLowLatency" checked> ⏱ Mode basse latence (capture synchronisée au rendu)</label>
+          </div>
+          <div class="studio-settings-row">
+            <label class="studio-logo-label"><input type="checkbox" id="perfAutoRes"> 📉 Baisse auto de résolution sous charge (record/replay uniquement, pas pendant un live RTMP)</label>
+          </div>
+          <div class="studio-settings-row">
+            <label class="studio-logo-label"><input type="checkbox" id="perfHudToggle"> 📊 Afficher l'indicateur de performance sur le moniteur</label>
+          </div>
         </div>
         <div class="section" style="margin-bottom:14px;">
           <div class="section-title"><span>📼 Replay buffer</span></div>

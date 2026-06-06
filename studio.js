@@ -18,6 +18,21 @@ let OUTPUT_W = QUALITY_PRESETS[currentQuality].w;
 let OUTPUT_H = QUALITY_PRESETS[currentQuality].h;
 const OUTPUT_FPS = 30;
 
+// ============ Réglages performance / latence (anti-saccades projecteur) ============
+const SMOOTH_PRIORITY_KEY = 'versetlive:smooth-priority';
+const LOW_LATENCY_KEY = 'versetlive:low-latency';
+const AUTO_RES_KEY = 'versetlive:auto-res';
+const PERF_HUD_KEY = 'versetlive:perf-hud';
+// Priorité fluidité : sous charge d'encodeurs, allège le rendu non essentiel
+// (aperçu/multiview) pour que le programme — donc le projecteur — reste à 30 fps.
+let smoothPriorityOn = localStorage.getItem(SMOOTH_PRIORITY_KEY) !== '0';
+// Basse latence : capture le canvas image par image (captureStream(0)+requestFrame)
+// au lieu d'un échantillonnage indépendant à 30 fps → ~1 frame de latence en moins.
+let lowLatencyOn = localStorage.getItem(LOW_LATENCY_KEY) !== '0';
+// Baisse auto de résolution sous charge (opt-in) : voir maybeAutoResolution().
+let autoResOn = localStorage.getItem(AUTO_RES_KEY) === '1';
+let perfHudOn = localStorage.getItem(PERF_HUD_KEY) === '1';
+
 // ============ État ============
 const sources = []; // [{ id, deviceId, label, stream, videoEl, muted, audioEnabled }]
 let micStream = null;
@@ -904,7 +919,19 @@ let lastRenderTime = 0;
 // Dessine une frame (program + preview) sur les canvas. Séparé de l'ordonnancement
 // pour pouvoir être piloté soit par requestAnimationFrame (au premier plan), soit par
 // le timer de secours (en arrière-plan, voir bgRenderTimer plus bas).
+let frameCounter = 0;
+
+// Sous charge (record/stream/replay), l'aperçu n'a pas besoin des 30 fps pleins :
+// on le rafraîchit moins souvent pour libérer du CPU au profit du programme.
+// Le programme (et donc le projecteur) reste toujours à 30 fps.
+function previewDividerForLoad() {
+  if (!smoothPriorityOn) return 1;
+  const load = getEncoderLoad();
+  return load >= 3 ? 4 : load >= 2 ? 3 : load >= 1 ? 2 : 1;
+}
+
 function drawProgramFrame() {
+  frameCounter++;
   // ---------- Program ----------
   activeCtx = ctx;
   ctx.fillStyle = '#000';
@@ -920,8 +947,8 @@ function drawProgramFrame() {
     drawScene(programScene);
   }
 
-  // ---------- Preview (uniquement si studio mode actif) ----------
-  if (studioMode) {
+  // ---------- Preview (uniquement si studio mode actif, allégé sous charge) ----------
+  if (studioMode && frameCounter % previewDividerForLoad() === 0) {
     activeCtx = previewCtx;
     previewCtx.fillStyle = '#000';
     previewCtx.fillRect(0, 0, OUTPUT_W, OUTPUT_H);
@@ -933,13 +960,89 @@ function drawProgramFrame() {
 // Tente un rendu si l'intervalle 30 fps est écoulé. Renvoie true si une frame a été
 // dessinée. La grille temporelle évite la dérive cumulée et déduplique les appels
 // quand rAF et le timer de secours tournent en même temps.
+let perfFramesDrawn = 0;
+let perfLateFrames = 0;
+let perfLastDrawTs = 0;
 function renderTick() {
   const ts = performance.now();
   const elapsed = ts - lastRenderTime;
   if (elapsed < RENDER_INTERVAL_MS - 2) return false;
   lastRenderTime = ts - (elapsed % RENDER_INTERVAL_MS);
   drawProgramFrame();
+  // Basse latence : pousse immédiatement la frame dessinée vers la piste capturée
+  // (captureStream(0) ne produit une image que sur requestFrame()).
+  if (lowLatencyOn && programVideoTrack && typeof programVideoTrack.requestFrame === 'function') {
+    try { programVideoTrack.requestFrame(); } catch (e) {}
+  }
+  // Mesure perf : compte les frames dessinées et celles en retard (boucle qui décroche).
+  perfFramesDrawn++;
+  if (perfLastDrawTs && (ts - perfLastDrawTs) > RENDER_INTERVAL_MS * 1.8) perfLateFrames++;
+  perfLastDrawTs = ts;
   return true;
+}
+
+// ===== Charge des encodeurs (record + stream RTMP + replay buffer) =====
+function getEncoderLoad() {
+  const recording = !!(mediaRecorder && mediaRecorder.state === 'recording');
+  const streaming = !!relayStreaming;
+  const buffering = isReplayBufferOn();
+  return (recording ? 1 : 0) + (streaming ? 1 : 0) + (buffering ? 1 : 0);
+}
+
+// ===== Indicateur de performance (HUD) =====
+let perfHudTimer = null;
+function startPerfHud() {
+  if (perfHudTimer) return;
+  perfHudTimer = setInterval(() => {
+    const fps = perfFramesDrawn; perfFramesDrawn = 0;
+    const late = perfLateFrames; perfLateFrames = 0;
+    maybeAutoResolution();
+    updatePerfHud(fps, late);
+  }, 1000);
+}
+
+// ===== Baisse auto de résolution sous charge (opt-in) =====
+// Réduit le canvas en 720p quand 2+ encodeurs tournent, pour alléger l'encodage
+// (WebM record/replay tolèrent un changement de résolution). JAMAIS pendant un live
+// RTMP (un changement de résolution casserait le flux). Ne touche pas la qualité
+// choisie par l'utilisateur : on restaure dès que la charge retombe.
+let autoResActive = false;
+function maybeAutoResolution() {
+  if (relayStreaming) return; // ne jamais changer la résolution pendant une diffusion RTMP
+  if (!autoResOn) { if (autoResActive) restoreUserResolution(); return; }
+  const load = getEncoderLoad();
+  if (load >= 2 && currentQuality === '1080p' && !autoResActive) {
+    OUTPUT_W = 1280; OUTPUT_H = 720;
+    if (programCanvas) { programCanvas.width = 1280; programCanvas.height = 720; }
+    const pc = document.getElementById('previewCanvas');
+    if (pc) { pc.width = 1280; pc.height = 720; }
+    autoResActive = true;
+    toast('Priorité fluidité : canvas abaissé en 720p le temps de la charge.');
+  } else if (load < 2 && autoResActive) {
+    restoreUserResolution();
+  }
+}
+function restoreUserResolution() {
+  autoResActive = false;
+  applyQualityToCanvases(); // remet la résolution choisie par l'utilisateur
+}
+function updatePerfHud(fps, late) {
+  const el = document.getElementById('perfHud');
+  if (!el) return;
+  el.hidden = !perfHudOn;
+  if (!perfHudOn) return;
+  const load = getEncoderLoad();
+  const healthy = fps >= 27 && late === 0;
+  el.style.color = healthy ? '#9f9' : (fps >= 20 ? '#fd6' : '#f99');
+  const encNames = [];
+  if (mediaRecorder && mediaRecorder.state === 'recording') encNames.push('REC');
+  if (relayStreaming) encNames.push('LIVE');
+  if (isReplayBufferOn()) encNames.push('BUF');
+  el.textContent =
+    `${OUTPUT_W}×${OUTPUT_H} · ${fps} fps rendu` +
+    (late ? ` · ${late} retard` : '') +
+    `\nencodeurs: ${load}${encNames.length ? ' (' + encNames.join('+') + ')' : ''}` +
+    (lowLatencyOn ? ' · basse latence' : '');
 }
 
 // Boucle au premier plan : fluide, calée sur le compositeur.
@@ -1086,10 +1189,7 @@ function setMultiview(on) {
 // replay buffer = 3 pass d'encodage du canvas). Garder 5 fps pendant ces moments
 // saturait le CPU sur Mac modeste, d'où le freeze observé pendant le filmage.
 function getMultiviewIntervalMs() {
-  const recording = !!(mediaRecorder && mediaRecorder.state === 'recording');
-  const streaming = !!relayStreaming;
-  const buffering = isReplayBufferOn();
-  const load = (recording ? 1 : 0) + (streaming ? 1 : 0) + (buffering ? 1 : 0);
+  const load = getEncoderLoad();
   if (load >= 3) return 1000; // 1 fps
   if (load >= 2) return 500;  // 2 fps
   if (load >= 1) return 333;  // 3 fps
@@ -1253,7 +1353,9 @@ function startAudioMeter() {
 let programVideoTrack = null;
 function rebuildProgramStream() {
   if (!programVideoTrack || programVideoTrack.readyState === 'ended') {
-    programVideoTrack = programCanvas.captureStream(OUTPUT_FPS).getVideoTracks()[0];
+    // Basse latence : captureStream(0) → on pousse chaque frame via requestFrame()
+    // dans renderTick (latence ≈ 1 frame de moins). Sinon échantillonnage auto 30 fps.
+    programVideoTrack = programCanvas.captureStream(lowLatencyOn ? 0 : OUTPUT_FPS).getVideoTracks()[0];
   }
   if (!programStream) programStream = new MediaStream();
 
@@ -1497,6 +1599,46 @@ function bindSettingsModal() {
       refreshSettingsModal();
     });
   }
+  // ===== Réglages performance / latence =====
+  const cbSmooth = $('perfSmoothPriority');
+  if (cbSmooth) {
+    cbSmooth.checked = smoothPriorityOn;
+    cbSmooth.addEventListener('change', (e) => {
+      smoothPriorityOn = e.target.checked;
+      localStorage.setItem(SMOOTH_PRIORITY_KEY, smoothPriorityOn ? '1' : '0');
+    });
+  }
+  const cbLowLat = $('perfLowLatency');
+  if (cbLowLat) {
+    cbLowLat.checked = lowLatencyOn;
+    cbLowLat.addEventListener('change', (e) => {
+      lowLatencyOn = e.target.checked;
+      localStorage.setItem(LOW_LATENCY_KEY, lowLatencyOn ? '1' : '0');
+      // Reconstruit la piste capturée avec le bon mode (0 = requestFrame, sinon 30 fps).
+      if (programVideoTrack) { try { programVideoTrack.stop(); } catch (e2) {} programVideoTrack = null; }
+      rebuildProgramStream();
+    });
+  }
+  const cbAutoRes = $('perfAutoRes');
+  if (cbAutoRes) {
+    cbAutoRes.checked = autoResOn;
+    cbAutoRes.addEventListener('change', (e) => {
+      autoResOn = e.target.checked;
+      localStorage.setItem(AUTO_RES_KEY, autoResOn ? '1' : '0');
+      maybeAutoResolution();
+    });
+  }
+  const cbHud = $('perfHudToggle');
+  if (cbHud) {
+    cbHud.checked = perfHudOn;
+    cbHud.addEventListener('change', (e) => {
+      perfHudOn = e.target.checked;
+      localStorage.setItem(PERF_HUD_KEY, perfHudOn ? '1' : '0');
+      const el = document.getElementById('perfHud');
+      if (el) el.hidden = !perfHudOn;
+    });
+  }
+
   const nameInp = $('recordNameInput');
   if (nameInp) {
     nameInp.value = recordNamePattern;
@@ -4875,6 +5017,7 @@ async function init() {
   startSourceVuLoop();
   requestAnimationFrame(renderFrame);
   startBgRenderLoop();
+  startPerfHud();
   rebuildProgramStream();
   await refreshDeviceList();
   loadStoredImages();
