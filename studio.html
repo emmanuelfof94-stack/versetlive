@@ -148,6 +148,18 @@
           <span id="studioSceneScaleVal" style="font-size:11px; color:#bbb; min-width:34px; text-align:right;">100%</span>
           <button class="btn btn-sm" id="studioSceneScaleReset" title="Réinitialiser à 100 %" style="font-size:11px;">↺</button>
         </div>
+        <div class="studio-verse-scale" style="display:flex; align-items:center; gap:8px; margin-top:6px;">
+          <span style="font-size:11px; color:#999; white-space:nowrap;">Position ↔</span>
+          <input type="range" id="studioSceneOffsetX" min="-0.5" max="0.5" step="0.05" value="0" style="flex:1;">
+          <span id="studioSceneOffsetXVal" style="font-size:11px; color:#bbb; min-width:34px; text-align:right;">0%</span>
+          <button class="btn btn-sm" id="studioSceneOffsetXReset" title="Recentrer horizontalement" style="font-size:11px;">↺</button>
+        </div>
+        <div class="studio-verse-scale" style="display:flex; align-items:center; gap:8px; margin-top:6px;">
+          <span style="font-size:11px; color:#999; white-space:nowrap;">Position ↕</span>
+          <input type="range" id="studioSceneOffsetY" min="-0.5" max="0.5" step="0.05" value="0" style="flex:1;">
+          <span id="studioSceneOffsetYVal" style="font-size:11px; color:#bbb; min-width:34px; text-align:right;">0%</span>
+          <button class="btn btn-sm" id="studioSceneOffsetYReset" title="Recentrer verticalement" style="font-size:11px;">↺</button>
+        </div>
         <div class="studio-hint" style="line-height:1.4; padding:4px 0 0; font-size:11px; color:#777;">
           Nécessite l'onglet panneau principal ouvert (peut être en arrière-plan).
         </div>

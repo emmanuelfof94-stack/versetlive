@@ -26,7 +26,7 @@
       justify-content: center;
       padding: 5vh 6vw;
       position: relative;
-      transform: scale(var(--scene-scale, 1));
+      transform: translate(calc(var(--scene-offset-x, 0) * 100%), calc(var(--scene-offset-y, 0) * 100%)) scale(var(--scene-scale, 1));
       transform-origin: center center;
       transition: transform 0.4s ease;
     }

@@ -593,10 +593,18 @@ function drawVerseOverlay(area) {
   const sceneScale = verseState.kind === 'title'
     ? 1
     : (style.sceneScale != null ? Math.max(0.1, Math.min(1, style.sceneScale)) : 1);
+  // Décalage manuel du bloc (image + texte) : fraction de la zone, -0.5..0.5.
+  // 0 = centré (comportement historique). Neutralisé pour les titres.
+  const offX = verseState.kind === 'title'
+    ? 0
+    : (style.sceneOffsetX != null ? Math.max(-0.5, Math.min(0.5, style.sceneOffsetX)) : 0);
+  const offY = verseState.kind === 'title'
+    ? 0
+    : (style.sceneOffsetY != null ? Math.max(-0.5, Math.min(0.5, style.sceneOffsetY)) : 0);
   const w = area.w * sceneScale;
   const h = area.h * sceneScale;
-  const x = area.x + (area.w - w) / 2;
-  const y = area.y + (area.h - h) / 2;
+  const x = area.x + (area.w - w) / 2 + offX * area.w;
+  const y = area.y + (area.h - h) / 2 + offY * area.h;
 
   // Image de fond optionnelle (sous le fond couleur/dégradé/bandeau).
   // Cachée par dataURL pour éviter de recréer un Image() à chaque frame.
@@ -1770,6 +1778,7 @@ function applyVerseState(state) {
   renderVerseStatus();
   renderSongStatus();
   syncStudioSceneScaleUI();
+  syncStudioSceneOffsetUI();
   if (state && state.reference && state.kind !== 'song') syncBookChapterSelectsFromRef(state.reference);
 }
 
@@ -1797,6 +1806,32 @@ function syncStudioSceneScaleUI() {
   const scale = (s != null) ? Math.max(0.1, Math.min(1, s)) : 1;
   slider.value = scale;
   if (val) val.textContent = Math.round(scale * 100) + '%';
+}
+
+// ===== Décalage (position) du bloc verset depuis le studio =====
+// axis = 'sceneOffsetX' ou 'sceneOffsetY' ; valeur -0.5..0.5 (fraction de la zone).
+function setStudioSceneOffset(axis, v) {
+  const off = Math.max(-0.5, Math.min(0.5, parseFloat(v) || 0));
+  const style = { ...(verseState?.style || {}), [axis]: off };
+  const newState = { ...(verseState || {}), style };
+  verseBc?.postMessage({ type: 'style', payload: style });
+  sendToTv({ type: 'style', payload: style });
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(newState)); } catch (e) {}
+  applyVerseState(newState);
+}
+
+function syncStudioSceneOffsetUI() {
+  [['studioSceneOffsetX', 'studioSceneOffsetXVal', 'sceneOffsetX'],
+   ['studioSceneOffsetY', 'studioSceneOffsetYVal', 'sceneOffsetY']].forEach(([sliderId, valId, key]) => {
+    const slider = document.getElementById(sliderId);
+    if (!slider) return;
+    if (document.activeElement === slider) return;
+    const raw = verseState && verseState.style ? verseState.style[key] : null;
+    const off = (raw != null) ? Math.max(-0.5, Math.min(0.5, raw)) : 0;
+    slider.value = off;
+    const val = document.getElementById(valId);
+    if (val) val.textContent = Math.round(off * 200) + '%';
+  });
 }
 
 function renderVerseStatus() {
@@ -1945,6 +1980,22 @@ function bindVerseNav() {
     if (scale) scale.value = 1;
     if (scaleVal) scaleVal.textContent = '100%';
     setStudioSceneScale(1);
+  });
+  // Curseurs de position (décalage horizontal / vertical du bloc)
+  [['studioSceneOffsetX', 'studioSceneOffsetXVal', 'studioSceneOffsetXReset', 'sceneOffsetX'],
+   ['studioSceneOffsetY', 'studioSceneOffsetYVal', 'studioSceneOffsetYReset', 'sceneOffsetY']].forEach(([sliderId, valId, resetId, key]) => {
+    const slider = $(sliderId);
+    const val = $(valId);
+    if (slider) slider.addEventListener('input', () => {
+      if (val) val.textContent = Math.round(parseFloat(slider.value) * 200) + '%';
+      setStudioSceneOffset(key, slider.value);
+    });
+    const reset = $(resetId);
+    if (reset) reset.addEventListener('click', () => {
+      if (slider) slider.value = 0;
+      if (val) val.textContent = '0%';
+      setStudioSceneOffset(key, 0);
+    });
   });
   populateBookSelect();
   bindBookChapterSelectors();

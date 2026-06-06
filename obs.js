@@ -36,6 +36,12 @@ function applyStyle(style, isTitle) {
     : (s.sceneScale != null ? Math.max(0.1, Math.min(1, s.sceneScale)) : 1);
   stage.style.setProperty('--scene-scale', sceneScale);
 
+  // Décalage (position) du bloc : fraction de la zone, -0.5..0.5 ; neutralisé pour les titres.
+  const offX = titleMode ? 0 : (s.sceneOffsetX != null ? Math.max(-0.5, Math.min(0.5, s.sceneOffsetX)) : 0);
+  const offY = titleMode ? 0 : (s.sceneOffsetY != null ? Math.max(-0.5, Math.min(0.5, s.sceneOffsetY)) : 0);
+  stage.style.setProperty('--scene-offset-x', offX);
+  stage.style.setProperty('--scene-offset-y', offY);
+
   // Alignement vertical
   stage.classList.remove('v-top', 'v-center', 'v-bottom');
   if (s.vAlign === 'top') stage.classList.add('v-top');
