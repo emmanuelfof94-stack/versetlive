@@ -507,8 +507,8 @@
     const fit = getFit(id);
     const boxW = W * fit.w;
     const boxH = H * fit.h;
-    const boxX = (W - boxW) / 2;
-    const boxY = (H - boxH) / 2;
+    const boxX = (W - boxW) / 2 + fit.offX * W;
+    const boxY = (H - boxH) / 2 + fit.offY * H;
 
     // Fond letterbox (couleur projecteur) sur toute la zone hors vidéo.
     ctx.fillStyle = '#131536';
@@ -531,7 +531,10 @@
     const w = e && e.fitW != null ? Math.max(0.1, Math.min(1, e.fitW)) : 1;
     const h = e && e.fitH != null ? Math.max(0.1, Math.min(1, e.fitH)) : 1;
     const keepAspect = e && e.fitKeepAspect != null ? !!e.fitKeepAspect : true;
-    return { w, h, keepAspect };
+    // Décalage (position) de la vidéo dans l'écran : fraction -0.5..0.5.
+    const offX = e && e.fitOffsetX != null ? Math.max(-0.5, Math.min(0.5, e.fitOffsetX)) : 0;
+    const offY = e && e.fitOffsetY != null ? Math.max(-0.5, Math.min(0.5, e.fitOffsetY)) : 0;
+    return { w, h, keepAspect, offX, offY };
   }
 
   async function setFit(id, patch) {
@@ -540,12 +543,14 @@
     if (patch.w != null) e.fitW = Math.max(0.1, Math.min(1, patch.w));
     if (patch.h != null) e.fitH = Math.max(0.1, Math.min(1, patch.h));
     if (patch.keepAspect != null) e.fitKeepAspect = !!patch.keepAspect;
+    if (patch.offX != null) e.fitOffsetX = Math.max(-0.5, Math.min(0.5, patch.offX));
+    if (patch.offY != null) e.fitOffsetY = Math.max(-0.5, Math.min(0.5, patch.offY));
     await saveCatalog();
   }
 
   // ============ Hook scènes (appelé par studio.js dans setProgramScene) ============
   function onSceneChange(scene) {
-    if (scene && scene.kind === 'video' && scene.videoId) {
+    if (scene && (scene.kind === 'video' || scene.kind === 'video+verse') && scene.videoId) {
       if (currentActiveId !== scene.videoId) startPlayback(scene.videoId);
     } else {
       if (currentActiveId) stopPlayback();
@@ -553,7 +558,7 @@
   }
 
   function isVideoScene(scene) {
-    return !!(scene && scene.kind === 'video' && scene.videoId);
+    return !!(scene && (scene.kind === 'video' || scene.kind === 'video+verse') && scene.videoId);
   }
 
   // ============ UI ============
@@ -683,6 +688,8 @@
     const entry = getEntry(id);
     const wPct = Math.round(fit.w * 100);
     const hPct = Math.round(fit.h * 100);
+    const xPct = Math.round(fit.offX * 100);
+    const yPct = Math.round(fit.offY * 100);
     const srcLabel = (entry && entry.width && entry.height)
       ? `${entry.width}×${entry.height} px`
       : 'résolution inconnue';
@@ -698,6 +705,16 @@
         <label>Hauteur</label>
         <input type="range" data-fit="h" min="10" max="100" step="1" value="${hPct}">
         <span class="studio-video-fit-val" data-fit-val="h">${hPct} %</span>
+      </div>
+      <div class="studio-video-fit-row">
+        <label>Position ↔</label>
+        <input type="range" data-fit="x" min="-50" max="50" step="1" value="${xPct}">
+        <span class="studio-video-fit-val" data-fit-val="x">${xPct} %</span>
+      </div>
+      <div class="studio-video-fit-row">
+        <label>Position ↕</label>
+        <input type="range" data-fit="y" min="-50" max="50" step="1" value="${yPct}">
+        <span class="studio-video-fit-val" data-fit-val="y">${yPct} %</span>
       </div>
       <div class="studio-video-fit-screen">À l'écran : <b data-fit-screen>${screenPx(wPct, hPct)}</b></div>
       <label class="studio-video-fit-keep">
@@ -719,7 +736,10 @@
         e.stopPropagation();
         const key = slider.dataset.fit;
         const val = parseInt(slider.value, 10);
-        setFit(id, { [key]: val / 100 });
+        // w/h → fraction de taille ; x/y → fraction de décalage (offX/offY).
+        if (key === 'x') setFit(id, { offX: val / 100 });
+        else if (key === 'y') setFit(id, { offY: val / 100 });
+        else setFit(id, { [key]: val / 100 });
         const valEl = panel.querySelector(`[data-fit-val="${key}"]`);
         if (valEl) valEl.textContent = val + ' %';
         updateScreen();
@@ -735,7 +755,7 @@
     const reset = panel.querySelector('.studio-video-fit-reset');
     if (reset) reset.addEventListener('click', (e) => {
       e.stopPropagation();
-      setFit(id, { w: 1, h: 1, keepAspect: true });
+      setFit(id, { w: 1, h: 1, keepAspect: true, offX: 0, offY: 0 });
       renderFitPanel(panel, id);
     });
   }
@@ -813,13 +833,28 @@
     isVideoScene,
     listScenes() {
       // Pour buildSceneList dans studio.js
-      return catalog.map(v => ({
-        key: `vid-${v.id}`,
-        label: `${v.type === 'recording' ? '🔴' : v.type === 'url' && isIframeKind(v.urlKind) ? '🌐' : v.type === 'url' ? '🔗' : '🎥'} ${v.name}`,
-        scene: (v.type === 'url' && isIframeKind(v.urlKind) && v.embedUrl)
-          ? { kind: 'iframe', url: v.embedUrl, label: v.name, videoId: v.id }
-          : { kind: 'video', videoId: v.id }
-      }));
+      const out = [];
+      catalog.forEach(v => {
+        const isIframe = v.type === 'url' && isIframeKind(v.urlKind) && v.embedUrl;
+        const icon = v.type === 'recording' ? '🔴' : v.type === 'url' && isIframeKind(v.urlKind) ? '🌐' : v.type === 'url' ? '🔗' : '🎥';
+        out.push({
+          key: `vid-${v.id}`,
+          label: `${icon} ${v.name}`,
+          scene: isIframe
+            ? { kind: 'iframe', url: v.embedUrl, label: v.name, videoId: v.id }
+            : { kind: 'video', videoId: v.id }
+        });
+        // Variante « + verset » : seulement pour les vidéos lues sur le canvas
+        // (pas les iframes externes, dont le verset ne pourrait pas être incrusté).
+        if (!isIframe) {
+          out.push({
+            key: `vid-verse-${v.id}`,
+            label: `${icon} ${v.name} + verset`,
+            scene: { kind: 'video+verse', videoId: v.id }
+          });
+        }
+      });
+      return out;
     },
     getEntry,
     stopPlayback

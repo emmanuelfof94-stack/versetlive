@@ -455,6 +455,19 @@ function buildSceneList() {
   return list;
 }
 
+// Détection manuelle du double-clic sur une scène : le simple clic reconstruit
+// la liste (renderScenes), donc l'élément DOM est remplacé et l'événement
+// 'dblclick' natif ne peut pas se déclencher. On compare la clé + le temps.
+let lastSceneClickKey = null;
+let lastSceneClickTime = 0;
+function isSceneDoubleClick(key) {
+  const now = performance.now();
+  const dbl = key === lastSceneClickKey && (now - lastSceneClickTime) < 400;
+  lastSceneClickKey = dbl ? null : key;
+  lastSceneClickTime = dbl ? 0 : now;
+  return dbl;
+}
+
 function renderScenes() {
   const list = $('scenesList');
   const scenes = buildSceneList();
@@ -471,7 +484,11 @@ function renderScenes() {
     btn.textContent = s.label;
     if (progKey === s.key) btn.classList.add('active');
     if (studioMode && prevKey === s.key && progKey !== s.key) btn.classList.add('preview-active');
-    btn.addEventListener('click', () => setScene(s.scene));
+    btn.addEventListener('click', () => {
+      // Double-clic : envoie directement au direct (programme), sans passer par le preview.
+      if (isSceneDoubleClick(s.key)) setProgramScene(s.scene);
+      else setScene(s.scene);
+    });
     list.appendChild(btn);
   });
 }
@@ -484,6 +501,7 @@ function sceneKey(scene) {
   if (scene.kind === 'image+verse') return `img-verse-${scene.imageId}`;
   if (scene.kind === 'card') return `card-${scene.cardId}`;
   if (scene.kind === 'video') return `vid-${scene.videoId}`;
+  if (scene.kind === 'video+verse') return `vid-verse-${scene.videoId}`;
   if (scene.kind === 'iframe') return `iframe-${scene.videoId || scene.url}`;
   if (scene.kind === 'pip') return 'pip';
   if (scene.kind === 'verse') return 'verse';
@@ -814,11 +832,12 @@ let preVideoScene = null;
 function setProgramScene(scene) {
   if (sceneKey(programScene) === sceneKey(scene)) return;
   // Si on passe à une vidéo, mémoriser la scène précédente (pour retour auto)
-  if (scene.kind === 'video' && programScene.kind !== 'video') {
+  const isVid = (k) => k === 'video' || k === 'video+verse';
+  if (isVid(scene.kind) && !isVid(programScene.kind)) {
     preVideoScene = programScene;
   }
   // Si on quitte une vidéo manuellement (pas par fin de vidéo), oublier le retour auto
-  if (programScene.kind === 'video' && scene.kind !== 'video') {
+  if (isVid(programScene.kind) && !isVid(scene.kind)) {
     preVideoScene = null;
   }
   previousProgramScene = programScene;
@@ -899,10 +918,16 @@ function drawScene(s) {
   } else if (s.kind === 'image' || s.kind === 'image+verse') {
     const img = getImageForScene(s);
     if (img && img.imgEl) {
-      // Taille réglable de l'image plein écran (centrée, marge autour si < 100 %).
-      const sc = Math.max(0.1, Math.min(1, fullImageScale));
+      // Taille + position réglables PAR IMAGE (centrée, marge autour si < 100 %).
+      // Repli sur la taille globale (fullImageScale) pour les images sans réglage
+      // propre, afin de préserver le comportement existant.
+      const sc = img.scale != null
+        ? Math.max(0.1, Math.min(1, img.scale))
+        : Math.max(0.1, Math.min(1, fullImageScale));
+      const ox = img.offsetX != null ? Math.max(-0.5, Math.min(0.5, img.offsetX)) : 0;
+      const oy = img.offsetY != null ? Math.max(-0.5, Math.min(0.5, img.offsetY)) : 0;
       const iw = OUTPUT_W * sc, ih = OUTPUT_H * sc;
-      drawImageContain(img.imgEl, (OUTPUT_W - iw) / 2, (OUTPUT_H - ih) / 2, iw, ih);
+      drawImageContain(img.imgEl, (OUTPUT_W - iw) / 2 + ox * OUTPUT_W, (OUTPUT_H - ih) / 2 + oy * OUTPUT_H, iw, ih);
     }
     if (s.kind === 'image+verse') {
       const h = OUTPUT_H * 0.30;
@@ -917,8 +942,14 @@ function drawScene(s) {
     drawVerseOverlay({ x: 0, y: 0, w: OUTPUT_W, h: OUTPUT_H });
   } else if (s.kind === 'intro' || s.kind === 'outro') {
     if (window.IntroOutro) window.IntroOutro.draw(activeCtx, s.kind, OUTPUT_W, OUTPUT_H);
-  } else if (s.kind === 'video') {
+  } else if (s.kind === 'video' || s.kind === 'video+verse') {
     if (window.VideoLibrary) window.VideoLibrary.draw(activeCtx, s.videoId, OUTPUT_W, OUTPUT_H);
+    if (s.kind === 'video+verse') {
+      const h = OUTPUT_H * 0.30;
+      activeCtx.fillStyle = 'rgba(0,0,0,0.55)';
+      activeCtx.fillRect(0, OUTPUT_H - h, OUTPUT_W, h);
+      drawVerseOverlay({ x: 0, y: OUTPUT_H - h, w: OUTPUT_W, h });
+    }
   } else if (s.kind === 'iframe') {
     // La lecture réelle se fait dans la fenêtre projecteur via une iframe ;
     // le canvas (et donc le live RTMP) ne reçoit qu'un placeholder.
@@ -1252,9 +1283,12 @@ function rebuildMultiviewGrid() {
     `;
     cell.addEventListener('click', () => {
       const list = buildSceneList();
-      const target = list[i] && list[i].scene;
+      const item = list[i];
+      const target = item && item.scene;
       if (!target) return;
-      if (studioMode) setPreviewScene(target);
+      // Double-clic : envoie directement au direct (programme), sans passer par le preview.
+      if (isSceneDoubleClick(item.key)) setProgramScene(target);
+      else if (studioMode) setPreviewScene(target);
       else setScene(target);
     });
     grid.appendChild(cell);
@@ -2031,7 +2065,11 @@ function syncFullImageScaleUI() {
 
 function syncStudioSceneOffsetUI() {
   [['studioSceneOffsetX', 'studioSceneOffsetXVal', 'sceneOffsetX'],
-   ['studioSceneOffsetY', 'studioSceneOffsetYVal', 'sceneOffsetY']].forEach(([sliderId, valId, key]) => {
+   ['studioSceneOffsetY', 'studioSceneOffsetYVal', 'sceneOffsetY'],
+   ['studioBgImageOffsetX', 'studioBgImageOffsetXVal', 'bgImageOffsetX'],
+   ['studioBgImageOffsetY', 'studioBgImageOffsetYVal', 'bgImageOffsetY'],
+   ['studioTextOffsetX', 'studioTextOffsetXVal', 'textOffsetX'],
+   ['studioTextOffsetY', 'studioTextOffsetYVal', 'textOffsetY']].forEach(([sliderId, valId, key]) => {
     const slider = document.getElementById(sliderId);
     if (!slider) return;
     if (document.activeElement === slider) return;
@@ -2190,9 +2228,14 @@ function bindVerseNav() {
     if (scaleVal) scaleVal.textContent = '100%';
     setStudioSceneScale(1);
   });
-  // Curseurs de position (décalage horizontal / vertical du bloc)
+  // Curseurs de position : bloc entier, image de fond seule, texte seul.
+  // setStudioSceneOffset est générique sur la clé de style.
   [['studioSceneOffsetX', 'studioSceneOffsetXVal', 'studioSceneOffsetXReset', 'sceneOffsetX'],
-   ['studioSceneOffsetY', 'studioSceneOffsetYVal', 'studioSceneOffsetYReset', 'sceneOffsetY']].forEach(([sliderId, valId, resetId, key]) => {
+   ['studioSceneOffsetY', 'studioSceneOffsetYVal', 'studioSceneOffsetYReset', 'sceneOffsetY'],
+   ['studioBgImageOffsetX', 'studioBgImageOffsetXVal', 'studioBgImageOffsetXReset', 'bgImageOffsetX'],
+   ['studioBgImageOffsetY', 'studioBgImageOffsetYVal', 'studioBgImageOffsetYReset', 'bgImageOffsetY'],
+   ['studioTextOffsetX', 'studioTextOffsetXVal', 'studioTextOffsetXReset', 'textOffsetX'],
+   ['studioTextOffsetY', 'studioTextOffsetYVal', 'studioTextOffsetYReset', 'textOffsetY']].forEach(([sliderId, valId, resetId, key]) => {
     const slider = $(sliderId);
     const val = $(valId);
     if (slider) slider.addEventListener('input', () => {
@@ -3776,7 +3819,10 @@ function loadImgIndex() {
   catch (e) { return []; }
 }
 function saveImgIndex() {
-  const idx = imageSources.map(i => ({ id: i.id, name: i.name }));
+  const idx = imageSources.map(i => ({
+    id: i.id, name: i.name,
+    scale: i.scale, offsetX: i.offsetX, offsetY: i.offsetY
+  }));
   localStorage.setItem(IMG_INDEX_KEY, JSON.stringify(idx));
 }
 function loadLogoCfg() {
@@ -3802,7 +3848,10 @@ async function loadStoredImages() {
       if (!blob) continue;
       const dataUrl = await blobToDataUrl(blob);
       const img = await loadImageElement(dataUrl);
-      imageSources.push({ id: meta.id, name: meta.name, dataUrl, imgEl: img });
+      imageSources.push({
+        id: meta.id, name: meta.name, dataUrl, imgEl: img,
+        scale: meta.scale, offsetX: meta.offsetX, offsetY: meta.offsetY
+      });
       const n = parseInt(meta.id.replace(/^im/, ''), 10);
       if (!isNaN(n) && n > maxId) maxId = n;
     } catch (e) { console.warn('Image load failed', meta, e); }
@@ -3888,13 +3937,68 @@ function renderImages() {
       <div class="studio-image-thumb"><img src="${img.dataUrl}" alt=""></div>
       <div class="studio-image-meta">
         <span class="studio-image-name" title="${escapeHtml(img.name)}">${escapeHtml(img.name)}</span>
+        <button class="btn btn-sm studio-image-fit-btn" data-id="${img.id}" title="Taille et position de l'image">⤢</button>
         <button class="btn btn-sm btn-danger studio-image-remove" data-id="${img.id}" title="Retirer">×</button>
       </div>
+      <div class="studio-video-fit" hidden></div>
     `;
     card.querySelector('.studio-image-remove').addEventListener('click', () => {
       if (confirm(`Retirer l'image « ${img.name} » ?`)) removeImage(img.id);
     });
+    const fitBtn = card.querySelector('.studio-image-fit-btn');
+    const panel = card.querySelector('.studio-video-fit');
+    fitBtn.addEventListener('click', () => {
+      const show = panel.hasAttribute('hidden');
+      if (show) { renderImageFitPanel(panel, img); panel.removeAttribute('hidden'); }
+      else panel.setAttribute('hidden', '');
+    });
     list.appendChild(card);
+  });
+}
+
+// Panneau Taille + Position pour UNE image (réglages mémorisés par image).
+// Calque sur le panneau de cadrage vidéo (mêmes classes CSS).
+function renderImageFitPanel(panel, img) {
+  const scPct = Math.round((img.scale != null ? img.scale : Math.max(0.1, Math.min(1, fullImageScale))) * 100);
+  const xPct = Math.round((img.offsetX != null ? img.offsetX : 0) * 100);
+  const yPct = Math.round((img.offsetY != null ? img.offsetY : 0) * 100);
+  panel.innerHTML = `
+    <div class="studio-video-fit-row">
+      <label>Taille</label>
+      <input type="range" data-imgfit="scale" min="10" max="100" step="1" value="${scPct}">
+      <span class="studio-video-fit-val" data-imgfit-val="scale">${scPct} %</span>
+    </div>
+    <div class="studio-video-fit-row">
+      <label>Position ↔</label>
+      <input type="range" data-imgfit="x" min="-50" max="50" step="1" value="${xPct}">
+      <span class="studio-video-fit-val" data-imgfit-val="x">${xPct} %</span>
+    </div>
+    <div class="studio-video-fit-row">
+      <label>Position ↕</label>
+      <input type="range" data-imgfit="y" min="-50" max="50" step="1" value="${yPct}">
+      <span class="studio-video-fit-val" data-imgfit-val="y">${yPct} %</span>
+    </div>
+    <button class="studio-video-fit-reset" type="button">Réinitialiser</button>
+  `;
+  panel.querySelectorAll('input[type="range"]').forEach(slider => {
+    slider.addEventListener('input', (e) => {
+      e.stopPropagation();
+      const key = slider.dataset.imgfit;
+      const val = parseInt(slider.value, 10);
+      if (key === 'scale') img.scale = Math.max(0.1, Math.min(1, val / 100));
+      else if (key === 'x') img.offsetX = Math.max(-0.5, Math.min(0.5, val / 100));
+      else if (key === 'y') img.offsetY = Math.max(-0.5, Math.min(0.5, val / 100));
+      const valEl = panel.querySelector(`[data-imgfit-val="${key}"]`);
+      if (valEl) valEl.textContent = val + ' %';
+      saveImgIndex();
+    });
+  });
+  const reset = panel.querySelector('.studio-video-fit-reset');
+  if (reset) reset.addEventListener('click', (e) => {
+    e.stopPropagation();
+    img.scale = 1; img.offsetX = 0; img.offsetY = 0;
+    saveImgIndex();
+    renderImageFitPanel(panel, img);
   });
 }
 
