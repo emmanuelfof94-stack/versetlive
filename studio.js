@@ -18,17 +18,13 @@ let OUTPUT_W = QUALITY_PRESETS[currentQuality].w;
 let OUTPUT_H = QUALITY_PRESETS[currentQuality].h;
 const OUTPUT_FPS = 30;
 
-// ============ Réglages performance / latence (anti-saccades projecteur) ============
+// ============ Réglages performance (anti-saccades projecteur) ============
 const SMOOTH_PRIORITY_KEY = 'versetlive:smooth-priority';
-const LOW_LATENCY_KEY = 'versetlive:low-latency';
 const AUTO_RES_KEY = 'versetlive:auto-res';
 const PERF_HUD_KEY = 'versetlive:perf-hud';
 // Priorité fluidité : sous charge d'encodeurs, allège le rendu non essentiel
 // (aperçu/multiview) pour que le programme — donc le projecteur — reste à 30 fps.
 let smoothPriorityOn = localStorage.getItem(SMOOTH_PRIORITY_KEY) !== '0';
-// Basse latence : capture le canvas image par image (captureStream(0)+requestFrame)
-// au lieu d'un échantillonnage indépendant à 30 fps → ~1 frame de latence en moins.
-let lowLatencyOn = localStorage.getItem(LOW_LATENCY_KEY) !== '0';
 // Baisse auto de résolution sous charge (opt-in) : voir maybeAutoResolution().
 let autoResOn = localStorage.getItem(AUTO_RES_KEY) === '1';
 let perfHudOn = localStorage.getItem(PERF_HUD_KEY) === '1';
@@ -969,11 +965,6 @@ function renderTick() {
   if (elapsed < RENDER_INTERVAL_MS - 2) return false;
   lastRenderTime = ts - (elapsed % RENDER_INTERVAL_MS);
   drawProgramFrame();
-  // Basse latence : pousse immédiatement la frame dessinée vers la piste capturée
-  // (captureStream(0) ne produit une image que sur requestFrame()).
-  if (lowLatencyOn && programVideoTrack && typeof programVideoTrack.requestFrame === 'function') {
-    try { programVideoTrack.requestFrame(); } catch (e) {}
-  }
   // Mesure perf : compte les frames dessinées et celles en retard (boucle qui décroche).
   perfFramesDrawn++;
   if (perfLastDrawTs && (ts - perfLastDrawTs) > RENDER_INTERVAL_MS * 1.8) perfLateFrames++;
@@ -1041,8 +1032,7 @@ function updatePerfHud(fps, late) {
   el.textContent =
     `${OUTPUT_W}×${OUTPUT_H} · ${fps} fps rendu` +
     (late ? ` · ${late} retard` : '') +
-    `\nencodeurs: ${load}${encNames.length ? ' (' + encNames.join('+') + ')' : ''}` +
-    (lowLatencyOn ? ' · basse latence' : '');
+    `\nencodeurs: ${load}${encNames.length ? ' (' + encNames.join('+') + ')' : ''}`;
 }
 
 // Boucle au premier plan : fluide, calée sur le compositeur.
@@ -1353,9 +1343,9 @@ function startAudioMeter() {
 let programVideoTrack = null;
 function rebuildProgramStream() {
   if (!programVideoTrack || programVideoTrack.readyState === 'ended') {
-    // Basse latence : captureStream(0) → on pousse chaque frame via requestFrame()
-    // dans renderTick (latence ≈ 1 frame de moins). Sinon échantillonnage auto 30 fps.
-    programVideoTrack = programCanvas.captureStream(lowLatencyOn ? 0 : OUTPUT_FPS).getVideoTracks()[0];
+    // Échantillonnage natif à 30 fps : mesuré plus bas en latence que
+    // captureStream(0)+requestFrame (testé), et chemin éprouvé.
+    programVideoTrack = programCanvas.captureStream(OUTPUT_FPS).getVideoTracks()[0];
   }
   if (!programStream) programStream = new MediaStream();
 
@@ -1606,17 +1596,6 @@ function bindSettingsModal() {
     cbSmooth.addEventListener('change', (e) => {
       smoothPriorityOn = e.target.checked;
       localStorage.setItem(SMOOTH_PRIORITY_KEY, smoothPriorityOn ? '1' : '0');
-    });
-  }
-  const cbLowLat = $('perfLowLatency');
-  if (cbLowLat) {
-    cbLowLat.checked = lowLatencyOn;
-    cbLowLat.addEventListener('change', (e) => {
-      lowLatencyOn = e.target.checked;
-      localStorage.setItem(LOW_LATENCY_KEY, lowLatencyOn ? '1' : '0');
-      // Reconstruit la piste capturée avec le bon mode (0 = requestFrame, sinon 30 fps).
-      if (programVideoTrack) { try { programVideoTrack.stop(); } catch (e2) {} programVideoTrack = null; }
-      rebuildProgramStream();
     });
   }
   const cbAutoRes = $('perfAutoRes');
