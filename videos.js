@@ -486,39 +486,49 @@
       ctx.fillRect(0, 0, W, H);
       return;
     }
-    // Adaptation auto au format de la vidéo :
-    //  - vidéo ~16:9 (comme le cadre) → cover plein écran (comportement historique) ;
-    //  - autre format (4:3, vertical, carré…) → contain : la vidéo entière est
-    //    affichée, centrée, avec des bandes bleu nuit (#131536, la couleur de
-    //    letterbox du projecteur). Évite de rogner des écritures gravées près des
-    //    bords dans une vidéo conçue hors du studio.
-    const sAR = v.videoWidth / v.videoHeight;
-    const dAR = W / H;
-    const ratio = sAR / dAR;
-    const fillsCleanly = ratio > 0.98 && ratio < 1.02; // ~16:9 → remplir
-    if (fillsCleanly) {
-      let sx, sy, sw, sh;
-      if (sAR > dAR) {
-        sh = v.videoHeight;
-        sw = sh * dAR;
-        sx = (v.videoWidth - sw) / 2;
-        sy = 0;
-      } else {
-        sw = v.videoWidth;
-        sh = sw / dAR;
-        sx = 0;
-        sy = (v.videoHeight - sh) / 2;
-      }
-      ctx.drawImage(v, sx, sy, sw, sh, 0, 0, W, H);
-    } else {
-      // Contain : toute la vidéo tient dans le cadre, bandes autour.
-      ctx.fillStyle = '#131536';
-      ctx.fillRect(0, 0, W, H);
-      const scale = Math.min(W / v.videoWidth, H / v.videoHeight);
+    // Cadrage réglable par vidéo (largeur/hauteur + garder les proportions).
+    // Le cadre où la vidéo est dessinée fait fitW × fitH de l'écran, centré.
+    //  - garder les proportions (par défaut) : la vidéo tient entière dans ce
+    //    cadre sans déformation, bandes bleu nuit autour → rien n'est rogné ;
+    //  - sinon : la vidéo est étirée pour remplir tout le cadre (déformation ok).
+    // Défaut (1, 1, proportions) = vidéo entière plein écran, sans rognage.
+    const fit = getFit(id);
+    const boxW = W * fit.w;
+    const boxH = H * fit.h;
+    const boxX = (W - boxW) / 2;
+    const boxY = (H - boxH) / 2;
+
+    // Fond letterbox (couleur projecteur) sur toute la zone hors vidéo.
+    ctx.fillStyle = '#131536';
+    ctx.fillRect(0, 0, W, H);
+
+    if (fit.keepAspect) {
+      const scale = Math.min(boxW / v.videoWidth, boxH / v.videoHeight);
       const dw = v.videoWidth * scale;
       const dh = v.videoHeight * scale;
-      ctx.drawImage(v, 0, 0, v.videoWidth, v.videoHeight, (W - dw) / 2, (H - dh) / 2, dw, dh);
+      ctx.drawImage(v, 0, 0, v.videoWidth, v.videoHeight,
+        boxX + (boxW - dw) / 2, boxY + (boxH - dh) / 2, dw, dh);
+    } else {
+      ctx.drawImage(v, 0, 0, v.videoWidth, v.videoHeight, boxX, boxY, boxW, boxH);
     }
+  }
+
+  // Réglages de cadrage par vidéo, avec valeurs par défaut sûres.
+  function getFit(id) {
+    const e = getEntry(id);
+    const w = e && e.fitW != null ? Math.max(0.1, Math.min(1, e.fitW)) : 1;
+    const h = e && e.fitH != null ? Math.max(0.1, Math.min(1, e.fitH)) : 1;
+    const keepAspect = e && e.fitKeepAspect != null ? !!e.fitKeepAspect : true;
+    return { w, h, keepAspect };
+  }
+
+  async function setFit(id, patch) {
+    const e = catalog.find(x => x.id === id);
+    if (!e) return;
+    if (patch.w != null) e.fitW = Math.max(0.1, Math.min(1, patch.w));
+    if (patch.h != null) e.fitH = Math.max(0.1, Math.min(1, patch.h));
+    if (patch.keepAspect != null) e.fitKeepAspect = !!patch.keepAspect;
+    await saveCatalog();
   }
 
   // ============ Hook scènes (appelé par studio.js dans setProgramScene) ============
@@ -578,10 +588,12 @@
         <div class="studio-video-actions">
           <button class="studio-video-action" data-act="play" title="Mettre en scène">▶</button>
           <button class="studio-video-action" data-act="loop" title="Lecture en boucle"${v.loop ? ' data-on="1"' : ''}>${v.loop ? '🔁' : '↻'}</button>
+          <button class="studio-video-action" data-act="fit" title="Cadrage (largeur / hauteur)">⤢</button>
           <button class="studio-video-action" data-act="rename" title="Renommer">✎</button>
           <button class="studio-video-action" data-act="download" title="Télécharger">⬇</button>
           <button class="studio-video-action" data-act="delete" title="Supprimer">🗑</button>
         </div>
+        <div class="studio-video-fit" hidden></div>
       `;
       wrap.appendChild(card);
     });
@@ -596,6 +608,14 @@
         else if (act === 'loop') {
           const entry = getEntry(id);
           if (entry) await setLoop(id, !entry.loop);
+        }
+        else if (act === 'fit') {
+          const card = btn.closest('.studio-video-card');
+          const panel = card.querySelector('.studio-video-fit');
+          if (!panel) return;
+          panel.hidden = !panel.hidden;
+          btn.classList.toggle('on', !panel.hidden);
+          if (!panel.hidden) renderFitPanel(panel, id);
         }
         else if (act === 'rename') {
           const entry = getEntry(id);
@@ -630,12 +650,63 @@
       });
     });
 
-    // Click sur la carte = mettre en scène (en évitant les boutons d'action)
+    // Click sur la carte = mettre en scène (en évitant les boutons d'action
+    // et le panneau de cadrage déplié)
     wrap.querySelectorAll('.studio-video-card').forEach(card => {
       card.addEventListener('click', (e) => {
         if (e.target.closest('.studio-video-action')) return;
+        if (e.target.closest('.studio-video-fit')) return;
         triggerPlayScene(card.dataset.id);
       });
+    });
+  }
+
+  // Panneau de cadrage par vidéo : largeur, hauteur, garder les proportions.
+  // Les réglages s'appliquent en direct (draw() relit getFit() à chaque frame).
+  function renderFitPanel(panel, id) {
+    const fit = getFit(id);
+    const wPct = Math.round(fit.w * 100);
+    const hPct = Math.round(fit.h * 100);
+    panel.innerHTML = `
+      <div class="studio-video-fit-row">
+        <label>Largeur</label>
+        <input type="range" data-fit="w" min="10" max="100" step="1" value="${wPct}">
+        <span class="studio-video-fit-val" data-fit-val="w">${wPct} %</span>
+      </div>
+      <div class="studio-video-fit-row">
+        <label>Hauteur</label>
+        <input type="range" data-fit="h" min="10" max="100" step="1" value="${hPct}">
+        <span class="studio-video-fit-val" data-fit-val="h">${hPct} %</span>
+      </div>
+      <label class="studio-video-fit-keep">
+        <input type="checkbox" data-fit="keepAspect" ${fit.keepAspect ? 'checked' : ''}>
+        Garder les proportions (pas de déformation)
+      </label>
+      <button class="studio-video-fit-reset" type="button">Réinitialiser</button>
+    `;
+
+    panel.querySelectorAll('input[type="range"]').forEach(slider => {
+      slider.addEventListener('input', (e) => {
+        e.stopPropagation();
+        const key = slider.dataset.fit;
+        const val = parseInt(slider.value, 10);
+        setFit(id, { [key]: val / 100 });
+        const valEl = panel.querySelector(`[data-fit-val="${key}"]`);
+        if (valEl) valEl.textContent = val + ' %';
+      });
+    });
+
+    const keep = panel.querySelector('input[type="checkbox"]');
+    if (keep) keep.addEventListener('change', (e) => {
+      e.stopPropagation();
+      setFit(id, { keepAspect: keep.checked });
+    });
+
+    const reset = panel.querySelector('.studio-video-fit-reset');
+    if (reset) reset.addEventListener('click', (e) => {
+      e.stopPropagation();
+      setFit(id, { w: 1, h: 1, keepAspect: true });
+      renderFitPanel(panel, id);
     });
   }
 

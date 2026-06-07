@@ -3452,6 +3452,66 @@ body.safe-zones-on .studio-safe-zones { display: block; }
   border-color: var(--success, #10b981);
   color: var(--success, #10b981);
 }
+.studio-video-action.on {
+  border-color: var(--accent);
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+}
+
+/* Panneau de cadrage par vidéo (largeur / hauteur / proportions) */
+.studio-video-fit {
+  grid-column: 1 / -1;
+  margin-top: 6px;
+  padding: 8px;
+  border-top: 1px solid var(--border);
+  background: rgba(99, 102, 241, 0.04);
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  cursor: default;
+}
+.studio-video-fit-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+.studio-video-fit-row > label {
+  flex: 0 0 60px;
+}
+.studio-video-fit-row > input[type="range"] {
+  flex: 1;
+  min-width: 0;
+}
+.studio-video-fit-val {
+  font-size: 10px;
+  font-family: 'SF Mono', Menlo, monospace;
+  min-width: 40px;
+  text-align: right;
+}
+.studio-video-fit-keep {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-primary);
+}
+.studio-video-fit-reset {
+  align-self: flex-start;
+  padding: 3px 10px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 11px;
+}
+.studio-video-fit-reset:hover {
+  border-color: var(--accent);
+  color: var(--text-primary);
+}
 
 /* ============ Planification YouTube ============ */
 .studio-schedule-sep {
