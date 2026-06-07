@@ -42,6 +42,18 @@ function applyStyle(style, isTitle) {
   stage.style.setProperty('--scene-offset-x', offX);
   stage.style.setProperty('--scene-offset-y', offY);
 
+  // Décalage du texte SEUL (indépendant de l'image), -0.5..0.5 de l'écran.
+  // Appliqué en position relative sur .content pour ne pas écraser les
+  // transforms d'animation (scale/translateY) gérées en CSS. Neutralisé pour
+  // les titres.
+  const txtOffX = titleMode ? 0 : (s.textOffsetX != null ? Math.max(-0.5, Math.min(0.5, s.textOffsetX)) : 0);
+  const txtOffY = titleMode ? 0 : (s.textOffsetY != null ? Math.max(-0.5, Math.min(0.5, s.textOffsetY)) : 0);
+  if (content) {
+    content.style.position = 'relative';
+    content.style.left = txtOffX ? (txtOffX * 100) + '%' : '';
+    content.style.top = txtOffY ? (txtOffY * 100) + '%' : '';
+  }
+
   // Alignement vertical
   stage.classList.remove('v-top', 'v-center', 'v-bottom');
   if (s.vAlign === 'top') stage.classList.add('v-top');
@@ -92,7 +104,12 @@ function applyStyle(style, isTitle) {
       // Taille de l'image de fond (1 = plein écran) : on rétrécit le calque vers
       // le centre, ce qui laisse une marge autour comme sur le canvas studio.
       const bgScale = s.bgImageScale != null ? Math.max(0.1, Math.min(1, s.bgImageScale)) : 1;
-      bgImageLayer.style.transform = bgScale < 1 ? `scale(${bgScale})` : '';
+      // Décalage de l'image SEULE (indépendant du texte), -0.5..0.5 de l'écran.
+      const bgOffX = titleMode ? 0 : (s.bgImageOffsetX != null ? Math.max(-0.5, Math.min(0.5, s.bgImageOffsetX)) : 0);
+      const bgOffY = titleMode ? 0 : (s.bgImageOffsetY != null ? Math.max(-0.5, Math.min(0.5, s.bgImageOffsetY)) : 0);
+      const bgTranslate = (bgOffX || bgOffY) ? `translate(${bgOffX * 100}%, ${bgOffY * 100}%)` : '';
+      const bgScaleT = bgScale < 1 ? `scale(${bgScale})` : '';
+      bgImageLayer.style.transform = [bgTranslate, bgScaleT].filter(Boolean).join(' ');
       bgImageLayer.classList.add('show');
     } else {
       bgImageLayer.style.background = '';

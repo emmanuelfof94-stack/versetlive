@@ -630,8 +630,11 @@ function drawVerseOverlay(area) {
     if (img && img.complete && img.naturalWidth) {
       // Taille de l'image de fond, réglable indépendamment du bloc (1 = pleine zone).
       const bgScale = style.bgImageScale != null ? Math.max(0.1, Math.min(1, style.bgImageScale)) : 1;
+      // Décalage de l'image SEULE dans le bloc (indépendant du texte).
+      const bgOffX = style.bgImageOffsetX != null ? Math.max(-0.5, Math.min(0.5, style.bgImageOffsetX)) : 0;
+      const bgOffY = style.bgImageOffsetY != null ? Math.max(-0.5, Math.min(0.5, style.bgImageOffsetY)) : 0;
       const iw = w * bgScale, ih = h * bgScale;
-      const ix = x + (w - iw) / 2, iy = y + (h - ih) / 2;
+      const ix = x + (w - iw) / 2 + bgOffX * w, iy = y + (h - ih) / 2 + bgOffY * h;
       drawImageCover(img, ix, iy, iw, ih, style.bgImageFit || 'cover');
       const dim = style.bgImageDim != null ? Math.max(0, Math.min(1, style.bgImageDim)) : 0;
       if (dim > 0) {
@@ -674,10 +677,19 @@ function drawVerseOverlay(area) {
   activeCtx.textAlign = align;
   activeCtx.textBaseline = 'middle';
 
+  // Décalage du texte SEUL dans le bloc (indépendant de l'image de fond).
+  // Neutralisé pour les titres (comme sceneOffset).
+  const txtOffX = verseState.kind === 'title'
+    ? 0
+    : (style.textOffsetX != null ? Math.max(-0.5, Math.min(0.5, style.textOffsetX)) : 0);
+  const txtOffY = verseState.kind === 'title'
+    ? 0
+    : (style.textOffsetY != null ? Math.max(-0.5, Math.min(0.5, style.textOffsetY)) : 0);
+
   // Position alignement
   const padX = w * 0.05;
   const padY = h * 0.08;
-  const textX = align === 'left' ? x + padX : align === 'right' ? x + w - padX : x + w / 2;
+  const textX = (align === 'left' ? x + padX : align === 'right' ? x + w - padX : x + w / 2) + txtOffX * w;
 
   // Ombre
   applyShadow(style.textShadow || 'soft');
@@ -712,6 +724,7 @@ function drawVerseOverlay(area) {
     if (vAlign === 'top') startY = y + padY + lineHeight / 2;
     else if (vAlign === 'bottom') startY = y + h - padY - totalH + lineHeight / 2;
     else startY = y + (h - totalH) / 2 + lineHeight / 2;
+    startY += txtOffY * h;
 
     activeCtx.font = `${fs}px ${fontFamily}`;
     lines.forEach((line, i) => activeCtx.fillText(line, textX, startY + i * lineHeight));
