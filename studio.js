@@ -1528,6 +1528,33 @@ function applyQualityToCanvases() {
 
 function setQuality(quality) {
   if (!QUALITY_PRESETS[quality] || quality === currentQuality) return;
+  // Sécurité direct : changer de qualité reconstruit la piste vidéo du programme
+  // (stop + recapture). Les MediaRecorder déjà lancés (enregistrement, stream
+  // YouTube, replay) restent accrochés à l'ancienne piste → leur vidéo se FIGE.
+  // On bloque donc en plein direct, sauf confirmation explicite de l'opérateur.
+  const liveStreaming = !!relayStreaming;
+  const liveRecording = !!(mediaRecorder && mediaRecorder.state === 'recording');
+  const liveReplay = !!replayBufferRecorder;
+  if (liveStreaming || liveRecording || liveReplay) {
+    const actifs = [
+      liveStreaming ? 'la diffusion en direct' : null,
+      liveRecording ? 'l\'enregistrement' : null,
+      liveReplay ? 'le replay' : null,
+    ].filter(Boolean).join(' et ');
+    const phrase = actifs.charAt(0).toUpperCase() + actifs.slice(1);
+    const ok = confirm(
+      `⚠ ${phrase} en cours.\n\n` +
+      `Changer la qualité maintenant va FIGER la vidéo envoyée (image gelée) ` +
+      `tant que tu n'auras pas redémarré ${liveStreaming ? 'la diffusion' : 'l\'enregistrement'}.\n\n` +
+      `À ne faire qu'entre deux cultes. Continuer quand même ?`
+    );
+    if (!ok) {
+      // Annulé : on remet le sélecteur sur la qualité réellement active.
+      const sel = $('qualitySelect');
+      if (sel) sel.value = currentQuality;
+      return;
+    }
+  }
   currentQuality = quality;
   localStorage.setItem(QUALITY_KEY, quality);
   applyQualityToCanvases();
