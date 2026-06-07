@@ -149,6 +149,12 @@
           <button class="btn btn-sm btn-primary" id="verseRefGoStudioBtn" title="Diffuser ce verset">→</button>
         </div>
         <div class="studio-verse-scale" style="display:flex; align-items:center; gap:8px; margin-top:8px;">
+          <span style="font-size:11px; color:#999; white-space:nowrap;">Zoom texte</span>
+          <input type="range" id="studioFontSize" min="2" max="10" step="0.1" value="4.5" style="flex:1;">
+          <span id="studioFontSizeVal" style="font-size:11px; color:#bbb; min-width:34px; text-align:right;">4.5</span>
+          <button class="btn btn-sm" id="studioFontSizeReset" title="Réinitialiser à 4.5" style="font-size:11px;">↺</button>
+        </div>
+        <div class="studio-verse-scale" style="display:flex; align-items:center; gap:8px; margin-top:6px;">
           <span style="font-size:11px; color:#999; white-space:nowrap;">Taille bloc</span>
           <input type="range" id="studioSceneScale" min="0.1" max="1" step="0.05" value="1" style="flex:1;">
           <span id="studioSceneScaleVal" style="font-size:11px; color:#bbb; min-width:34px; text-align:right;">100%</span>

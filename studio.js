@@ -2216,6 +2216,7 @@ function applyVerseState(state) {
   renderVerseStatus();
   renderSongStatus();
   syncStudioSceneScaleUI();
+  syncStudioFontSizeUI();
   syncStudioSceneOffsetUI();
   if (state && state.reference && state.kind !== 'song') syncBookChapterSelectsFromRef(state.reference);
 }
@@ -2244,6 +2245,29 @@ function syncStudioSceneScaleUI() {
   const scale = (s != null) ? Math.max(0.1, Math.min(1, s)) : 1;
   slider.value = scale;
   if (val) val.textContent = Math.round(scale * 100) + '%';
+}
+
+// ===== Zoom du texte du verset (taille de police) depuis le studio =====
+// Agit sur style.fontSize (en vw), identique au curseur du panneau → synchronisé.
+function setStudioFontSize(v) {
+  const fs = Math.max(2, Math.min(10, parseFloat(v) || 4.5));
+  const style = { ...(verseState?.style || {}), fontSize: fs };
+  const newState = { ...(verseState || {}), style };
+  verseBc?.postMessage({ type: 'style', payload: style });
+  sendToTv({ type: 'style', payload: style });
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(newState)); } catch (e) {}
+  applyVerseState(newState);
+}
+
+function syncStudioFontSizeUI() {
+  const slider = document.getElementById('studioFontSize');
+  if (!slider) return;
+  if (document.activeElement === slider) return;
+  const s = verseState && verseState.style ? verseState.style.fontSize : null;
+  const fs = (s != null) ? Math.max(2, Math.min(10, s)) : 4.5;
+  slider.value = fs;
+  const val = document.getElementById('studioFontSizeVal');
+  if (val) val.textContent = fs.toFixed(1);
 }
 
 // ===== Décalage (position) du bloc verset depuis le studio =====
@@ -2431,6 +2455,19 @@ function bindVerseNav() {
   if (scale) scale.addEventListener('input', () => {
     if (scaleVal) scaleVal.textContent = Math.round(parseFloat(scale.value) * 100) + '%';
     setStudioSceneScale(scale.value);
+  });
+  // Zoom du texte du verset (taille de police)
+  const fsz = $('studioFontSize');
+  const fszVal = $('studioFontSizeVal');
+  if (fsz) fsz.addEventListener('input', () => {
+    if (fszVal) fszVal.textContent = parseFloat(fsz.value).toFixed(1);
+    setStudioFontSize(fsz.value);
+  });
+  const fszReset = $('studioFontSizeReset');
+  if (fszReset) fszReset.addEventListener('click', () => {
+    if (fsz) fsz.value = 4.5;
+    if (fszVal) fszVal.textContent = '4.5';
+    setStudioFontSize(4.5);
   });
   const scaleReset = $('studioSceneScaleReset');
   if (scaleReset) scaleReset.addEventListener('click', () => {
