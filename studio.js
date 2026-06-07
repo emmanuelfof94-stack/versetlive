@@ -876,9 +876,18 @@ function renderSelectionBar() {
   const bar = $('selectionBar');
   if (!bar) return;
   const n = sceneSelection.size;
-  bar.hidden = n === 0;
+  // La barre reste toujours visible (découvrabilité). On active/désactive juste
+  // les actions et on adapte le compteur selon la sélection.
   const count = $('selectionCount');
-  if (count) count.textContent = n + (n > 1 ? ' éléments' : ' élément');
+  if (count) {
+    count.textContent = n === 0
+      ? 'Coche des scènes (☐) pour lancer un diaporama ou une mosaïque'
+      : n + (n > 1 ? ' éléments sélectionnés' : ' élément sélectionné');
+  }
+  ['startSlideshowBtn', 'startMosaicBtn', 'clearSelectionBtn'].forEach(id => {
+    const b = $(id);
+    if (b) b.disabled = n === 0;
+  });
 }
 
 // ----- Diaporama (lecture en suite) -----
@@ -891,7 +900,7 @@ function startSlideshow() {
   const durSec = parseFloat($('slideshowDuration')?.value) || 6;
   const loop = !!($('slideshowLoop') && $('slideshowLoop').checked);
   slideshow = { items, index: 0, durationMs: Math.max(1, durSec) * 1000, loop, timer: null };
-  const c = $('slideshowControls'); if (c) c.hidden = false;
+  const c = $('slideshowControls'); if (c) c.style.display = 'flex';
   playSlideAt(0);
 }
 
@@ -930,7 +939,7 @@ function slideshowPrev() {
 function stopSlideshow() {
   if (slideshow && slideshow.timer) clearTimeout(slideshow.timer);
   slideshow = null;
-  const c = $('slideshowControls'); if (c) c.hidden = true;
+  const c = $('slideshowControls'); if (c) c.style.display = 'none';
 }
 
 // ----- Mosaïque (affichage simultané) -----
@@ -1019,6 +1028,9 @@ function bindSelectionUi() {
   if (next) next.addEventListener('click', slideshowNext);
   const stop = $('slideStopBtn');
   if (stop) stop.addEventListener('click', stopSlideshow);
+  // Contrôles de diaporama masqués tant qu'aucun diaporama n'est lancé
+  // (style.display explicite : robuste face au piège [hidden] + display:flex).
+  const c = $('slideshowControls'); if (c) c.style.display = 'none';
   renderSelectionBar();
 }
 
