@@ -136,14 +136,14 @@
           canvas.height = Math.round(W / ratio);
           const c = canvas.getContext('2d');
           c.drawImage(v, 0, 0, canvas.width, canvas.height);
-          cleanup({ thumbnail: canvas.toDataURL('image/jpeg', 0.7), duration: v.duration || 0 });
+          cleanup({ thumbnail: canvas.toDataURL('image/jpeg', 0.7), duration: v.duration || 0, width: v.videoWidth || 0, height: v.videoHeight || 0 });
         } catch (e) {
-          cleanup({ thumbnail: null, duration: v.duration || 0 });
+          cleanup({ thumbnail: null, duration: v.duration || 0, width: v.videoWidth || 0, height: v.videoHeight || 0 });
         }
       });
-      v.addEventListener('error', () => cleanup({ thumbnail: null, duration: 0 }));
+      v.addEventListener('error', () => cleanup({ thumbnail: null, duration: 0, width: 0, height: 0 }));
       // Failsafe
-      setTimeout(() => cleanup({ thumbnail: null, duration: v.duration || 0 }), 8000);
+      setTimeout(() => cleanup({ thumbnail: null, duration: v.duration || 0, width: v.videoWidth || 0, height: v.videoHeight || 0 }), 8000);
     });
   }
 
@@ -254,6 +254,8 @@
     if (entry) {
       if (thumb) entry.thumbnail = thumb;
       if (v.duration && isFinite(v.duration)) entry.durationSec = v.duration;
+      if (v.videoWidth) entry.width = v.videoWidth;
+      if (v.videoHeight) entry.height = v.videoHeight;
       await saveCatalog();
       renderList();
     }
@@ -263,13 +265,15 @@
   // ============ Ajouter / supprimer / lister ============
   async function addVideo(name, blob, type = 'upload') {
     const id = 'v' + Date.now() + '-' + Math.random().toString(36).slice(2, 6);
-    const { thumbnail, duration } = await extractThumbnailAndDuration(blob);
+    const { thumbnail, duration, width, height } = await extractThumbnailAndDuration(blob);
     const entry = {
       id,
       name: name || `Vidéo ${catalog.length + 1}`,
       type,
       size: blob.size,
       durationSec: duration || 0,
+      width: width || 0,
+      height: height || 0,
       createdAt: Date.now(),
       thumbnail,
       loop: false
@@ -486,6 +490,14 @@
       ctx.fillRect(0, 0, W, H);
       return;
     }
+    // Backfill de la résolution native pour les vidéos importées avant que
+    // celle-ci ne soit stockée (lue une seule fois, dès qu'elle est connue).
+    const entry0 = getEntry(id);
+    if (entry0 && !entry0.width && v.videoWidth) {
+      entry0.width = v.videoWidth;
+      entry0.height = v.videoHeight;
+      saveCatalog().then(() => renderList()).catch(() => {});
+    }
     // Cadrage réglable par vidéo (largeur/hauteur + garder les proportions).
     // Le cadre où la vidéo est dessinée fait fitW × fitH de l'écran, centré.
     //  - garder les proportions (par défaut) : la vidéo tient entière dans ce
@@ -583,7 +595,7 @@
         ${thumb}
         <div class="studio-video-info">
           <div class="studio-video-name" title="${escapeHtml(v.name)}">${badge}${escapeHtml(v.name)}</div>
-          <div class="studio-video-meta">${fmtDuration(v.durationSec)}${v.type === 'url' ? ' · URL' : ` · ${fmtSize(v.size)}`}</div>
+          <div class="studio-video-meta">${fmtDuration(v.durationSec)}${v.type === 'url' ? ' · URL' : ` · ${fmtSize(v.size)}`}${(v.width && v.height) ? ` · ${v.width}×${v.height}` : ''}</div>
         </div>
         <div class="studio-video-actions">
           <button class="studio-video-action" data-act="play" title="Mettre en scène">▶</button>
@@ -663,11 +675,20 @@
 
   // Panneau de cadrage par vidéo : largeur, hauteur, garder les proportions.
   // Les réglages s'appliquent en direct (draw() relit getFit() à chaque frame).
+  // Écran de référence pour la taille affichée en pixels (projecteur 16:9 1080p).
+  const SCREEN_W = 1920, SCREEN_H = 1080;
+
   function renderFitPanel(panel, id) {
     const fit = getFit(id);
+    const entry = getEntry(id);
     const wPct = Math.round(fit.w * 100);
     const hPct = Math.round(fit.h * 100);
+    const srcLabel = (entry && entry.width && entry.height)
+      ? `${entry.width}×${entry.height} px`
+      : 'résolution inconnue';
+    const screenPx = (wp, hp) => `${Math.round(wp / 100 * SCREEN_W)} × ${Math.round(hp / 100 * SCREEN_H)} px`;
     panel.innerHTML = `
+      <div class="studio-video-fit-src">Source : <b>${srcLabel}</b> · écran ${SCREEN_W}×${SCREEN_H}</div>
       <div class="studio-video-fit-row">
         <label>Largeur</label>
         <input type="range" data-fit="w" min="10" max="100" step="1" value="${wPct}">
@@ -678,12 +699,20 @@
         <input type="range" data-fit="h" min="10" max="100" step="1" value="${hPct}">
         <span class="studio-video-fit-val" data-fit-val="h">${hPct} %</span>
       </div>
+      <div class="studio-video-fit-screen">À l'écran : <b data-fit-screen>${screenPx(wPct, hPct)}</b></div>
       <label class="studio-video-fit-keep">
         <input type="checkbox" data-fit="keepAspect" ${fit.keepAspect ? 'checked' : ''}>
         Garder les proportions (pas de déformation)
       </label>
       <button class="studio-video-fit-reset" type="button">Réinitialiser</button>
     `;
+
+    const screenEl = panel.querySelector('[data-fit-screen]');
+    const updateScreen = () => {
+      const wv = parseInt(panel.querySelector('[data-fit="w"]').value, 10);
+      const hv = parseInt(panel.querySelector('[data-fit="h"]').value, 10);
+      if (screenEl) screenEl.textContent = screenPx(wv, hv);
+    };
 
     panel.querySelectorAll('input[type="range"]').forEach(slider => {
       slider.addEventListener('input', (e) => {
@@ -693,6 +722,7 @@
         setFit(id, { [key]: val / 100 });
         const valEl = panel.querySelector(`[data-fit-val="${key}"]`);
         if (valEl) valEl.textContent = val + ' %';
+        updateScreen();
       });
     });
 

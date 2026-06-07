@@ -3491,6 +3491,16 @@ body.safe-zones-on .studio-safe-zones { display: block; }
   min-width: 40px;
   text-align: right;
 }
+.studio-video-fit-src,
+.studio-video-fit-screen {
+  font-size: 10px;
+  color: var(--text-secondary);
+  font-family: 'SF Mono', Menlo, monospace;
+}
+.studio-video-fit-src b,
+.studio-video-fit-screen b {
+  color: var(--text-primary);
+}
 .studio-video-fit-keep {
   display: flex;
   align-items: center;
