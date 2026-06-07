@@ -486,22 +486,39 @@
       ctx.fillRect(0, 0, W, H);
       return;
     }
-    // Cover plein cadre (ratio 16:9 target — adapte si besoin)
+    // Adaptation auto au format de la vidéo :
+    //  - vidéo ~16:9 (comme le cadre) → cover plein écran (comportement historique) ;
+    //  - autre format (4:3, vertical, carré…) → contain : la vidéo entière est
+    //    affichée, centrée, avec des bandes bleu nuit (#131536, la couleur de
+    //    letterbox du projecteur). Évite de rogner des écritures gravées près des
+    //    bords dans une vidéo conçue hors du studio.
     const sAR = v.videoWidth / v.videoHeight;
     const dAR = W / H;
-    let sx, sy, sw, sh;
-    if (sAR > dAR) {
-      sh = v.videoHeight;
-      sw = sh * dAR;
-      sx = (v.videoWidth - sw) / 2;
-      sy = 0;
+    const ratio = sAR / dAR;
+    const fillsCleanly = ratio > 0.98 && ratio < 1.02; // ~16:9 → remplir
+    if (fillsCleanly) {
+      let sx, sy, sw, sh;
+      if (sAR > dAR) {
+        sh = v.videoHeight;
+        sw = sh * dAR;
+        sx = (v.videoWidth - sw) / 2;
+        sy = 0;
+      } else {
+        sw = v.videoWidth;
+        sh = sw / dAR;
+        sx = 0;
+        sy = (v.videoHeight - sh) / 2;
+      }
+      ctx.drawImage(v, sx, sy, sw, sh, 0, 0, W, H);
     } else {
-      sw = v.videoWidth;
-      sh = sw / dAR;
-      sx = 0;
-      sy = (v.videoHeight - sh) / 2;
+      // Contain : toute la vidéo tient dans le cadre, bandes autour.
+      ctx.fillStyle = '#131536';
+      ctx.fillRect(0, 0, W, H);
+      const scale = Math.min(W / v.videoWidth, H / v.videoHeight);
+      const dw = v.videoWidth * scale;
+      const dh = v.videoHeight * scale;
+      ctx.drawImage(v, 0, 0, v.videoWidth, v.videoHeight, (W - dw) / 2, (H - dh) / 2, dw, dh);
     }
-    ctx.drawImage(v, sx, sy, sw, sh, 0, 0, W, H);
   }
 
   // ============ Hook scènes (appelé par studio.js dans setProgramScene) ============
