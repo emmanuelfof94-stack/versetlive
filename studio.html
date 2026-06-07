@@ -367,6 +367,31 @@
         <div class="studio-scenes" id="scenesList">
           <div class="studio-empty">Ajoute des caméras pour générer des scènes.</div>
         </div>
+        <div class="studio-selection-bar" id="selectionBar" hidden>
+          <span class="studio-selection-count" id="selectionCount">0 élément</span>
+          <div class="studio-selection-opts">
+            <label title="Durée d'affichage de chaque élément (les vidéos passent à la fin de lecture)">
+              Durée
+              <input type="number" id="slideshowDuration" min="1" max="120" step="1" value="6" style="width:48px;"> s
+            </label>
+            <label title="Recommencer au début à la fin de la liste">
+              <input type="checkbox" id="slideshowLoop"> Boucle
+            </label>
+          </div>
+          <div class="studio-selection-actions">
+            <button class="btn btn-sm btn-primary" id="startSlideshowBtn" title="Lancer en diaporama (l'un après l'autre)">▶ Diaporama</button>
+            <button class="btn btn-sm btn-primary" id="startMosaicBtn" title="Afficher tous en même temps (mosaïque)">▦ Mosaïque</button>
+            <button class="btn btn-sm" id="clearSelectionBtn" title="Vider la sélection">Vider</button>
+          </div>
+        </div>
+        <div class="studio-slideshow-controls" id="slideshowControls" hidden>
+          <span class="studio-slideshow-status" id="slideshowStatus">1 / 1</span>
+          <div class="studio-slideshow-buttons">
+            <button class="btn btn-sm" id="slidePrevBtn" title="Élément précédent">⏮</button>
+            <button class="btn btn-sm" id="slideNextBtn" title="Élément suivant">⏭</button>
+            <button class="btn btn-sm btn-danger" id="slideStopBtn" title="Arrêter le diaporama">⏹ Stop</button>
+          </div>
+        </div>
       </div>
 
       <!-- ============ Sorties (TV / Projecteur) ============ -->

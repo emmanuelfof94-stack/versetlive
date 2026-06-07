@@ -479,6 +479,8 @@ function renderScenes() {
   const prevKey = sceneKey(previewScene);
   list.innerHTML = '';
   scenes.forEach(s => {
+    const item = document.createElement('div');
+    item.className = 'studio-scene-item';
     const btn = document.createElement('button');
     btn.className = 'studio-scene-btn';
     btn.textContent = s.label;
@@ -489,7 +491,21 @@ function renderScenes() {
       if (isSceneDoubleClick(s.key)) setProgramScene(s.scene);
       else setScene(s.scene);
     });
-    list.appendChild(btn);
+    // Case de sélection (diaporama / mosaïque) — n'affecte pas le preview.
+    const pick = document.createElement('button');
+    pick.type = 'button';
+    pick.className = 'studio-scene-pick';
+    pick.title = 'Sélectionner pour diaporama / mosaïque';
+    const selected = sceneSelection.has(s.key);
+    if (selected) item.classList.add('selected');
+    pick.textContent = selected ? '☑' : '☐';
+    pick.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleSceneSelection(s.key);
+    });
+    item.appendChild(btn);
+    item.appendChild(pick);
+    list.appendChild(item);
   });
 }
 
@@ -503,6 +519,7 @@ function sceneKey(scene) {
   if (scene.kind === 'video') return `vid-${scene.videoId}`;
   if (scene.kind === 'video+verse') return `vid-verse-${scene.videoId}`;
   if (scene.kind === 'iframe') return `iframe-${scene.videoId || scene.url}`;
+  if (scene.kind === 'mosaic') return 'mosaic-' + (scene.items || []).map(sceneKey).join('_');
   if (scene.kind === 'pip') return 'pip';
   if (scene.kind === 'verse') return 'verse';
   if (scene.kind === 'intro') return 'intro';
@@ -829,7 +846,186 @@ function setScene(scene) {
 // Mémorise la scène à laquelle revenir quand une vidéo se termine
 let preVideoScene = null;
 
+// ============ Sélection multiple : diaporama & mosaïque ============
+// L'utilisateur coche plusieurs scènes (images, versets, vidéos, titres,
+// cartes…) puis les lance soit en diaporama (l'une après l'autre, auto/manuel),
+// soit en mosaïque (toutes en même temps sur une grille).
+// Set = conserve l'ordre d'insertion → ordre de lecture du diaporama.
+const sceneSelection = new Set();
+
+function toggleSceneSelection(key) {
+  if (sceneSelection.has(key)) sceneSelection.delete(key);
+  else sceneSelection.add(key);
+  renderScenes();
+  renderSelectionBar();
+}
+
+function clearSceneSelection() {
+  sceneSelection.clear();
+  renderScenes();
+  renderSelectionBar();
+}
+
+// Résout les clés sélectionnées en objets scène, dans l'ordre de sélection.
+function getSelectedScenes() {
+  const map = new Map(buildSceneList().map(it => [it.key, it.scene]));
+  return [...sceneSelection].map(k => map.get(k)).filter(Boolean);
+}
+
+function renderSelectionBar() {
+  const bar = $('selectionBar');
+  if (!bar) return;
+  const n = sceneSelection.size;
+  bar.hidden = n === 0;
+  const count = $('selectionCount');
+  if (count) count.textContent = n + (n > 1 ? ' éléments' : ' élément');
+}
+
+// ----- Diaporama (lecture en suite) -----
+let slideshow = null; // { items, index, durationMs, loop, timer }
+let slideshowAdvancing = false; // true pendant que le diaporama pilote setProgramScene
+
+function startSlideshow() {
+  const items = getSelectedScenes();
+  if (!items.length) { toast('Sélectionne au moins un élément', true); return; }
+  const durSec = parseFloat($('slideshowDuration')?.value) || 6;
+  const loop = !!($('slideshowLoop') && $('slideshowLoop').checked);
+  slideshow = { items, index: 0, durationMs: Math.max(1, durSec) * 1000, loop, timer: null };
+  const c = $('slideshowControls'); if (c) c.hidden = false;
+  playSlideAt(0);
+}
+
+function playSlideAt(i) {
+  if (!slideshow) return;
+  slideshow.index = i;
+  const scene = slideshow.items[i];
+  slideshowAdvancing = true;
+  setProgramScene(scene);
+  slideshowAdvancing = false;
+  if (slideshow.timer) { clearTimeout(slideshow.timer); slideshow.timer = null; }
+  // Les vidéos avancent à la fin de lecture (onVideoEnded), pas au minuteur.
+  const isVideo = scene && (scene.kind === 'video' || scene.kind === 'video+verse');
+  if (!isVideo) slideshow.timer = setTimeout(() => slideshowNext(), slideshow.durationMs);
+  const st = $('slideshowStatus');
+  if (st) st.textContent = `${i + 1} / ${slideshow.items.length}`;
+}
+
+function slideshowNext() {
+  if (!slideshow) return;
+  let next = slideshow.index + 1;
+  if (next >= slideshow.items.length) {
+    if (slideshow.loop) next = 0;
+    else { stopSlideshow(); return; }
+  }
+  playSlideAt(next);
+}
+
+function slideshowPrev() {
+  if (!slideshow) return;
+  let prev = slideshow.index - 1;
+  if (prev < 0) prev = slideshow.loop ? slideshow.items.length - 1 : 0;
+  playSlideAt(prev);
+}
+
+function stopSlideshow() {
+  if (slideshow && slideshow.timer) clearTimeout(slideshow.timer);
+  slideshow = null;
+  const c = $('slideshowControls'); if (c) c.hidden = true;
+}
+
+// ----- Mosaïque (affichage simultané) -----
+function startMosaic() {
+  const items = getSelectedScenes();
+  if (!items.length) { toast('Sélectionne au moins un élément', true); return; }
+  stopSlideshow();
+  setProgramScene({ kind: 'mosaic', items: items.slice(0, 16) });
+}
+
+// Grille adaptée au nombre d'éléments (max 16).
+function mosaicGrid(n) {
+  if (n <= 1) return { cols: 1, rows: 1 };
+  if (n === 2) return { cols: 2, rows: 1 };
+  if (n <= 4) return { cols: 2, rows: 2 };
+  if (n <= 6) return { cols: 3, rows: 2 };
+  if (n <= 9) return { cols: 3, rows: 3 };
+  if (n <= 12) return { cols: 4, rows: 3 };
+  return { cols: 4, rows: 4 };
+}
+
+// Dessine n'importe quelle scène dans un rectangle (cellule de mosaïque).
+// Réutilise les routines de rendu existantes : celles basées sur des coords
+// absolues reçoivent x,y ; celles qui dessinent en (0,0) sont décalées par
+// translate().
+function drawSceneInRect(s, x, y, w, h) {
+  if (!s) return;
+  activeCtx.save();
+  activeCtx.beginPath();
+  activeCtx.rect(x, y, w, h);
+  activeCtx.clip();
+  activeCtx.fillStyle = '#000';
+  activeCtx.fillRect(x, y, w, h);
+  const k = s.kind;
+  if (k === 'camera' || k === 'camera+verse' || k === 'pip') {
+    const src = getSourceForScene(s, 'primary');
+    if (src) drawVideoCover(src.videoEl, x, y, w, h, src);
+  } else if (k === 'image' || k === 'image+verse') {
+    const img = getImageForScene(s);
+    if (img && img.imgEl) drawImageContain(img.imgEl, x, y, w, h);
+  } else if (k === 'card') {
+    const card = getCardById(s.cardId);
+    if (card) { activeCtx.translate(x, y); drawCardContent(activeCtx, card, w, h); }
+  } else if (k === 'verse') {
+    drawVerseOverlay({ x, y, w, h });
+  } else if (k === 'intro' || k === 'outro') {
+    if (window.IntroOutro) { activeCtx.translate(x, y); window.IntroOutro.draw(activeCtx, k, w, h); }
+  } else if (k === 'video' || k === 'video+verse') {
+    if (window.VideoLibrary) { activeCtx.translate(x, y); window.VideoLibrary.draw(activeCtx, s.videoId, w, h); }
+  } else if (k === 'iframe') {
+    activeCtx.fillStyle = '#0a0a0a'; activeCtx.fillRect(x, y, w, h);
+    activeCtx.fillStyle = '#888'; activeCtx.textAlign = 'center'; activeCtx.textBaseline = 'middle';
+    activeCtx.font = `${Math.round(h * 0.1)}px -apple-system, sans-serif`;
+    activeCtx.fillText('▶ externe', x + w / 2, y + h / 2);
+  }
+  activeCtx.restore();
+}
+
+function drawMosaic(s) {
+  activeCtx.fillStyle = '#131536';
+  activeCtx.fillRect(0, 0, OUTPUT_W, OUTPUT_H);
+  const items = (s.items || []).slice(0, 16);
+  const n = items.length;
+  if (!n) return;
+  const { cols, rows } = mosaicGrid(n);
+  const gap = Math.round(OUTPUT_W * 0.006);
+  const cw = (OUTPUT_W - gap * (cols + 1)) / cols;
+  const ch = (OUTPUT_H - gap * (rows + 1)) / rows;
+  for (let i = 0; i < n; i++) {
+    const r = Math.floor(i / cols), c = i % cols;
+    const x = gap + c * (cw + gap), y = gap + r * (ch + gap);
+    try { drawSceneInRect(items[i], x, y, cw, ch); } catch (e) {}
+  }
+}
+
+function bindSelectionUi() {
+  const start = $('startSlideshowBtn');
+  if (start) start.addEventListener('click', startSlideshow);
+  const mosaic = $('startMosaicBtn');
+  if (mosaic) mosaic.addEventListener('click', startMosaic);
+  const clear = $('clearSelectionBtn');
+  if (clear) clear.addEventListener('click', clearSceneSelection);
+  const prev = $('slidePrevBtn');
+  if (prev) prev.addEventListener('click', slideshowPrev);
+  const next = $('slideNextBtn');
+  if (next) next.addEventListener('click', slideshowNext);
+  const stop = $('slideStopBtn');
+  if (stop) stop.addEventListener('click', stopSlideshow);
+  renderSelectionBar();
+}
+
 function setProgramScene(scene) {
+  // Si l'opérateur reprend la main pendant un diaporama (autre que l'avance
+  // pilotée par le diaporama lui-même), on arrête le diaporama.
+  if (slideshow && !slideshowAdvancing) stopSlideshow();
   if (sceneKey(programScene) === sceneKey(scene)) return;
   // Si on passe à une vidéo, mémoriser la scène précédente (pour retour auto)
   const isVid = (k) => k === 'video' || k === 'video+verse';
@@ -940,6 +1136,8 @@ function drawScene(s) {
     if (card) drawCardContent(activeCtx, card, OUTPUT_W, OUTPUT_H);
   } else if (s.kind === 'verse') {
     drawVerseOverlay({ x: 0, y: 0, w: OUTPUT_W, h: OUTPUT_H });
+  } else if (s.kind === 'mosaic') {
+    drawMosaic(s);
   } else if (s.kind === 'intro' || s.kind === 'outro') {
     if (window.IntroOutro) window.IntroOutro.draw(activeCtx, s.kind, OUTPUT_W, OUTPUT_H);
   } else if (s.kind === 'video' || s.kind === 'video+verse') {
@@ -5128,6 +5326,7 @@ async function init() {
   bindSongNav();
   bindQualitySelector();
   bindTextStudio();
+  bindSelectionUi();
   applyStudioModeUi();
   applyTransitionUi();
   // Init module intro/outro (chargement assets IndexedDB + bind modal)
@@ -5140,6 +5339,8 @@ async function init() {
     await window.VideoLibrary.init({
       onChange: () => renderScenes(),
       onVideoEnded: () => {
+        // En diaporama : la fin de la vidéo déclenche l'élément suivant.
+        if (slideshow) { slideshowNext(); return; }
         // Retour automatique à la scène avant la vidéo
         if (preVideoScene) {
           const back = preVideoScene;
