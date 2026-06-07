@@ -686,24 +686,42 @@ function drawVerseOverlay(area) {
   if (verseState.kind === 'title') {
     drawTitle(verseState, x, y, w, h, fontSizePx, fontFamily, color, align);
   } else if (text) {
-    const lines = wrapText('« ' + text + ' »', w - padX * 2, fontSizePx, fontFamily);
-    const lineHeight = fontSizePx * 1.25;
-    const totalH = lines.length * lineHeight + (ref ? refSizePx * 1.8 : 0);
+    // Ajustement auto : on réduit la police jusqu'à ce que le verset (lignes +
+    // référence) tienne dans la zone disponible. Évite le débordement quand le
+    // verset est confiné au tiers inférieur (camera+verse / image+verse) ou
+    // qu'il est simplement trop long pour la taille réglée dans le panneau.
+    const maxTextW = w - padX * 2;
+    const maxTextH = h - padY * 2;
+    const showRef = ref && (style.showRef || 'below') !== 'hide';
+    let fs = fontSizePx;
+    let refFs = refSizePx;
+    let lines = wrapText('« ' + text + ' »', maxTextW, fs, fontFamily);
+    let lineHeight = fs * 1.25;
+    let totalH = lines.length * lineHeight + (showRef ? refFs * 1.8 : 0);
+    let guard = 0;
+    while (totalH > maxTextH && fs > 14 && guard++ < 60) {
+      fs = Math.max(14, Math.floor(fs * 0.94));
+      refFs = Math.max(Math.round(fs * 0.5), 22);
+      lines = wrapText('« ' + text + ' »', maxTextW, fs, fontFamily);
+      lineHeight = fs * 1.25;
+      totalH = lines.length * lineHeight + (showRef ? refFs * 1.8 : 0);
+    }
+
     const vAlign = style.vAlign || 'center';
     let startY;
     if (vAlign === 'top') startY = y + padY + lineHeight / 2;
     else if (vAlign === 'bottom') startY = y + h - padY - totalH + lineHeight / 2;
     else startY = y + (h - totalH) / 2 + lineHeight / 2;
 
-    activeCtx.font = `${fontSizePx}px ${fontFamily}`;
+    activeCtx.font = `${fs}px ${fontFamily}`;
     lines.forEach((line, i) => activeCtx.fillText(line, textX, startY + i * lineHeight));
 
     // Référence
-    if (ref && (style.showRef || 'below') !== 'hide') {
-      activeCtx.font = `italic ${refSizePx}px ${fontFamily}`;
+    if (showRef) {
+      activeCtx.font = `italic ${refFs}px ${fontFamily}`;
       const refY = (style.showRef === 'above')
         ? startY - lineHeight
-        : startY + lines.length * lineHeight + refSizePx * 0.3;
+        : startY + lines.length * lineHeight + refFs * 0.3;
       activeCtx.fillText(ref, textX, refY);
     }
   }
