@@ -73,6 +73,14 @@ let transitionStart = 0;
 const TRANSITION_KEY = 'versetlive:transition';
 let transitionCfg = loadTransitionCfg();
 
+// Bande d'annonce défilante (overlay global, persistée)
+const TICKER_KEY = 'versetlive:ticker';
+let tickerCfg = loadTickerCfg();
+let tickerOffset = 0;   // décalage de défilement courant (px)
+let tickerLastTs = 0;   // horodatage de la dernière avance (performance.now)
+let tickerPaused = false; // pause manuelle du défilement (non persistée)
+let tickerStarts = [];  // offset px du début de chaque annonce dans le cycle (pour préc/suiv)
+
 // Studio Mode (Preview/Program). Off par défaut = clic scène → direct.
 const STUDIO_MODE_KEY = 'versetlive:studio-mode';
 let studioMode = localStorage.getItem(STUDIO_MODE_KEY) === '1';
@@ -95,6 +103,26 @@ function loadTransitionCfg() {
     }
   } catch (e) {}
   return { kind: 'fade', durationMs: 300 };
+}
+
+function loadTickerCfg() {
+  try {
+    const raw = localStorage.getItem(TICKER_KEY);
+    if (raw) {
+      const c = JSON.parse(raw);
+      return {
+        enabled: !!c.enabled,
+        messages: Array.isArray(c.messages) ? c.messages.filter(m => typeof m === 'string') : [],
+        speed: Math.max(20, Math.min(400, c.speed ?? 100)),
+        bgColor: c.bgColor || '#0f172a',
+        textColor: c.textColor || '#ffffff'
+      };
+    }
+  } catch (e) {}
+  return { enabled: false, messages: [], speed: 100, bgColor: '#0f172a', textColor: '#ffffff' };
+}
+function saveTickerCfg() {
+  try { localStorage.setItem(TICKER_KEY, JSON.stringify(tickerCfg)); } catch (e) {}
 }
 function saveTransitionCfg() {
   try { localStorage.setItem(TRANSITION_KEY, JSON.stringify(transitionCfg)); } catch (e) {}
@@ -1217,6 +1245,9 @@ function drawProgramFrame() {
     if (previousProgramScene) previousProgramScene = null;
     drawScene(programScene);
   }
+  // Bande d'annonce : overlay global par-dessus la scène/transition (programme).
+  // `true` → fait avancer le défilement une seule fois par frame.
+  drawTicker(true);
 
   // ---------- Preview (uniquement si studio mode actif, allégé sous charge) ----------
   if (studioMode && frameCounter % previewDividerForLoad() === 0) {
@@ -1224,8 +1255,93 @@ function drawProgramFrame() {
     previewCtx.fillStyle = '#000';
     previewCtx.fillRect(0, 0, OUTPUT_W, OUTPUT_H);
     drawScene(previewScene);
+    drawTicker(false); // même bande sur le preview, sans ré-avancer le défilement
     activeCtx = ctx;
   }
+}
+
+// Dessine la bande d'annonce défilante en boucle (overlay global, au-dessus de
+// toutes les scènes ; incluse automatiquement dans la diffusion via captureStream).
+// advance=true uniquement pour le passage PROGRAMME → le défilement n'avance
+// qu'une fois par frame (indépendant du framerate via performance.now()).
+const TICKER_SEP = '        •        ';
+function drawTicker(advance) {
+  if (!tickerCfg.enabled) return;
+  const msgs = tickerCfg.messages.map(m => (m || '').trim()).filter(Boolean);
+  if (!msgs.length) return;
+
+  const c = activeCtx;
+  const bandH = Math.round(OUTPUT_H * 0.075);
+  const bandY = OUTPUT_H - bandH;
+  const fontPx = Math.round(bandH * 0.5);
+  const font = `600 ${fontPx}px -apple-system, "Segoe UI", system-ui, sans-serif`;
+
+  // Texte complet : messages séparés + séparateur final → boucle sans couture.
+  const full = msgs.join(TICKER_SEP) + TICKER_SEP;
+  c.font = font;
+  const textW = c.measureText(full).width;
+  if (textW <= 0) return;
+
+  // Offset px du début de chaque annonce dans le cycle (pour les sauts préc/suiv manuels).
+  const sepW = c.measureText(TICKER_SEP).width;
+  tickerStarts = [];
+  let acc = 0;
+  for (const m of msgs) {
+    tickerStarts.push(acc);
+    acc += c.measureText(m).width + sepW;
+  }
+
+  // Avance du défilement (bornée pour éviter un saut après une pause/onglet caché).
+  if (advance) {
+    const now = performance.now();
+    if (tickerLastTs && !tickerPaused) {
+      const dt = Math.min(0.1, (now - tickerLastTs) / 1000);
+      tickerOffset += tickerCfg.speed * dt;
+    }
+    tickerLastTs = now; // tenu à jour même en pause → pas de saut à la reprise
+    tickerOffset %= textW;
+  }
+
+  c.save();
+  // Fond de la bande + fin liseré supérieur.
+  c.fillStyle = hexWithAlpha(tickerCfg.bgColor, 0.82);
+  c.fillRect(0, bandY, OUTPUT_W, bandH);
+  c.fillStyle = hexWithAlpha(tickerCfg.textColor, 0.25);
+  c.fillRect(0, bandY, OUTPUT_W, Math.max(2, Math.round(bandH * 0.04)));
+  // Clip à la bande puis texte répété (défilement circulaire).
+  c.beginPath();
+  c.rect(0, bandY, OUTPUT_W, bandH);
+  c.clip();
+  c.font = font;
+  c.textBaseline = 'middle';
+  c.textAlign = 'left';
+  c.fillStyle = tickerCfg.textColor;
+  const midY = bandY + bandH / 2;
+  let x = -tickerOffset;
+  let guard = 0;
+  while (x < OUTPUT_W && guard++ < 60) {
+    c.fillText(full, x, midY);
+    x += textW;
+  }
+  c.restore();
+}
+
+// Saut manuel à l'annonce précédente / suivante (snap sur le début du message).
+// dir = -1 (préc.) ou +1 (suiv.). S'appuie sur tickerStarts calculé au dernier rendu.
+function tickerJump(dir) {
+  const n = tickerStarts.length;
+  if (!n) return;
+  // Annonce courante = dernière dont le début a déjà passé le bord gauche.
+  let cur = 0;
+  for (let i = 0; i < n; i++) {
+    if (tickerOffset >= tickerStarts[i] - 1) cur = i;
+  }
+  const target = ((cur + dir) % n + n) % n;
+  tickerOffset = tickerStarts[target];
+}
+function tickerSetPaused(p) {
+  tickerPaused = p;
+  tickerLastTs = performance.now();
 }
 
 // Tente un rendu si l'intervalle 30 fps est écoulé. Renvoie true si une frame a été
@@ -5374,6 +5490,49 @@ function coopRenderRemoteState(state) {
 }
 
 // ============ Boot ============
+// ===== Liaison UI de la bande d'annonce =====
+function bindTicker() {
+  const toggle = $('tickerToggle');
+  if (!toggle) return;
+  const messages = $('tickerMessages');
+  const speed = $('tickerSpeed');
+  const speedVal = $('tickerSpeedVal');
+  const bg = $('tickerBgColor');
+  const txt = $('tickerTextColor');
+
+  // Initialise l'UI depuis la config persistée.
+  toggle.checked = tickerCfg.enabled;
+  if (messages) messages.value = tickerCfg.messages.join('\n');
+  if (speed) speed.value = tickerCfg.speed;
+  if (speedVal) speedVal.textContent = tickerCfg.speed;
+  if (bg) bg.value = tickerCfg.bgColor;
+  if (txt) txt.value = tickerCfg.textColor;
+
+  toggle.addEventListener('change', () => { tickerCfg.enabled = toggle.checked; saveTickerCfg(); });
+  if (messages) messages.addEventListener('input', () => {
+    tickerCfg.messages = messages.value.split('\n').map(s => s.trim()).filter(Boolean);
+    saveTickerCfg();
+  });
+  if (speed) speed.addEventListener('input', () => {
+    tickerCfg.speed = Math.max(20, Math.min(400, parseInt(speed.value, 10) || 100));
+    if (speedVal) speedVal.textContent = tickerCfg.speed;
+    saveTickerCfg();
+  });
+  if (bg) bg.addEventListener('input', () => { tickerCfg.bgColor = bg.value; saveTickerCfg(); });
+  if (txt) txt.addEventListener('input', () => { tickerCfg.textColor = txt.value; saveTickerCfg(); });
+
+  // Contrôle manuel : préc. / pause / suiv. (le défilement reste auto par défaut).
+  const prevBtn = $('tickerPrevBtn');
+  const nextBtn = $('tickerNextBtn');
+  const pauseBtn = $('tickerPauseBtn');
+  if (prevBtn) prevBtn.addEventListener('click', () => tickerJump(-1));
+  if (nextBtn) nextBtn.addEventListener('click', () => tickerJump(1));
+  if (pauseBtn) pauseBtn.addEventListener('click', () => {
+    tickerSetPaused(!tickerPaused);
+    pauseBtn.textContent = tickerPaused ? '▶ Lire' : '⏸ Pause';
+  });
+}
+
 async function init() {
   // Mode co-pilot : ?cop=CODE → on dévie complètement le boot
   const params = new URLSearchParams(location.search);
@@ -5402,6 +5561,7 @@ async function init() {
   bindQualitySelector();
   bindTextStudio();
   bindSelectionUi();
+  bindTicker();
   applyStudioModeUi();
   applyTransitionUi();
   // Init module intro/outro (chargement assets IndexedDB + bind modal)

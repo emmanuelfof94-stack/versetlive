@@ -113,6 +113,35 @@
 
       <div class="section">
         <div class="section-title">
+          <span>📢 Bande d'annonce</span>
+          <label class="studio-logo-label" style="font-size:12px; display:flex; align-items:center; gap:6px; margin:0;">
+            <input type="checkbox" id="tickerToggle">
+            <span>Activer</span>
+          </label>
+        </div>
+        <textarea id="tickerMessages" rows="3"
+          placeholder="Une annonce par ligne…&#10;Bienvenue à tous&#10;Réunion de prière mardi 19h"
+          style="width:100%; box-sizing:border-box; resize:vertical; background:#1a1a1a; color:#eee; border:1px solid #333; border-radius:6px; padding:8px; font-size:13px; line-height:1.4;"></textarea>
+        <div style="display:flex; gap:6px; margin-top:8px;">
+          <button class="btn btn-sm" id="tickerPrevBtn" title="Aller à l'annonce précédente" style="flex:1;">◀ Préc.</button>
+          <button class="btn btn-sm" id="tickerPauseBtn" title="Mettre en pause / reprendre le défilement" style="flex:1;">⏸ Pause</button>
+          <button class="btn btn-sm" id="tickerNextBtn" title="Aller à l'annonce suivante" style="flex:1;">Suiv. ▶</button>
+        </div>
+        <div class="studio-verse-scale" style="display:flex; align-items:center; gap:8px; margin-top:8px;">
+          <span style="font-size:11px; color:#999; white-space:nowrap;">Vitesse</span>
+          <input type="range" id="tickerSpeed" min="30" max="260" step="10" value="100" style="flex:1;">
+          <span id="tickerSpeedVal" style="font-size:11px; color:#bbb; min-width:34px; text-align:right;">100</span>
+        </div>
+        <div class="studio-verse-scale" style="display:flex; align-items:center; gap:12px; margin-top:6px;">
+          <label style="font-size:11px; color:#999; display:flex; align-items:center; gap:6px;">Fond
+            <input type="color" id="tickerBgColor" value="#0f172a" style="width:28px; height:22px; padding:0; border:none; background:none;"></label>
+          <label style="font-size:11px; color:#999; display:flex; align-items:center; gap:6px;">Texte
+            <input type="color" id="tickerTextColor" value="#ffffff" style="width:28px; height:22px; padding:0; border:none; background:none;"></label>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">
           <span>📱 Caméras à distance</span>
           <button class="btn btn-sm" id="remoteHelpBtn" title="Aide">?</button>
         </div>
