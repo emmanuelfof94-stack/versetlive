@@ -8,6 +8,21 @@
 
 const PEER_PREFIX = 'versetlive-studio-';
 
+// Identifiant d'appareil STABLE (persisté). L'ID PeerJS change à chaque
+// chargement de la page ; ce deviceId, lui, reste le même → permet au Studio
+// de reconnaître ce téléphone après une actualisation et de réutiliser la même
+// caméra (au lieu d'en ouvrir une seconde et de laisser l'ancienne figée).
+const DEVICE_ID_KEY = 'versetlive:cam-device-id';
+function getCamDeviceId() {
+  let id = null;
+  try { id = localStorage.getItem(DEVICE_ID_KEY); } catch (e) {}
+  if (!id) {
+    id = 'cam-' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+    try { localStorage.setItem(DEVICE_ID_KEY, id); } catch (e) {}
+  }
+  return id;
+}
+
 const $ = id => document.getElementById(id);
 const setup = $('setupScreen');
 const live = $('liveScreen');
@@ -243,7 +258,9 @@ async function connectToStudio() {
   peer.on('open', () => {
     const targetId = PEER_PREFIX + roomCode;
     setLiveStatus('Appel du Studio…');
-    call = peer.call(targetId, outgoingStream);
+    // metadata.deviceId : clé stable pour que le Studio réutilise la même caméra
+    // après une actualisation (sinon doublon + ancienne figée).
+    call = peer.call(targetId, outgoingStream, { metadata: { deviceId: getCamDeviceId() } });
     if (!call) {
       setLiveStatus('Studio injoignable', 'err');
       return;

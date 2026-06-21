@@ -2978,7 +2978,7 @@ const ROOM_STORAGE_KEY = 'versetlive:studio-room';
 const PEER_PREFIX = 'versetlive-studio-';
 let signalingPeer = null;
 let currentRoomCode = '';
-const remoteCalls = new Map(); // peerId → { call, sourceId }
+const remoteCalls = new Map(); // deviceKey → { call, sourceId }
 
 function generateRoomCode() {
   // 5 caractères lisibles (sans 0/O/1/I)
@@ -3083,15 +3083,33 @@ function regenerateRoom() {
 }
 
 function addRemoteSource(stream, call) {
-  // Éviter doublon si on reçoit un 2e stream du même peer
-  if (remoteCalls.has(call.peer)) {
-    const prev = remoteCalls.get(call.peer);
-    const prevSrc = sources.find(s => s.id === prev.sourceId);
-    if (prevSrc) {
-      prevSrc.stream = stream;
-      prevSrc.videoEl.srcObject = stream;
-      return;
-    }
+  // Clé STABLE de l'appareil : le téléphone envoie un deviceId persistant dans
+  // call.metadata. Repli sur call.peer pour les anciens téléphones (leur ID
+  // PeerJS change à chaque actualisation → pas de dédoublonnage possible).
+  const deviceKey = (call.metadata && call.metadata.deviceId) || call.peer;
+
+  // Même appareil déjà présent (reconnexion / actualisation du téléphone) :
+  // on réutilise la MÊME caméra (même emplacement, même scène, mêmes filtres)
+  // en remplaçant simplement le flux. Évite le doublon + l'ancienne figée.
+  const existing = sources.find(s => s.kind === 'remote' && s.deviceKey === deviceKey);
+  if (existing) {
+    const wasAudioRouted = existing.audioRouted;
+    if (wasAudioRouted) disconnectSourceAudio(existing); // détache l'ancien stream
+    try { existing.stream.getTracks().forEach(t => t.stop()); } catch (e) {}
+    existing.stream = stream;
+    existing.videoEl.srcObject = stream;
+    existing.videoEl.play().catch(() => {});
+    existing.peer = call.peer;
+    if (wasAudioRouted) connectSourceAudio(existing); // ré-attache le nouveau stream
+    // Pointer la clé vers le NOUVEL appel AVANT de fermer l'ancien : la fermeture
+    // de l'ancien appel (parfois synchrone) déclenche removeRemoteCall, qui ne
+    // doit pas retirer la source qu'on vient de réutiliser.
+    const prev = remoteCalls.get(deviceKey);
+    remoteCalls.set(deviceKey, { call, sourceId: existing.id });
+    if (prev && prev.call && prev.call !== call) { try { prev.call.close(); } catch (e) {} }
+    renderSources();
+    renderScenes();
+    return;
   }
 
   const remoteCount = sources.filter(s => s.kind === 'remote').length + 1;
@@ -3105,7 +3123,8 @@ function addRemoteSource(stream, call) {
   const source = {
     id: 's' + (nextSourceId++),
     kind: 'remote',
-    deviceId: 'remote-' + call.peer,
+    deviceId: 'remote-' + deviceKey, // stable → filtres/PTT persistent après actualisation
+    deviceKey,
     label: `📱 Téléphone ${remoteCount}`,
     stream,
     videoEl,
@@ -3113,7 +3132,7 @@ function addRemoteSource(stream, call) {
     peer: call.peer
   };
   sources.push(source);
-  remoteCalls.set(call.peer, { call, sourceId: source.id });
+  remoteCalls.set(deviceKey, { call, sourceId: source.id });
 
   renderSources();
   renderScenes();
@@ -3121,7 +3140,11 @@ function addRemoteSource(stream, call) {
 }
 
 function removeRemoteCall(call) {
-  const entry = remoteCalls.get(call.peer);
+  // Retrouver l'entrée correspondant précisément à CET appel. Si l'appel a déjà
+  // été remplacé (téléphone actualisé → nouvel appel sous la même clé), il n'est
+  // plus référencé : on ignore, pour ne pas retirer la caméra réutilisée.
+  let key = null, entry = null;
+  for (const [k, e] of remoteCalls) { if (e.call === call) { key = k; entry = e; break; } }
   if (!entry) return;
   const src = sources.find(s => s.id === entry.sourceId);
   if (src) {
@@ -3131,7 +3154,7 @@ function removeRemoteCall(call) {
     const idx = sources.indexOf(src);
     sources.splice(idx, 1);
   }
-  remoteCalls.delete(call.peer);
+  remoteCalls.delete(key);
   renderSources();
   renderScenes();
   if (src && (programScene.primaryId === src.id || programScene.secondaryId === src.id)) {
