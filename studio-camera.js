@@ -36,7 +36,8 @@ const liveDot = $('liveDot');
 const liveStatusText = $('liveStatusText');
 const liveRoomTag = $('liveRoomTag');
 const switchBtn = $('switchBtn');
-const rotateBtn = $('rotateBtn');
+const rotateLeftBtn = $('rotateLeftBtn');
+const rotateRightBtn = $('rotateRightBtn');
 const muteBtn = $('muteBtn');
 const muteLabel = $('muteLabel');
 const stopBtn = $('stopBtn');
@@ -82,7 +83,8 @@ roomInput.addEventListener('input', () => {
 });
 
 switchBtn.addEventListener('click', switchCamera);
-rotateBtn.addEventListener('click', cyclePreviewRotation);
+rotateLeftBtn.addEventListener('click', rotatePreviewLeft);
+rotateRightBtn.addEventListener('click', rotatePreviewRight);
 muteBtn.addEventListener('click', toggleMute);
 stopBtn.addEventListener('click', stopSession);
 
@@ -99,8 +101,12 @@ function applyPreviewTransform() {
   if (facing === 'user') t += ' scaleX(-1)'; // miroir selfie (cosmétique)
   previewCanvas.style.transform = t;
 }
-function cyclePreviewRotation() {
+function rotatePreviewRight() {
   previewRotation = (previewRotation + 90) % 360;
+  applyPreviewTransform();
+}
+function rotatePreviewLeft() {
+  previewRotation = (previewRotation + 270) % 360;
   applyPreviewTransform();
 }
 
