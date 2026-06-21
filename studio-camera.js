@@ -162,9 +162,35 @@ previewCanvas.addEventListener('wheel', (e) => {
   setZoom(zoom + (e.deltaY < 0 ? ZOOM_STEP : -ZOOM_STEP));
 }, { passive: false });
 
+// Attend que le <video> ait une vraie frame décodée (dimensions > 0). Repli sur
+// un timeout pour ne jamais bloquer le démarrage si l'événement n'arrive pas.
+function waitForVideoFrame(video, timeoutMs = 3000) {
+  if (video.videoWidth && video.videoHeight) return Promise.resolve();
+  return new Promise((resolve) => {
+    let done = false;
+    const finish = () => { if (!done) { done = true; resolve(); } };
+    const tick = () => {
+      if (done) return;
+      if (video.videoWidth && video.videoHeight) return finish();
+      requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+    setTimeout(finish, timeoutMs);
+  });
+}
+
 // ===== Boucle de rendu canvas =====
 // Dessine le srcVideo en cover dans le canvas en appliquant zoom + mirror.
 function renderFrame() {
+  drawPreviewFrame();
+  renderRaf = requestAnimationFrame(renderFrame);
+}
+
+// Un seul dessin du canvas (sans reprogrammer la boucle). Utilisé aussi pour
+// « amorcer » le canvas avec une vraie frame AVANT captureStream : capturer un
+// canvas encore vierge produit parfois (Chrome Android) une piste vidéo « née
+// noire » → le Studio reçoit alors une tuile noire bien que connecté.
+function drawPreviewFrame() {
   if (srcVideo.videoWidth && srcVideo.videoHeight) {
     const vw = srcVideo.videoWidth, vh = srcVideo.videoHeight;
     const cw = previewCanvas.width, ch = previewCanvas.height;
@@ -189,8 +215,12 @@ function renderFrame() {
     // vidéo "normale". Le mirror selfie est purement cosmétique côté preview
     // et appliqué en CSS sur le canvas (transform: scaleX(-1)).
     ctx.drawImage(srcVideo, sx, sy, sw, sh, 0, 0, cw, ch);
+  } else {
+    // Pas encore de frame caméra : remplir en noir pour que le canvas ait
+    // quand même un contenu valide (évite un canvas transparent/non peint).
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, previewCanvas.width, previewCanvas.height);
   }
-  renderRaf = requestAnimationFrame(renderFrame);
 }
 
 // Empêcher la mise en veille (Wake Lock API)
@@ -245,6 +275,11 @@ async function startSession() {
   srcVideo.srcObject = cameraStream;
   await srcVideo.play().catch(() => {});
 
+  // Attendre une vraie frame caméra (dimensions connues) avant de dimensionner
+  // le canvas et de capturer. Capturer un canvas encore vierge crée parfois une
+  // piste vidéo « née noire » → tuile noire côté Studio.
+  await waitForVideoFrame(srcVideo);
+
   // Canvas en 16:9 (le format du Studio). On FORCE le ratio de sortie pour que
   // ce que l'opérateur cadre à l'écran corresponde EXACTEMENT à ce qui part à
   // l'antenne : la caméra est recadrée (cover) dans ce 16:9 par la boucle de
@@ -259,14 +294,20 @@ async function startSession() {
   previewCanvas.width = baseLong;
   previewCanvas.height = Math.round(baseLong * 9 / 16);
 
-  // Démarrer la boucle de rendu canvas
+  // Amorcer le canvas avec une première frame AVANT captureStream (sinon piste
+  // « née noire » sur certains Chrome Android), puis lancer la boucle.
+  drawPreviewFrame();
   cancelAnimationFrame(renderRaf);
   renderRaf = requestAnimationFrame(renderFrame);
 
   // Construire le flux sortant : vidéo issue du canvas + audio brut de la caméra
   const canvasStream = previewCanvas.captureStream(30);
+  const outVideoTracks = canvasStream.getVideoTracks();
+  if (!outVideoTracks.length) {
+    showError('Capture vidéo impossible sur ce navigateur (canvas.captureStream).');
+  }
   outgoingStream = new MediaStream([
-    ...canvasStream.getVideoTracks(),
+    ...outVideoTracks,
     ...cameraStream.getAudioTracks(),
   ]);
 

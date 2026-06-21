@@ -114,12 +114,14 @@ function loadTickerCfg() {
         enabled: !!c.enabled,
         messages: Array.isArray(c.messages) ? c.messages.filter(m => typeof m === 'string') : [],
         speed: Math.max(20, Math.min(400, c.speed ?? 100)),
+        fontScale: Math.max(0.5, Math.min(2.5, c.fontScale ?? 1)),
+        weight: Math.max(400, Math.min(900, c.weight ?? 600)),
         bgColor: c.bgColor || '#0f172a',
         textColor: c.textColor || '#ffffff'
       };
     }
   } catch (e) {}
-  return { enabled: false, messages: [], speed: 100, bgColor: '#0f172a', textColor: '#ffffff' };
+  return { enabled: false, messages: [], speed: 100, fontScale: 1, weight: 600, bgColor: '#0f172a', textColor: '#ffffff' };
 }
 function saveTickerCfg() {
   try { localStorage.setItem(TICKER_KEY, JSON.stringify(tickerCfg)); } catch (e) {}
@@ -1271,10 +1273,15 @@ function drawTicker(advance) {
   if (!msgs.length) return;
 
   const c = activeCtx;
-  const bandH = Math.round(OUTPUT_H * 0.075);
+  // Police = taille de base (3,75% de la hauteur) × réglage de taille.
+  // La bande grandit avec la police (≈2×) pour ne jamais rogner le texte,
+  // plafonnée à 28% de la hauteur. La graisse est réglable.
+  const scale = tickerCfg.fontScale || 1;
+  const weight = tickerCfg.weight || 600;
+  const fontPx = Math.round(OUTPUT_H * 0.0375 * scale);
+  const bandH = Math.min(Math.round(OUTPUT_H * 0.28), Math.round(fontPx * 2));
   const bandY = OUTPUT_H - bandH;
-  const fontPx = Math.round(bandH * 0.5);
-  const font = `600 ${fontPx}px -apple-system, "Segoe UI", system-ui, sans-serif`;
+  const font = `${weight} ${fontPx}px -apple-system, "Segoe UI", system-ui, sans-serif`;
 
   // Texte complet : messages séparés + séparateur final → boucle sans couture.
   const full = msgs.join(TICKER_SEP) + TICKER_SEP;
@@ -3253,6 +3260,33 @@ function addRemoteSource(stream, call) {
   renderSources();
   renderScenes();
   toast(`Connecté : ${source.label}`);
+
+  // Diagnostic : confirmer qu'une vraie image vidéo arrive (et pas seulement
+  // l'audio → tuile noire). On signale la résolution reçue, ou un avertissement
+  // si la vidéo reste à 0×0 (piste absente ou « née noire » côté téléphone).
+  diagnoseRemoteVideo(videoEl, source.label);
+}
+
+function diagnoseRemoteVideo(videoEl, label) {
+  const vTracks = videoEl.srcObject ? videoEl.srcObject.getVideoTracks() : [];
+  if (!vTracks.length) {
+    toast(`⚠️ ${label} : aucune piste vidéo reçue (audio seul)`);
+    return;
+  }
+  let resolved = false;
+  const report = () => {
+    if (resolved) return;
+    if (videoEl.videoWidth && videoEl.videoHeight) {
+      resolved = true;
+      toast(`📐 ${label} : ${videoEl.videoWidth}×${videoEl.videoHeight}`);
+    }
+  };
+  videoEl.addEventListener('loadedmetadata', report);
+  videoEl.addEventListener('resize', report);
+  report();
+  setTimeout(() => {
+    if (!resolved) toast(`⚠️ ${label} : vidéo reçue mais image noire (0×0)`);
+  }, 4000);
 }
 
 function removeRemoteCall(call) {
@@ -5520,6 +5554,26 @@ function bindTicker() {
   });
   if (bg) bg.addEventListener('input', () => { tickerCfg.bgColor = bg.value; saveTickerCfg(); });
   if (txt) txt.addEventListener('input', () => { tickerCfg.textColor = txt.value; saveTickerCfg(); });
+
+  // Taille de police + épaisseur (graisse) du texte de l'annonce.
+  const fontScale = $('tickerFontScale');
+  const fontScaleVal = $('tickerFontScaleVal');
+  const weight = $('tickerWeight');
+  const weightVal = $('tickerWeightVal');
+  if (fontScale) fontScale.value = Math.round((tickerCfg.fontScale || 1) * 100);
+  if (fontScaleVal) fontScaleVal.textContent = Math.round((tickerCfg.fontScale || 1) * 100) + '%';
+  if (weight) weight.value = tickerCfg.weight || 600;
+  if (weightVal) weightVal.textContent = tickerCfg.weight || 600;
+  if (fontScale) fontScale.addEventListener('input', () => {
+    tickerCfg.fontScale = Math.max(0.5, Math.min(2.5, (parseInt(fontScale.value, 10) || 100) / 100));
+    if (fontScaleVal) fontScaleVal.textContent = Math.round(tickerCfg.fontScale * 100) + '%';
+    saveTickerCfg();
+  });
+  if (weight) weight.addEventListener('input', () => {
+    tickerCfg.weight = Math.max(400, Math.min(900, parseInt(weight.value, 10) || 600));
+    if (weightVal) weightVal.textContent = tickerCfg.weight;
+    saveTickerCfg();
+  });
 
   // Contrôle manuel : préc. / pause / suiv. (le défilement reste auto par défaut).
   const prevBtn = $('tickerPrevBtn');
