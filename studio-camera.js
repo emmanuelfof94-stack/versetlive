@@ -219,16 +219,19 @@ async function startSession() {
   srcVideo.srcObject = cameraStream;
   await srcVideo.play().catch(() => {});
 
-  // Adapter la résolution canvas au format réel de la caméra (typiquement 1280×720
-  // mais peut varier — surtout selfie qui peut être en portrait).
+  // Canvas en 16:9 (le format du Studio). On FORCE le ratio de sortie pour que
+  // ce que l'opérateur cadre à l'écran corresponde EXACTEMENT à ce qui part à
+  // l'antenne : la caméra est recadrée (cover) dans ce 16:9 par la boucle de
+  // rendu, et l'aperçu (object-fit: contain) montre ce même 16:9. Sinon le
+  // Studio recadrait lui-même → cadre différent de celui vu sur le téléphone.
   const vt = cameraStream.getVideoTracks()[0];
+  let baseLong = 1280;
   if (vt) {
     const s = vt.getSettings();
-    if (s.width && s.height) {
-      previewCanvas.width = s.width;
-      previewCanvas.height = s.height;
-    }
+    if (s.width && s.height) baseLong = Math.max(s.width, s.height);
   }
+  previewCanvas.width = baseLong;
+  previewCanvas.height = Math.round(baseLong * 9 / 16);
 
   // Démarrer la boucle de rendu canvas
   cancelAnimationFrame(renderRaf);

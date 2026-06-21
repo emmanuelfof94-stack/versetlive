@@ -70,7 +70,7 @@
       width: 100%; height: 100%; display: block;
       background: #000;
       touch-action: none; /* on capture pinch + drag nous-mêmes */
-      object-fit: cover;
+      object-fit: contain; /* montre EXACTEMENT le cadre 16:9 envoyé au Studio */
     }
     .live canvas#preview.mirror { transform: scaleX(-1); }
     /* Vidéo source : invisible, sert juste à pomper les frames de la caméra dans le canvas. */
