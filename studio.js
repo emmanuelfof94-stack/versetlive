@@ -91,7 +91,7 @@ function loadTransitionCfg() {
     if (raw) {
       const c = JSON.parse(raw);
       const kind = TRANSITION_KINDS.includes(c.kind) ? c.kind : 'fade';
-      return { kind, durationMs: Math.max(0, Math.min(2000, c.durationMs ?? 300)) };
+      return { kind, durationMs: Math.max(0, Math.min(1000, c.durationMs ?? 300)) };
     }
   } catch (e) {}
   return { kind: 'fade', durationMs: 300 };
@@ -4764,7 +4764,7 @@ function applyCoopCommand(cmd, args) {
     case 'setTransitionConfig':
       if (args.cfg) {
         transitionCfg.kind = TRANSITION_KINDS.includes(args.cfg.kind) ? args.cfg.kind : 'fade';
-        transitionCfg.durationMs = Math.max(0, Math.min(2000, parseInt(args.cfg.durationMs, 10) || 300));
+        transitionCfg.durationMs = Math.max(0, Math.min(1000, parseInt(args.cfg.durationMs, 10) || 300));
         saveTransitionCfg();
         applyTransitionUi();
         coopBroadcast();
