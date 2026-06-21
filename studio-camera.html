@@ -66,13 +66,27 @@
     /* ÉCRAN LIVE */
     .live { position: fixed; inset: 0; display: none; }
     .live.show { display: block; }
+    /* Aperçu conscient de l'orientation : il montre TOUJOURS exactement le cadre
+       16:9 envoyé au Studio (object-fit: contain → pas de rognage), mais on le
+       dimensionne pour qu'il remplisse l'écran au maximum.
+       - Paysage (façon naturelle de filmer du 16:9) : remplit l'écran, à l'endroit.
+       - Portrait : on pivote l'aperçu de 90° pour qu'il occupe tout l'écran (gros
+         aperçu) ; le flux 16:9 réellement diffusé reste identique. Seul le canvas
+         pivote, pas les boutons. */
     .live canvas#preview {
-      width: 100%; height: 100%; display: block;
+      position: absolute; top: 50%; left: 50%; display: block;
       background: #000;
-      touch-action: none; /* on capture pinch + drag nous-mêmes */
+      touch-action: none; /* on capture pinch nous-mêmes */
       object-fit: contain; /* montre EXACTEMENT le cadre 16:9 envoyé au Studio */
     }
-    .live canvas#preview.mirror { transform: scaleX(-1); }
+    @media (orientation: landscape) {
+      .live canvas#preview { width: 100%; height: 100%; transform: translate(-50%, -50%); }
+      .live canvas#preview.mirror { transform: translate(-50%, -50%) scaleX(-1); }
+    }
+    @media (orientation: portrait) {
+      .live canvas#preview { width: 100vh; height: 100vw; transform: translate(-50%, -50%) rotate(90deg); }
+      .live canvas#preview.mirror { transform: translate(-50%, -50%) rotate(90deg) scaleX(-1); }
+    }
     /* Vidéo source : invisible, sert juste à pomper les frames de la caméra dans le canvas. */
     .live video#srcVideo {
       position: absolute; width: 1px; height: 1px;
