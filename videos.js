@@ -409,6 +409,10 @@
       onVideoEnded();
     };
     videoEl.addEventListener('ended', activeEndedHandler);
+    // Restaure l'état audio/boucle au cas où la vidéo aurait servi en mosaïque
+    // (où elle est forcée en muet + boucle).
+    videoEl.muted = false;
+    videoEl.loop = !!(getEntry(id) && getEntry(id).loop);
     try { videoEl.currentTime = 0; } catch (e) {}
     videoEl.play().catch(err => console.warn('video play blocked', err));
 
@@ -548,11 +552,57 @@
     await saveCatalog();
   }
 
+  // ============ Lecture mosaïque (plusieurs vidéos en aperçu, muettes) ============
+  // En mosaïque, les vidéos doivent rester animées dans leurs cellules, mais
+  // sans audio (sinon toutes joueraient en même temps) et sans toucher au
+  // modèle « scène active » (currentActiveId) ni au routage audio du programme.
+  const mosaicEls = new Set(); // ids forcés en lecture muette pour la mosaïque
+
+  async function startMosaicVideos(ids) {
+    const keep = new Set(ids);
+    // Arrête ceux qui ne font plus partie de la mosaïque.
+    for (const id of [...mosaicEls]) {
+      if (!keep.has(id)) releaseMosaicVideo(id);
+    }
+    // Démarre / maintient ceux de la mosaïque.
+    for (const id of ids) {
+      if (id === currentActiveId) continue; // déjà géré par la lecture normale
+      const el = await getVideoElement(id);
+      if (!el) continue;
+      el.muted = true;   // aperçu visuel uniquement
+      el.loop = true;    // boucle pour rester animé
+      try { el.play().catch(() => {}); } catch (e) {}
+      mosaicEls.add(id);
+    }
+  }
+
+  function releaseMosaicVideo(id) {
+    mosaicEls.delete(id);
+    if (id === currentActiveId) return; // ne pas perturber la scène active
+    const cached = elemCache.get(id);
+    if (cached) {
+      try { cached.videoEl.pause(); } catch (e) {}
+      cached.videoEl.loop = !!(getEntry(id) && getEntry(id).loop);
+    }
+  }
+
+  function stopMosaicVideos() {
+    for (const id of [...mosaicEls]) releaseMosaicVideo(id);
+  }
+
   // ============ Hook scènes (appelé par studio.js dans setProgramScene) ============
   function onSceneChange(scene) {
     if (scene && (scene.kind === 'video' || scene.kind === 'video+verse') && scene.videoId) {
+      stopMosaicVideos();
       if (currentActiveId !== scene.videoId) startPlayback(scene.videoId);
+    } else if (scene && scene.kind === 'mosaic') {
+      if (currentActiveId) stopPlayback();
+      const ids = (scene.items || [])
+        .filter(it => it && (it.kind === 'video' || it.kind === 'video+verse') && it.videoId)
+        .map(it => it.videoId);
+      startMosaicVideos(ids);
     } else {
+      stopMosaicVideos();
       if (currentActiveId) stopPlayback();
     }
   }

@@ -702,8 +702,11 @@ function drawVerseOverlay(area) {
   // Style texte
   const fontFamily = style.fontFamily || 'Georgia, serif';
   const fontSizeVw = style.fontSize || 4.5;
-  // 4.5vw → en px sur 1920 = 4.5/100 * 1920 = 86.4 (réduit avec le bloc)
-  const fontSizePx = Math.round((fontSizeVw / 100) * OUTPUT_W * sceneScale);
+  // 4.5vw → en px sur 1920 = 4.5/100 * 1920 = 86.4 (réduit avec le bloc).
+  // baseW = largeur de référence : OUTPUT_W en plein écran, mais largeur de la
+  // cellule en mosaïque (area.baseW) pour garder le texte proportionné.
+  const baseW = area.baseW || OUTPUT_W;
+  const fontSizePx = Math.round((fontSizeVw / 100) * baseW * sceneScale);
   const refSizePx = Math.max(Math.round(fontSizePx * 0.5), 28);
   const color = style.textColor || '#ffffff';
   const align = style.textAlign || 'center';
@@ -984,7 +987,7 @@ function drawSceneInRect(s, x, y, w, h) {
     const card = getCardById(s.cardId);
     if (card) { activeCtx.translate(x, y); drawCardContent(activeCtx, card, w, h); }
   } else if (k === 'verse') {
-    drawVerseOverlay({ x, y, w, h });
+    drawVerseOverlay({ x, y, w, h, baseW: w });
   } else if (k === 'intro' || k === 'outro') {
     if (window.IntroOutro) { activeCtx.translate(x, y); window.IntroOutro.draw(activeCtx, k, w, h); }
   } else if (k === 'video' || k === 'video+verse') {
