@@ -3,7 +3,7 @@
 // (rarement modifiés) + network-first avec fallback cache pour le reste
 // (les mises à jour arrivent immédiatement en ligne, et l'app reste utilisable hors-ligne).
 
-const CACHE_VERSION = 'v7';
+const CACHE_VERSION = 'v8';
 const CACHE_NAME = `versetlive-${CACHE_VERSION}`;
 
 // Assets pré-chargés à l'installation. Tout ce qui est indispensable pour qu'une
