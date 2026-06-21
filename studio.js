@@ -1449,11 +1449,27 @@ function renderFrame() {
 // des timers, donc ce setInterval continue à ~30 fps et maintient le canvas vivant.
 // Le check document.hidden laisse rAF gérer le premier plan (pas de double dessin).
 let bgRenderTimer = null;
+let bgRenderWorker = null;
 function startBgRenderLoop() {
   if (bgRenderTimer) return;
+  // 1) Timer de secours classique. Utile, mais le thread principal peut être
+  //    throttlé à ~1 Hz (voire 1/min après 5 min) quand l'onglet est en fond.
   bgRenderTimer = setInterval(() => {
     if (document.hidden) renderTick();
   }, RENDER_INTERVAL_MS);
+  // 2) Tick porté par un Web Worker. Les timers d'un worker ne subissent pas le
+  //    throttling agressif des onglets en arrière-plan : il réveille le rendu du
+  //    thread principal à ~30 fps même studio en fond, pour que la diffusion
+  //    (et le défilement de l'annonce) ne ralentisse pas. Repli sur le setInterval
+  //    ci-dessus si les workers ne sont pas disponibles. renderTick() est calé en
+  //    temps (grille 30 fps) → pas de double dessin si plusieurs sources tiquent.
+  try {
+    const src = 'var h=null;onmessage=function(e){var ms=(e.data&&e.data.ms)||33;if(h)clearInterval(h);h=setInterval(function(){postMessage(1);},ms);};';
+    const url = URL.createObjectURL(new Blob([src], { type: 'application/javascript' }));
+    bgRenderWorker = new Worker(url);
+    bgRenderWorker.onmessage = () => { if (document.hidden) renderTick(); };
+    bgRenderWorker.postMessage({ ms: RENDER_INTERVAL_MS });
+  } catch (e) { /* worker indispo : le setInterval assure le repli */ }
 }
 
 // ============ Moteur de transitions ============
