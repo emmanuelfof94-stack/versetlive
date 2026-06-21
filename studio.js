@@ -116,12 +116,13 @@ function loadTickerCfg() {
         speed: Math.max(20, Math.min(400, c.speed ?? 100)),
         fontScale: Math.max(0.5, Math.min(2.5, c.fontScale ?? 1)),
         weight: Math.max(400, Math.min(900, c.weight ?? 600)),
+        posY: Math.max(0, Math.min(1, c.posY ?? 0)),
         bgColor: c.bgColor || '#0f172a',
         textColor: c.textColor || '#ffffff'
       };
     }
   } catch (e) {}
-  return { enabled: false, messages: [], speed: 100, fontScale: 1, weight: 600, bgColor: '#0f172a', textColor: '#ffffff' };
+  return { enabled: false, messages: [], speed: 100, fontScale: 1, weight: 600, posY: 0, bgColor: '#0f172a', textColor: '#ffffff' };
 }
 function saveTickerCfg() {
   try { localStorage.setItem(TICKER_KEY, JSON.stringify(tickerCfg)); } catch (e) {}
@@ -1280,7 +1281,9 @@ function drawTicker(advance) {
   const weight = tickerCfg.weight || 600;
   const fontPx = Math.round(OUTPUT_H * 0.0375 * scale);
   const bandH = Math.min(Math.round(OUTPUT_H * 0.28), Math.round(fontPx * 2));
-  const bandY = OUTPUT_H - bandH;
+  // Position verticale réglable : posY 0 = en bas (défaut), 1 = en haut.
+  const posY = Math.max(0, Math.min(1, tickerCfg.posY ?? 0));
+  const bandY = Math.round((OUTPUT_H - bandH) * (1 - posY));
   const font = `${weight} ${fontPx}px -apple-system, "Segoe UI", system-ui, sans-serif`;
 
   // Texte complet : messages séparés + séparateur final → boucle sans couture.
@@ -5572,6 +5575,18 @@ function bindTicker() {
   if (weight) weight.addEventListener('input', () => {
     tickerCfg.weight = Math.max(400, Math.min(900, parseInt(weight.value, 10) || 600));
     if (weightVal) weightVal.textContent = tickerCfg.weight;
+    saveTickerCfg();
+  });
+
+  // Position verticale de la bande (0 = bas, 100 = haut).
+  const posY = $('tickerPosY');
+  const posYVal = $('tickerPosYVal');
+  const posYLabel = (p) => p <= 0.01 ? 'bas' : p >= 0.99 ? 'haut' : Math.round(p * 100) + '%';
+  if (posY) posY.value = Math.round((tickerCfg.posY || 0) * 100);
+  if (posYVal) posYVal.textContent = posYLabel(tickerCfg.posY || 0);
+  if (posY) posY.addEventListener('input', () => {
+    tickerCfg.posY = Math.max(0, Math.min(1, (parseInt(posY.value, 10) || 0) / 100));
+    if (posYVal) posYVal.textContent = posYLabel(tickerCfg.posY);
     saveTickerCfg();
   });
 
