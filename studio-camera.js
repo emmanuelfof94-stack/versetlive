@@ -36,6 +36,7 @@ const liveDot = $('liveDot');
 const liveStatusText = $('liveStatusText');
 const liveRoomTag = $('liveRoomTag');
 const switchBtn = $('switchBtn');
+const rotateBtn = $('rotateBtn');
 const muteBtn = $('muteBtn');
 const muteLabel = $('muteLabel');
 const stopBtn = $('stopBtn');
@@ -81,8 +82,27 @@ roomInput.addEventListener('input', () => {
 });
 
 switchBtn.addEventListener('click', switchCamera);
+rotateBtn.addEventListener('click', cyclePreviewRotation);
 muteBtn.addEventListener('click', toggleMute);
 stopBtn.addEventListener('click', stopSession);
+
+// ===== Rotation de l'aperçu (locale au téléphone, n'affecte pas le flux envoyé) =====
+// Le cadre 16:9 diffusé au Studio reste identique ; on ne fait que pivoter
+// l'affichage local pour qu'il remplisse bien l'écran selon comment l'opérateur
+// tient son téléphone. 0/180 → le canvas remplit l'écran ; 90/270 → dimensions
+// croisées (vh/vw) pour remplir une fois pivoté (géré en CSS via data-rot).
+let previewRotation = 0; // 0, 90, 180, 270
+function applyPreviewTransform() {
+  previewCanvas.dataset.rot = String(previewRotation);
+  let t = 'translate(-50%, -50%)';
+  if (previewRotation) t += ` rotate(${previewRotation}deg)`;
+  if (facing === 'user') t += ' scaleX(-1)'; // miroir selfie (cosmétique)
+  previewCanvas.style.transform = t;
+}
+function cyclePreviewRotation() {
+  previewRotation = (previewRotation + 90) % 360;
+  applyPreviewTransform();
+}
 
 // ===== Zoom : pinch + boutons + slider =====
 function clampZoom(z) { return Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, z)); }
@@ -246,7 +266,10 @@ async function startSession() {
 
   setup.style.display = 'none';
   live.classList.add('show');
-  previewCanvas.classList.toggle('mirror', facing === 'user');
+  // Rotation initiale selon l'orientation : en portrait, on pivote pour remplir
+  // l'écran d'emblée ; l'opérateur peut ensuite ajuster avec le bouton « Pivoter ».
+  previewRotation = (window.matchMedia && window.matchMedia('(orientation: portrait)').matches) ? 90 : 0;
+  applyPreviewTransform();
   liveRoomTag.textContent = roomCode;
   setLiveStatus('Connexion…');
   setZoom(1.0); // initialise UI zoom
@@ -321,7 +344,7 @@ async function switchCamera() {
     cameraStream.addTrack(newVideoTrack);
     srcVideo.srcObject = cameraStream;
     await srcVideo.play().catch(() => {});
-    previewCanvas.classList.toggle('mirror', facing === 'user');
+    applyPreviewTransform(); // ré-applique miroir (selfie) + rotation courante
     // Le canvas continue à pomper les frames de srcVideo : aucun replaceTrack
     // sur la RTCPeerConnection nécessaire (le track sortant reste celui du canvas).
     setZoom(1.0); // reset zoom après bascule caméra

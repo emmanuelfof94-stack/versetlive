@@ -66,27 +66,23 @@
     /* ÉCRAN LIVE */
     .live { position: fixed; inset: 0; display: none; }
     .live.show { display: block; }
-    /* Aperçu conscient de l'orientation : il montre TOUJOURS exactement le cadre
-       16:9 envoyé au Studio (object-fit: contain → pas de rognage), mais on le
-       dimensionne pour qu'il remplisse l'écran au maximum.
-       - Paysage (façon naturelle de filmer du 16:9) : remplit l'écran, à l'endroit.
-       - Portrait : on pivote l'aperçu de 90° pour qu'il occupe tout l'écran (gros
-         aperçu) ; le flux 16:9 réellement diffusé reste identique. Seul le canvas
-         pivote, pas les boutons. */
+    /* Aperçu : montre TOUJOURS exactement le cadre 16:9 envoyé au Studio
+       (object-fit: contain → pas de rognage). La taille et la rotation sont
+       pilotées en JS via le bouton « Pivoter » (data-rot = 0/90/180/270) :
+       - 0/180 : le canvas remplit l'écran ;
+       - 90/270 : canvas dimensionné en vh/vw croisés → remplit l'écran une fois
+         pivoté (gros aperçu). Le flux 16:9 réellement diffusé reste identique ;
+       seul le canvas pivote, pas les boutons. */
     .live canvas#preview {
       position: absolute; top: 50%; left: 50%; display: block;
+      width: 100%; height: 100%;
       background: #000;
       touch-action: none; /* on capture pinch nous-mêmes */
       object-fit: contain; /* montre EXACTEMENT le cadre 16:9 envoyé au Studio */
+      transform: translate(-50%, -50%);
     }
-    @media (orientation: landscape) {
-      .live canvas#preview { width: 100%; height: 100%; transform: translate(-50%, -50%); }
-      .live canvas#preview.mirror { transform: translate(-50%, -50%) scaleX(-1); }
-    }
-    @media (orientation: portrait) {
-      .live canvas#preview { width: 100vh; height: 100vw; transform: translate(-50%, -50%) rotate(90deg); }
-      .live canvas#preview.mirror { transform: translate(-50%, -50%) rotate(90deg) scaleX(-1); }
-    }
+    .live canvas#preview[data-rot="90"],
+    .live canvas#preview[data-rot="270"] { width: 100vh; height: 100vw; }
     /* Vidéo source : invisible, sert juste à pomper les frames de la caméra dans le canvas. */
     .live video#srcVideo {
       position: absolute; width: 1px; height: 1px;
@@ -242,6 +238,10 @@
         <button class="live-btn" id="switchBtn">
           <span class="live-btn-icon">🔄</span>
           <span>Caméra</span>
+        </button>
+        <button class="live-btn" id="rotateBtn" title="Pivoter l'aperçu (n'affecte pas le cadrage envoyé)">
+          <span class="live-btn-icon">⟳</span>
+          <span>Pivoter</span>
         </button>
         <button class="live-btn" id="muteBtn">
           <span class="live-btn-icon">🎤</span>
