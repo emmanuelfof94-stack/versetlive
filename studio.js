@@ -1678,6 +1678,75 @@ function renderMultiviewFrame() {
   activeCtx = prevActive;
 }
 
+// ============ Multiview composite pour co-pilotes ============
+// Le co-pilot est distant : il n'a ni les caméras, ni les images/cartes/versets
+// locaux, donc il ne peut pas redessiner le multiview. L'hôte compose donc un
+// multiview dans un canvas dédié et l'envoie en WebRTC (3ᵉ flux, kind 'multiview').
+// Rendu uniquement quand au moins un co-pilot est connecté (économie CPU).
+const COOP_MV_W = 1280, COOP_MV_H = 720, COOP_MV_FPS = 15, COOP_MV_COLS = 4, COOP_MV_GAP = 6;
+let coopMvCanvas = null, coopMvCtx = null, coopMvStream = null, coopMvTimer = null;
+
+function coopGetMultiviewStream() {
+  if (!coopMvCanvas) {
+    coopMvCanvas = document.createElement('canvas');
+    coopMvCanvas.width = COOP_MV_W;
+    coopMvCanvas.height = COOP_MV_H;
+    coopMvCtx = coopMvCanvas.getContext('2d');
+    coopRenderMultiviewComposite(); // une première frame pour ne pas envoyer du noir
+  }
+  if (!coopMvStream) {
+    try { coopMvStream = coopMvCanvas.captureStream(COOP_MV_FPS); } catch (e) { return null; }
+  }
+  return coopMvStream;
+}
+
+function coopStartMultiviewRender() {
+  if (coopMvTimer) return;
+  coopGetMultiviewStream();
+  const tick = () => {
+    try { coopRenderMultiviewComposite(); } catch (e) {}
+    coopMvTimer = setTimeout(tick, 1000 / COOP_MV_FPS);
+  };
+  tick();
+}
+
+function coopStopMultiviewRender() {
+  if (coopMvTimer) { clearTimeout(coopMvTimer); coopMvTimer = null; }
+}
+
+function coopRenderMultiviewComposite() {
+  if (!coopMvCtx) return;
+  const scenes = buildSceneList().slice(0, MULTIVIEW_MAX);
+  const c = coopMvCtx;
+  c.fillStyle = '#0b0d1a';
+  c.fillRect(0, 0, COOP_MV_W, COOP_MV_H);
+  const n = scenes.length;
+  if (!n) return;
+  const cols = COOP_MV_COLS;
+  const rows = Math.ceil(n / cols);
+  const gap = COOP_MV_GAP;
+  const cw = (COOP_MV_W - gap * (cols + 1)) / cols;
+  const ch = (COOP_MV_H - gap * (rows + 1)) / rows;
+  const programKey = sceneKey(programScene);
+  const previewKey = sceneKey(previewScene);
+  const prevActive = activeCtx;
+  activeCtx = c;
+  for (let i = 0; i < n; i++) {
+    const r = Math.floor(i / cols), col = i % cols;
+    const x = gap + col * (cw + gap), y = gap + r * (ch + gap);
+    try { drawSceneInRect(scenes[i].scene, x, y, cw, ch); } catch (e) {}
+    // Bordure programme (rouge) / preview (ambre) — reflète l'état live dans la vidéo
+    if (scenes[i].key === programKey) {
+      c.save(); c.lineWidth = 5; c.strokeStyle = '#ef4444';
+      c.strokeRect(x + 2.5, y + 2.5, cw - 5, ch - 5); c.restore();
+    } else if (studioMode && scenes[i].key === previewKey) {
+      c.save(); c.lineWidth = 5; c.strokeStyle = '#f59e0b';
+      c.strokeRect(x + 2.5, y + 2.5, cw - 5, ch - 5); c.restore();
+    }
+  }
+  activeCtx = prevActive;
+}
+
 function updateProgramInfo() {
   const info = $('programInfo');
   const label = sources.length
@@ -5033,10 +5102,13 @@ function coopStartHost(code) {
     previewStreamFn: () => {
       try { return previewCanvas.captureStream(15); } catch (e) { return null; }
     },
+    multiviewStreamFn: () => coopGetMultiviewStream(),
     stateFn: coopStateSnapshot,
     onCommand: applyCoopCommand,
     onCoPilotCamera: (stream, info, call) => addCoopCameraSource(stream, info, call),
     onCoPilotChange: (count, list) => {
+      // Rendu du multiview composite seulement quand un co-pilot est là (économie CPU)
+      if (count > 0) coopStartMultiviewRender(); else coopStopMultiviewRender();
       const status = $('coopHostStatus');
       if (status) {
         status.textContent = count ? `${count} co-pilot${count > 1 ? 's' : ''} connecté${count > 1 ? 's' : ''}` : 'Aucun co-pilot connecté';
@@ -5088,6 +5160,7 @@ function coopStopHost() {
   if (!coopHost) return;
   coopHost.stop();
   coopHost = null;
+  coopStopMultiviewRender();
   const info = $('coopHostInfo');
   if (info) info.hidden = true;
   const startBtn = $('coopHostStartBtn');
@@ -5186,6 +5259,10 @@ async function initCoPilot(code, name) {
     location.href = location.pathname;
   });
 
+  // Multiview composite reçu du host (vignettes live, comme l'hôte)
+  const mvSection = $('coopMultiviewSection');
+  if (mvSection) mvSection.hidden = false;
+
   // Grille de sources distantes (caméras hôte + copilotes) cliquables → projecteur
   const sourcesSection = $('coopSourcesSection');
   if (sourcesSection) sourcesSection.hidden = false;
@@ -5220,6 +5297,10 @@ async function initCoPilot(code, name) {
     },
     onPreviewStream: (stream) => {
       const v = $('coopPreviewVideo');
+      if (v) { v.srcObject = stream; v.play().catch(() => {}); }
+    },
+    onMultiviewStream: (stream) => {
+      const v = $('coopMultiviewVideo');
       if (v) { v.srcObject = stream; v.play().catch(() => {}); }
     },
     onState: (state) => {
@@ -5475,6 +5556,9 @@ function coopRenderRemoteState(state) {
   // Grille des sources (caméras hôte + copilotes) cliquables → projecteur
   coopRenderSourcesGrid(state);
 
+  // Grille cliquable superposée au multiview (même ordre que la composition host)
+  coopRenderMultiviewOverlay(state);
+
   // Scène list
   const list = $('scenesList');
   const scenesArr = state.scenes || [];
@@ -5584,6 +5668,39 @@ function coopRenderSourcesGrid(state) {
       else coopGuest.sendCommand('setScene', { scene });
     });
     grid.appendChild(btn);
+  });
+}
+
+// Superpose au multiview reçu une grille de zones cliquables, dans le MÊME ordre
+// et le MÊME nombre de colonnes que la composition côté host → chaque case tombe
+// sur sa vignette. Clic = setScene (preview en Studio, direct sinon),
+// double-clic = setProgramScene (direct au projecteur).
+function coopRenderMultiviewOverlay(state) {
+  const overlay = $('coopMultiviewOverlay');
+  if (!overlay) return;
+  const scenes = (state.scenes || []).slice(0, MULTIVIEW_MAX);
+  const n = scenes.length;
+  if (!n) { overlay.innerHTML = ''; return; }
+  const cols = COOP_MV_COLS;
+  const rows = Math.ceil(n / cols);
+  overlay.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+  overlay.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+  const progKey = sceneKey(state.programScene);
+  const prevKey = state.studioMode ? sceneKey(state.previewScene) : null;
+  overlay.innerHTML = '';
+  scenes.forEach((s, i) => {
+    const cell = document.createElement('button');
+    cell.className = 'studio-coop-mv-cell';
+    if (s.key === progKey) cell.classList.add('program');
+    else if (s.key === prevKey) cell.classList.add('preview');
+    cell.innerHTML = `<span class="studio-coop-mv-tag">${i + 1}</span><span class="studio-coop-mv-label">${escapeHtml(s.label)}</span>`;
+    const key = 'coopmv-' + s.key;
+    cell.addEventListener('click', () => {
+      if (!coopGuest) return;
+      if (isSceneDoubleClick(key)) coopGuest.sendCommand('setProgramScene', { scene: s.scene });
+      else coopGuest.sendCommand('setScene', { scene: s.scene });
+    });
+    overlay.appendChild(cell);
   });
 }
 

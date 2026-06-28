@@ -349,6 +349,19 @@
         </div>
       </div>
 
+      <!-- Multiview CO-PILOT : flux composite reçu du host + grille cliquable
+           (visible uniquement en coop-mode). Donne au copilote le même affichage
+           que l'hôte : vignettes live de toutes les scènes, clic = envoyer au projecteur. -->
+      <div class="studio-coop-multiview" id="coopMultiviewSection" hidden>
+        <div class="studio-multiview-head">
+          <span>📑 Multiview — clic = envoyer au projecteur (double-clic = direct)</span>
+        </div>
+        <div class="studio-coop-multiview-wrap" id="coopMultiviewWrap">
+          <video id="coopMultiviewVideo" autoplay playsinline muted></video>
+          <div class="studio-coop-multiview-overlay" id="coopMultiviewOverlay"></div>
+        </div>
+      </div>
+
       <!-- Multiview : grille d'aperçus live des scènes (5 fps) -->
       <div class="studio-multiview" id="multiviewContainer" hidden>
         <div class="studio-multiview-head">

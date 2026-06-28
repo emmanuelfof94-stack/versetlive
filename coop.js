@@ -85,6 +85,15 @@
           entry.previewCall.on('error', () => { entry.previewCall = null; });
         }
       } catch (e) { console.warn('preview call err', e); }
+      try {
+        const mv = opts.multiviewStreamFn && opts.multiviewStreamFn();
+        if (mv) {
+          if (entry.multiviewCall) { try { entry.multiviewCall.close(); } catch (e) {} }
+          entry.multiviewCall = peer.call(entry.copilotId, mv, { metadata: { kind: 'multiview' } });
+          entry.multiviewCall.on('close', () => { if (entry.multiviewCall) entry.multiviewCall = null; });
+          entry.multiviewCall.on('error', () => { entry.multiviewCall = null; });
+        }
+      } catch (e) { console.warn('multiview call err', e); }
     };
 
     peer.on('open', () => {
@@ -116,6 +125,7 @@
         conn,
         programCall: null,
         previewCall: null,
+        multiviewCall: null,
         meta: conn.metadata || { name: 'Co-pilot' },
       };
       copilots.set(copilotId, entry);
@@ -148,6 +158,7 @@
       conn.on('close', () => {
         if (entry.programCall) try { entry.programCall.close(); } catch (e) {}
         if (entry.previewCall) try { entry.previewCall.close(); } catch (e) {}
+        if (entry.multiviewCall) try { entry.multiviewCall.close(); } catch (e) {}
         copilots.delete(copilotId);
         notifyChange();
       });
@@ -226,6 +237,7 @@
     let hostConn = null;
     let programStream = null;
     let previewStream = null;
+    let multiviewStream = null;
     let myPeerId = null;
     let hasBeenConnected = false;          // une fois true → on autorise le mode failover
     let hostLost = false;
@@ -362,6 +374,9 @@
         if (kind === 'preview') {
           previewStream = stream;
           opts.onPreviewStream && opts.onPreviewStream(stream);
+        } else if (kind === 'multiview') {
+          multiviewStream = stream;
+          opts.onMultiviewStream && opts.onMultiviewStream(stream);
         } else {
           programStream = stream;
           opts.onProgramStream && opts.onProgramStream(stream);
@@ -370,6 +385,7 @@
       call.on('close', () => {
         const kind = call.metadata && call.metadata.kind;
         if (kind === 'preview') previewStream = null;
+        else if (kind === 'multiview') multiviewStream = null;
         else programStream = null;
         // Demande à ré-appeler après court délai
         setTimeout(ensureRecall, 1500);

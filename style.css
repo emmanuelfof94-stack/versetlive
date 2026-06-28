@@ -3970,6 +3970,72 @@ body.coop-mode .studio-coop-video { display: block; }
 body.coop-mode #programCanvas, body.coop-mode #previewCanvas { visibility: hidden; }
 body.coop-mode .studio-col-left { display: none; }
 body.coop-mode .studio-program-info { opacity: 0.6; }
+/* La colonne gauche est masquée en coop-mode : la grille passe en pleine largeur
+   pour que les moniteurs et le multiview du co-pilot s'affichent en grand,
+   comme sur l'écran de l'hôte (au lieu d'être coincés dans la piste de 360px). */
+body.coop-mode .studio-layout { grid-template-columns: 1fr; }
+
+/* Multiview co-pilot : flux composite reçu du host + grille de zones cliquables */
+.studio-coop-multiview { display: none; margin-top: 12px; }
+body.coop-mode .studio-coop-multiview { display: block; }
+.studio-coop-multiview-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #0b0d1a;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.studio-coop-multiview-wrap video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  display: block;
+}
+.studio-coop-multiview-overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  gap: 6px;
+  padding: 6px;
+}
+.studio-coop-mv-cell {
+  position: relative;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  overflow: hidden;
+  transition: border-color .12s, background .12s;
+}
+.studio-coop-mv-cell:hover { border-color: var(--accent, #3b82f6); background: rgba(59,130,246,0.12); }
+.studio-coop-mv-cell.program { border-color: rgba(239, 68, 68, 0.95); }
+.studio-coop-mv-cell.preview { border-color: rgba(245, 158, 11, 0.95); }
+.studio-coop-mv-tag {
+  position: absolute;
+  top: 4px; left: 4px;
+  min-width: 18px; height: 18px;
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 0 4px;
+  font: 700 11px/1 -apple-system, sans-serif;
+  color: #fff; background: rgba(0,0,0,0.65);
+  border-radius: 4px;
+}
+.studio-coop-mv-cell.program .studio-coop-mv-tag { background: rgba(239,68,68,0.95); }
+.studio-coop-mv-cell.preview .studio-coop-mv-tag { background: rgba(245,158,11,0.95); }
+.studio-coop-mv-label {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  padding: 3px 5px;
+  font: 600 11px/1.2 -apple-system, sans-serif;
+  color: #fff;
+  background: linear-gradient(to top, rgba(0,0,0,0.78), rgba(0,0,0,0));
+  text-align: left;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
 
 /* Partage caméra co-pilot → host (phase 2) */
 body.coop-mode .studio-coop-share-section { display: block; }
