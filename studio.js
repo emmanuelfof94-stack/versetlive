@@ -5796,6 +5796,19 @@ init();
 
 // Pont public pour modules externes (ex: youtube-scheduler)
 window.VL = {
+  // Mise à jour SW : la page est « occupée » (rechargement auto déconseillé) si on
+  // diffuse, on enregistre, ou — côté hôte — si des caméras sont déjà configurées
+  // (recharger les perdrait). Un co-pilot (coop-mode) n'a pas de caméras locales :
+  // jamais occupé → rechargement auto sans risque.
+  isBusy() {
+    try {
+      if (document.body.classList.contains('coop-mode')) return false;
+      if (typeof relayStreaming !== 'undefined' && relayStreaming) return true;
+      if (mediaRecorder && mediaRecorder.state === 'recording') return true;
+      if (sources && sources.length > 0) return true;
+    } catch (e) {}
+    return false;
+  },
   addDestination(d) {
     if (!d?.url || !d?.key) return false;
     destinations.push({
