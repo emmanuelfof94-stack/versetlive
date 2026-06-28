@@ -5186,6 +5186,10 @@ async function initCoPilot(code, name) {
     location.href = location.pathname;
   });
 
+  // Grille de sources distantes (caméras hôte + copilotes) cliquables → projecteur
+  const sourcesSection = $('coopSourcesSection');
+  if (sourcesSection) sourcesSection.hidden = false;
+
   // Partage caméra locale → host (phase 2)
   const shareSection = $('coopShareSection');
   if (shareSection) shareSection.hidden = false;
@@ -5468,6 +5472,9 @@ function coopRenderRemoteState(state) {
     $('transitionDurationVal').textContent = state.transitionCfg.durationMs + ' ms';
   }
 
+  // Grille des sources (caméras hôte + copilotes) cliquables → projecteur
+  coopRenderSourcesGrid(state);
+
   // Scène list
   const list = $('scenesList');
   const scenesArr = state.scenes || [];
@@ -5540,6 +5547,44 @@ function coopRenderRemoteState(state) {
 
   // Verset status (panneau dédié si présent)
   try { verseState = state.verseState; renderVerseStatus(); } catch (e) {}
+}
+
+// Rend la grille des sources distantes côté co-pilot. Chaque source (caméra de
+// l'hôte, de ce co-pilot, ou d'un autre co-pilot) devient une vignette cliquable
+// qui envoie cette caméra au programme via une commande — clic = setScene
+// (preview en mode Studio, direct sinon), double-clic = setProgramScene (direct
+// au projecteur). On ne dispose pas du flux live de chaque source côté co-pilot
+// (seuls Program+Preview transitent en WebRTC), donc ce sont des boutons libellés.
+function coopRenderSourcesGrid(state) {
+  const grid = $('coopSourcesGrid');
+  if (!grid) return;
+  const sources = state.sources || [];
+  if (!sources.length) {
+    grid.innerHTML = '<div class="studio-empty">Aucune caméra côté studio.</div>';
+    return;
+  }
+  const myPeerId = (coopGuest && coopGuest.getMyPeerId && coopGuest.getMyPeerId()) || '';
+  const progPrimary = state.programScene && state.programScene.kind === 'camera' ? state.programScene.primaryId : null;
+  const prevPrimary = state.studioMode && state.previewScene && state.previewScene.kind === 'camera' ? state.previewScene.primaryId : null;
+  grid.innerHTML = '';
+  sources.forEach((s, i) => {
+    const isMine = !!myPeerId && typeof s.deviceId === 'string' && s.deviceId.indexOf('coop-' + myPeerId) === 0;
+    const btn = document.createElement('button');
+    btn.className = 'studio-scene-btn';
+    const badge = isMine ? '🟢 Ta caméra · ' : '';
+    btn.textContent = `${i + 1}. ${badge}${s.label || 'Caméra'}`;
+    if (progPrimary === s.id) btn.classList.add('active');
+    if (prevPrimary === s.id && progPrimary !== s.id) btn.classList.add('preview-active');
+    const scene = { kind: 'camera', primaryId: s.id };
+    const key = 'coopsrc-' + s.id;
+    btn.addEventListener('click', () => {
+      if (!coopGuest) return;
+      // Double-clic = direct au projecteur ; simple clic = setScene (preview en Studio).
+      if (isSceneDoubleClick(key)) coopGuest.sendCommand('setProgramScene', { scene });
+      else coopGuest.sendCommand('setScene', { scene });
+    });
+    grid.appendChild(btn);
+  });
 }
 
 // ============ Boot ============
