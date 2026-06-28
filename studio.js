@@ -1692,6 +1692,18 @@ function coopGetMultiviewStream() {
     coopMvCanvas.width = COOP_MV_W;
     coopMvCanvas.height = COOP_MV_H;
     coopMvCtx = coopMvCanvas.getContext('2d');
+    // Le canvas DOIT être dans le DOM et peint pour que captureStream() produise
+    // des frames : un canvas détaché (createElement seul) renvoie une piste noire
+    // — c'est ce qui faisait voir au copilote des tuiles noires (labels visibles,
+    // mais fond noir). On l'attache donc, peint mais invisible : 1×1 px dans un
+    // coin, opacité ~0. La capture lit le backing store en 1280×720, pas la taille
+    // CSS, donc la résolution du flux reste intacte. Pas de display:none ni
+    // visibility:hidden (Chrome cesserait de le peindre → flux figé/noir).
+    coopMvCanvas.setAttribute('aria-hidden', 'true');
+    coopMvCanvas.style.cssText =
+      'position:fixed; left:0; bottom:0; width:1px; height:1px; opacity:0.01; ' +
+      'pointer-events:none; z-index:-1;';
+    document.body.appendChild(coopMvCanvas);
     coopRenderMultiviewComposite(); // une première frame pour ne pas envoyer du noir
   }
   if (!coopMvStream) {
@@ -4412,6 +4424,31 @@ async function addImageFromFile(file) {
   toast(`Image ajoutée : ${name}`);
 }
 
+// Ajoute une image à partir d'un dataURL (et non d'un File). Utilisé par la coop :
+// un copilote envoie l'image encodée via le canal de données, le host l'ajoute ici
+// comme n'importe quelle image locale. Retourne { id, name } ou null.
+async function addImageFromDataUrl(dataUrl, rawName) {
+  if (!dataUrl || typeof dataUrl !== 'string') return null;
+  // Garde-fou taille (le dataURL base64 pèse ~33 % de plus que le fichier).
+  if (dataUrl.length > 12 * 1024 * 1024) {
+    toast('Image reçue trop lourde — ignorée.', true);
+    return null;
+  }
+  const id = 'im' + (nextImageId++);
+  const imgEl = await loadImageElement(dataUrl); // throw si décodage impossible
+  const name = String(rawName || 'Image').replace(/\.[^.]+$/, '').slice(0, 30);
+  imageSources.push({ id, name, dataUrl, imgEl });
+  try {
+    const blob = await (await fetch(dataUrl)).blob();
+    await imgIdbPut('img-' + id, blob);
+  } catch (e) { console.warn('IDB put (coop image) failed', e); }
+  saveImgIndex();
+  renderImages();
+  renderLogoOverlayUi();
+  renderScenes();
+  return { id, name };
+}
+
 async function removeImage(id) {
   const idx = imageSources.findIndex(i => i.id === id);
   if (idx < 0) return;
@@ -5004,8 +5041,9 @@ function coopStateSnapshot() {
   };
 }
 
-function applyCoopCommand(cmd, args) {
+function applyCoopCommand(cmd, args, meta) {
   args = args || {};
+  const who = (meta && meta.name) || 'un copilote';
   switch (cmd) {
     case 'setScene':
       if (args.scene) setScene(args.scene);
@@ -5054,6 +5092,38 @@ function applyCoopCommand(cmd, args) {
       if (d) { d.enabled = !!args.on; saveDestinations(); renderDestinations(); updateStreamBtnState(); }
       break;
     }
+    case 'addImage':
+      // Un copilote envoie une image (dataURL) → on l'ajoute à la bibliothèque,
+      // puis on rediffuse l'état pour que tous les postes la voient comme scène.
+      if (args.dataUrl) {
+        addImageFromDataUrl(args.dataUrl, args.name)
+          .then((img) => {
+            if (!img) return;
+            toast(`Image ajoutée par ${who} : ${img.name}`);
+            if (coopHost) coopHost.broadcastToast(`Image « ${img.name} » ajoutée`, false);
+            coopBroadcast();
+          })
+          .catch((e) => {
+            console.warn('coop addImage err', e);
+            if (coopHost) coopHost.broadcastToast('Image refusée (illisible).', true);
+          });
+      }
+      break;
+    case 'addVideoUrl':
+      // Un copilote envoie un lien vidéo → VideoLibrary le valide et l'ajoute.
+      if (args.url && window.VideoLibrary && window.VideoLibrary.addVideoUrl) {
+        window.VideoLibrary.addVideoUrl(args.name, args.url)
+          .then(() => {
+            toast(`Vidéo ajoutée par ${who}`);
+            if (coopHost) coopHost.broadcastToast('Vidéo ajoutée', false);
+            coopBroadcast(); // au cas où onChange n'ait pas déclenché de rediffusion
+          })
+          .catch((e) => {
+            console.warn('coop addVideoUrl err', e);
+            if (coopHost) coopHost.broadcastToast(`Lien vidéo refusé : ${e.message || 'invalide'}`, true);
+          });
+      }
+      break;
     default:
       console.warn('Coop : commande inconnue', cmd);
   }
@@ -5281,6 +5351,18 @@ async function initCoPilot(code, name) {
   });
   coopRefreshCameraList(false);
 
+  // Ajouter un média (image fichier / vidéo URL) → host (phase 1)
+  const addMediaSection = $('coopAddMediaSection');
+  if (addMediaSection) addMediaSection.hidden = false;
+  $('coopAddImageBtn').addEventListener('click', () => $('coopAddImageInput').click());
+  $('coopAddImageInput').addEventListener('change', async (e) => {
+    const file = (e.target.files || [])[0];
+    e.target.value = '';
+    if (file) await coopSendImage(file);
+  });
+  $('coopAddVideoUrlBtn').addEventListener('click', () => coopSendVideoUrl());
+  $('coopAddVideoUrl').addEventListener('keydown', (e) => { if (e.key === 'Enter') coopSendVideoUrl(); });
+
   // Connexion
   coopGuest = VLCoop.joinAsCoPilot(code, {
     name: name || 'Co-pilot',
@@ -5312,6 +5394,40 @@ async function initCoPilot(code, name) {
     onHostLost: ({ myPeerId, coPilotIds, lastState }) => coopHandleHostLost({ myPeerId, coPilotIds, lastState, code }),
     onHostBack: () => coopHandleHostBack(),
   });
+}
+
+// ---- Copilote : ajout de média (image fichier / vidéo URL) ----
+function coopSetAddMediaStatus(text, isErr) {
+  const el = $('coopAddMediaStatus');
+  if (!el) return;
+  el.textContent = text || '';
+  el.style.color = isErr ? '#ff6b6b' : '';
+}
+
+async function coopSendImage(file) {
+  if (!coopGuest) { coopSetAddMediaStatus('Pas connecté au host.', true); return; }
+  if (!/^image\//.test(file.type || '')) { coopSetAddMediaStatus('Ce fichier n\'est pas une image.', true); return; }
+  if (file.size > 8 * 1024 * 1024) { coopSetAddMediaStatus('Image trop lourde (> 8 Mo). Compresse-la avant.', true); return; }
+  coopSetAddMediaStatus('Envoi de l\'image au studio…');
+  try {
+    const dataUrl = await blobToDataUrl(file);
+    const name = (file.name || 'Image').replace(/\.[^.]+$/, '').slice(0, 30);
+    const ok = coopGuest.sendCommand('addImage', { dataUrl, name });
+    coopSetAddMediaStatus(ok ? `Image « ${name} » envoyée ✓` : 'Hôte non connecté.', !ok);
+  } catch (e) {
+    console.warn('coopSendImage err', e);
+    coopSetAddMediaStatus('Échec de lecture du fichier.', true);
+  }
+}
+
+function coopSendVideoUrl() {
+  if (!coopGuest) { coopSetAddMediaStatus('Pas connecté au host.', true); return; }
+  const input = $('coopAddVideoUrl');
+  const url = (input.value || '').trim();
+  if (!url) { coopSetAddMediaStatus('Saisis un lien vidéo.', true); return; }
+  const ok = coopGuest.sendCommand('addVideoUrl', { url });
+  if (ok) { coopSetAddMediaStatus('Lien vidéo envoyé ✓'); input.value = ''; }
+  else coopSetAddMediaStatus('Hôte non connecté.', true);
 }
 
 // ============ Failover phase 3 ============
