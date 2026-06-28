@@ -3970,10 +3970,20 @@ body.coop-mode .studio-coop-video { display: block; }
 body.coop-mode #programCanvas, body.coop-mode #previewCanvas { visibility: hidden; }
 body.coop-mode .studio-col-left { display: none; }
 body.coop-mode .studio-program-info { opacity: 0.6; }
-/* La colonne gauche est masquée en coop-mode : la grille passe en pleine largeur
-   pour que les moniteurs et le multiview du co-pilot s'affichent en grand,
-   comme sur l'écran de l'hôte (au lieu d'être coincés dans la piste de 360px). */
+/* La colonne gauche est masquée en coop-mode : la grille passe en pleine largeur,
+   mais on borne la colonne centrale (≈ largeur de l'hôte) pour que les moniteurs
+   gardent une taille raisonnable et que le multiview reste visible — au lieu d'être
+   coincés dans la piste de 360px, ou étirés sur tout l'écran (moniteurs géants). */
 body.coop-mode .studio-layout { grid-template-columns: 1fr; }
+body.coop-mode .studio-col-center { max-width: 1120px; width: 100%; margin: 0 auto; }
+/* Le preview ne doit s'afficher qu'en mode Studio. Or .studio-monitor { display:flex }
+   écrase l'attribut [hidden] → sans ça le preview reste empilé sous le programme et
+   double la hauteur. On force donc la disparition quand hidden est posé. */
+body.coop-mode .studio-monitor-preview[hidden] { display: none !important; }
+/* Côté copilote, le multiview est l'outil principal : on rend les moniteurs
+   Programme/Preview plus compacts pour qu'ils ne mangent pas tout l'écran et que
+   le multiview reste visible juste en dessous. */
+body.coop-mode #studioMonitors { max-width: 720px; margin: 0 auto; }
 
 /* Multiview co-pilot : flux composite reçu du host + grille de zones cliquables */
 .studio-coop-multiview { display: none; margin-top: 12px; }
