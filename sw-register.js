@@ -78,5 +78,36 @@
       .catch(function (err) {
         console.warn('[VersetLive] Service Worker non enregistré :', err && err.message);
       });
+    // Badge de version : lit la version réelle du cache actif (versetlive-vNN) et
+    // l'affiche discrètement → on voit d'un coup d'œil si hôte et copilote sont sur
+    // la même version. Pas sur les écrans de sortie (TV/projecteur) pour ne pas
+    // polluer la projection.
+    if (!window.VL_NO_AUTORELOAD) showVersionBadge();
   });
+
+  function showVersionBadge() {
+    if (!('caches' in window)) return;
+    caches.keys().then(function (names) {
+      var versions = names
+        .map(function (n) { var m = /versetlive-v(\d+)/.exec(n); return m ? parseInt(m[1], 10) : null; })
+        .filter(function (v) { return v != null; });
+      if (!versions.length) return;
+      var ver = 'v' + Math.max.apply(null, versions);
+      var el = document.getElementById('vlVersionBadge');
+      if (!el) {
+        el = document.createElement('div');
+        el.id = 'vlVersionBadge';
+        el.title = 'Version VersetLive — hôte et copilote doivent être identiques';
+        el.style.cssText = [
+          'position:fixed', 'bottom:6px', 'right:8px', 'z-index:2147483646',
+          'padding:2px 7px', 'border-radius:6px',
+          'background:rgba(0,0,0,0.55)', 'color:#9ca3af',
+          'font:600 11px/1.3 -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif',
+          'pointer-events:none', 'user-select:none'
+        ].join(';');
+        (document.body || document.documentElement).appendChild(el);
+      }
+      el.textContent = 'VersetLive ' + ver;
+    }).catch(function () {});
+  }
 })();
