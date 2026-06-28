@@ -394,6 +394,21 @@
         <div class="studio-coop-shared-list" id="coopSharedList"></div>
       </div>
 
+      <!-- Sources du studio (visible uniquement en coop-mode) : grille cliquable
+           → envoie n'importe quelle caméra (hôte, ce copilote, ou autre copilote)
+           vers le preview / le projecteur, exactement comme l'hôte. -->
+      <div class="section studio-coop-sources-section" id="coopSourcesSection" hidden>
+        <div class="section-title">
+          <span>🎛 Sources — clic = envoyer au projecteur</span>
+        </div>
+        <div class="studio-hint" style="line-height:1.5; padding:4px 0 8px;">
+          Toutes les caméras du studio (hôte + copilotes). Clic = envoie au preview en mode Studio, ou direct au projecteur en mode Direct. Double-clic = direct au projecteur.
+        </div>
+        <div class="studio-scenes" id="coopSourcesGrid">
+          <div class="studio-empty">En attente des sources du host…</div>
+        </div>
+      </div>
+
       <div class="section">
         <div class="section-title">
           <span>🎬 Scènes</span>
