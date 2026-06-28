@@ -21,6 +21,48 @@
     return s;
   }
 
+  // ====== Config ICE (TURN) ======
+  // Entre réseaux différents, une connexion WebRTC directe échoue souvent
+  // (NAT strict, pare-feu) → il faut un relais TURN. On récupère des identifiants
+  // TURN Cloudflare éphémères via /api/turn. Le résultat est mis en cache pour
+  // toute la session (un seul appel réseau, partagé host + copilotes).
+  //
+  // Renvoie une promesse vers un objet RTCConfiguration { iceServers: [...] },
+  // ou null en cas d'échec (PeerJS retombe alors sur ses serveurs par défaut).
+  let _iceConfigPromise = null;
+  function loadIceConfig() {
+    if (_iceConfigPromise) return _iceConfigPromise;
+    _iceConfigPromise = (async () => {
+      try {
+        const ctrl = new AbortController();
+        const t = setTimeout(() => ctrl.abort(), 4000); // ne bloque pas la création du Peer
+        const r = await fetch('/api/turn', { signal: ctrl.signal });
+        clearTimeout(t);
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const data = await r.json();
+        const ice = data && data.iceServers;
+        const servers = [];
+        if (Array.isArray(ice)) servers.push(...ice);
+        else if (ice) servers.push(ice);
+        if (!servers.length) throw new Error('aucun serveur ICE renvoyé');
+        // STUN Google en secours (en plus du STUN/TURN Cloudflare).
+        servers.push({ urls: 'stun:stun.l.google.com:19302' });
+        return { iceServers: servers };
+      } catch (e) {
+        console.warn('[Coop] TURN indisponible, fallback PeerJS par défaut :', e && e.message || e);
+        return null;
+      }
+    })();
+    return _iceConfigPromise;
+  }
+
+  // Construit les options du Peer en injectant la config ICE si disponible.
+  function peerOptionsWith(config) {
+    const o = { debug: 1 };
+    if (config) o.config = config; // sinon PeerJS garde ses serveurs par défaut
+    return o;
+  }
+
   // ====== Host ======
   // opts = {
   //   code: string,
@@ -35,7 +77,7 @@
     if (!window.Peer) throw new Error('PeerJS non chargé');
     const code = (opts.code || generateCode()).toUpperCase();
     const peerId = COOP_PEER_PREFIX + code;
-    const peer = new Peer(peerId, { debug: 1 });
+    let peer = null; // créé après chargement de la config ICE (TURN)
 
     // copilotId → { conn, programCall, previewCall, meta }
     // Map = insertion order préservé → utilisé pour l'ordre d'élection (phase 3).
@@ -95,6 +137,11 @@
         }
       } catch (e) { console.warn('multiview call err', e); }
     };
+
+    // Le Peer n'est créé qu'après chargement de la config ICE (relais TURN),
+    // pour que la négociation WebRTC dispose d'un chemin réseau fiable.
+    loadIceConfig().then((iceConfig) => {
+    peer = new Peer(peerId, peerOptionsWith(iceConfig));
 
     peer.on('open', () => {
       opts.onStatus && opts.onStatus(`Session ${code} prête`, 'ok');
@@ -185,6 +232,7 @@
       opts.onStatus && opts.onStatus('Déconnecté — reconnexion…', 'err');
       setTimeout(() => peer && !peer.destroyed && peer.reconnect(), 2000);
     });
+    }); // loadIceConfig().then — fin de l'init du Peer host
 
     return {
       code,
@@ -232,7 +280,7 @@
     code = String(code || '').toUpperCase().trim();
     if (!code) throw new Error('Code manquant');
 
-    const peer = new Peer({ debug: 1 });
+    let peer = null; // créé après chargement de la config ICE (TURN)
     const hostPeerId = COOP_PEER_PREFIX + code;
     let hostConn = null;
     let programStream = null;
@@ -272,7 +320,7 @@
 
     const scheduleReconnect = () => {
       if (reconnectTimer) return;
-      if (peer.destroyed) return;
+      if (!peer || peer.destroyed) return;
       reconnectTimer = setTimeout(() => {
         reconnectTimer = null;
         if (hostConn && hostConn.open) return;
@@ -281,7 +329,7 @@
     };
 
     const attemptConnect = () => {
-      if (peer.destroyed) return;
+      if (!peer || peer.destroyed) return;
       if (hostConn && hostConn.open) return;
       let conn;
       try {
@@ -344,15 +392,30 @@
       });
 
       conn.on('error', (err) => {
+        const type = (err && (err.type || err.message)) || '';
         if (hasBeenConnected) {
           if (hostConn === conn) hostConn = null;
           markHostLost();
           scheduleReconnect();
+        } else if (type === 'negotiation-failed') {
+          // La signalisation a marché (host joignable) mais aucun chemin réseau
+          // ICE n'a pu être établi — typiquement entre deux réseaux sans relais
+          // TURN fiable. On retente : un autre chemin (TURN) peut réussir ensuite.
+          if (hostConn === conn) hostConn = null;
+          opts.onStatus && opts.onStatus('Connexion réseau difficile — nouvelle tentative…', 'err');
+          scheduleReconnect();
         } else {
-          opts.onStatus && opts.onStatus('Erreur connexion : ' + (err.type || err.message || ''), 'err');
+          // Jamais connecté + autre erreur → on informe et on retente quand même.
+          opts.onStatus && opts.onStatus('Erreur connexion : ' + type, 'err');
+          scheduleReconnect();
         }
       });
     };
+
+    // Le Peer n'est créé qu'après chargement de la config ICE (relais TURN),
+    // pour disposer d'un chemin réseau fiable même entre réseaux différents.
+    loadIceConfig().then((iceConfig) => {
+    peer = new Peer(peerOptionsWith(iceConfig));
 
     peer.on('open', (id) => {
       myPeerId = id;
@@ -418,6 +481,7 @@
       opts.onStatus && opts.onStatus('Déconnecté — reconnexion…', 'err');
       setTimeout(() => peer && !peer.destroyed && peer.reconnect(), 2000);
     });
+    }); // loadIceConfig().then — fin de l'init du Peer copilote
 
     return {
       code,
@@ -433,6 +497,7 @@
       // Phase 2 : partager une caméra locale au host. Retourne l'objet call
       // (utilisable pour .close() côté co-pilot quand on stoppe le partage).
       shareCamera(stream, meta) {
+        if (!peer) return null; // Peer pas encore initialisé (config ICE en cours)
         const hostPeerId = COOP_PEER_PREFIX + code;
         const call = peer.call(hostPeerId, stream, {
           metadata: {
