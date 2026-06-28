@@ -878,6 +878,9 @@
       const name = suggestedName || `Enregistrement ${new Date().toLocaleString('fr-FR')}`;
       await addVideo(name, blob, 'recording');
     },
+    // Ajout d'une vidéo par lien (YouTube, Vimeo, .mp4, HLS…). Utilisé aussi par
+    // la coop : un copilote envoie une URL, le host l'ajoute ici. Throw si invalide.
+    addVideoUrl,
     draw,
     onSceneChange,
     isVideoScene,

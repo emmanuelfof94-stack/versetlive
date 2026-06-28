@@ -407,6 +407,27 @@
         <div class="studio-coop-shared-list" id="coopSharedList"></div>
       </div>
 
+      <!-- Ajouter un média (visible uniquement en coop-mode) : le copilote envoie
+           une image (fichier) ou une vidéo (lien URL) au host, qui l'ajoute à sa
+           bibliothèque et la rend disponible comme scène pour tous les postes. -->
+      <div class="section studio-coop-addmedia-section" id="coopAddMediaSection" hidden>
+        <div class="section-title">
+          <span>➕ Ajouter un média au studio</span>
+        </div>
+        <div class="studio-hint" style="line-height:1.5; padding:4px 0 8px;">
+          L'image ou la vidéo est envoyée au host et devient une scène disponible pour tous. Images : fichier ≤ 8 Mo. Vidéos : lien YouTube, Vimeo ou .mp4.
+        </div>
+        <div class="studio-coop-share-row">
+          <button class="btn btn-sm btn-primary" id="coopAddImageBtn">🖼 Ajouter une image…</button>
+          <input type="file" id="coopAddImageInput" accept="image/*" hidden>
+        </div>
+        <div class="studio-coop-share-row" style="margin-top:8px;">
+          <input type="text" id="coopAddVideoUrl" placeholder="Lien vidéo (YouTube, Vimeo, .mp4…)" style="flex:1; min-width:0;">
+          <button class="btn btn-sm btn-primary" id="coopAddVideoUrlBtn">Ajouter</button>
+        </div>
+        <div class="studio-coop-addmedia-status" id="coopAddMediaStatus" style="margin-top:6px; font-size:12px; opacity:.85;"></div>
+      </div>
+
       <!-- Sources du studio (visible uniquement en coop-mode) : grille cliquable
            → envoie n'importe quelle caméra (hôte, ce copilote, ou autre copilote)
            vers le preview / le projecteur, exactement comme l'hôte. -->
