@@ -1365,7 +1365,14 @@ function renderTick() {
   const elapsed = ts - lastRenderTime;
   if (elapsed < RENDER_INTERVAL_MS - 2) return false;
   lastRenderTime = ts - (elapsed % RENDER_INTERVAL_MS);
-  drawProgramFrame();
+  // Isolé : un dessin qui plante ne doit jamais interrompre la cadence ni, via
+  // renderFrame, tuer la boucle rAF. On loggue une fois pour diagnostiquer.
+  try {
+    drawProgramFrame();
+  } catch (e) {
+    if (!renderTick._errLogged) { console.error('[render] drawProgramFrame a levé une exception', e); renderTick._errLogged = true; }
+    return false;
+  }
   // Mesure perf : compte les frames dessinées et celles en retard (boucle qui décroche).
   perfFramesDrawn++;
   if (perfLastDrawTs && (ts - perfLastDrawTs) > RENDER_INTERVAL_MS * 1.8) perfLateFrames++;
@@ -1437,8 +1444,12 @@ function updatePerfHud(fps, late) {
 }
 
 // Boucle au premier plan : fluide, calée sur le compositeur.
+// IMPORTANT : le rAF suivant DOIT toujours être replanifié, même si renderTick()
+// lève une exception. Sinon une seule frame fautive (ex. dessin d'un verset au
+// contenu inattendu) tuait la boucle définitivement → canvas figé partout sur la
+// dernière image, y compris le direct/projecteur/RTMP, jusqu'au rechargement.
 function renderFrame() {
-  renderTick();
+  try { renderTick(); } catch (e) { console.error('[render] frame ignorée', e); }
   requestAnimationFrame(renderFrame);
 }
 
