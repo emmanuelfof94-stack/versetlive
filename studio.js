@@ -3283,8 +3283,23 @@ function initSignaling() {
   setRemoteStatus('Connexion au signaling…');
 
   const peerId = PEER_PREFIX + currentRoomCode;
-  signalingPeer = new Peer(peerId, { debug: 1 });
+  // Config ICE (TURN) : indispensable pour recevoir une caméra-téléphone qui est
+  // sur un autre réseau (4G, autre wifi). Sans relais, la signalisation aboutit
+  // (la tuile s'ajoute) mais aucune frame vidéo ne traverse le NAT → tuile noire.
+  // On réutilise le loader TURN de la coop (window.VLCoop). Repli sans config si
+  // VLCoop absent ou TURN indisponible (PeerJS garde alors ses serveurs par défaut).
+  const iceLoader = (window.VLCoop && window.VLCoop.loadIceConfig)
+    ? window.VLCoop.loadIceConfig()
+    : Promise.resolve(null);
+  iceLoader.then((iceConfig) => {
+    const peerOpts = { debug: 1 };
+    if (iceConfig) peerOpts.config = iceConfig;
+    signalingPeer = new Peer(peerId, peerOpts);
+    wireSignalingPeer(peerId);
+  });
+}
 
+function wireSignalingPeer(peerId) {
   signalingPeer.on('open', (id) => {
     setRemoteStatus(`Prêt — salle ${currentRoomCode}`, 'ok');
   });

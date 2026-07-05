@@ -325,8 +325,42 @@ async function startSession() {
   await connectToStudio();
 }
 
+// Config ICE (TURN) : sans relais TURN, un téléphone sur un autre réseau que le
+// Studio (4G, autre wifi, NAT strict) se connecte au signaling mais son flux
+// vidéo ne traverse pas le NAT → le Studio affiche une tuile NOIRE. On récupère
+// des identifiants TURN Cloudflare éphémères via /api/turn (même relais que la
+// coop). Repli sur les serveurs PeerJS par défaut si /api/turn est indisponible.
+let _iceConfigPromise = null;
+function loadIceConfig() {
+  if (_iceConfigPromise) return _iceConfigPromise;
+  _iceConfigPromise = (async () => {
+    try {
+      const ctrl = new AbortController();
+      const t = setTimeout(() => ctrl.abort(), 4000);
+      const r = await fetch('/api/turn', { signal: ctrl.signal });
+      clearTimeout(t);
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const data = await r.json();
+      const ice = data && data.iceServers;
+      const servers = [];
+      if (Array.isArray(ice)) servers.push(...ice);
+      else if (ice) servers.push(ice);
+      if (!servers.length) throw new Error('aucun serveur ICE renvoyé');
+      servers.push({ urls: 'stun:stun.l.google.com:19302' });
+      return { iceServers: servers };
+    } catch (e) {
+      console.warn('[Cam] TURN indisponible, fallback PeerJS par défaut :', e && e.message || e);
+      return null;
+    }
+  })();
+  return _iceConfigPromise;
+}
+
 async function connectToStudio() {
-  peer = new Peer({ debug: 1 });
+  const iceConfig = await loadIceConfig();
+  const peerOpts = { debug: 1 };
+  if (iceConfig) peerOpts.config = iceConfig;
+  peer = new Peer(peerOpts);
 
   peer.on('open', () => {
     const targetId = PEER_PREFIX + roomCode;

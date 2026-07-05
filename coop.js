@@ -521,5 +521,9 @@
     };
   }
 
-  window.VLCoop = { startHost, joinAsCoPilot, generateCode };
+  // loadIceConfig / peerOptionsWith sont aussi exposés : le Studio (studio.js)
+  // réutilise le MÊME relais TURN pour la réception des caméras-téléphone, sinon
+  // une caméra sur un autre réseau (4G, autre wifi) se connecte mais reste noire
+  // (signalisation OK, média bloqué par le NAT faute de relais).
+  window.VLCoop = { startHost, joinAsCoPilot, generateCode, loadIceConfig, peerOptionsWith };
 })();
