@@ -1576,8 +1576,15 @@ function setSafeZones(on) {
 // Rend chaque scène sur un mini-canvas (480×270) en réutilisant drawScene via
 // un scale 2D. Tourne à 5 fps pour rester léger (12 minis × 5 fps = 60 redraw/s).
 const MULTIVIEW_KEY = 'versetlive:multiview';
-const MULTIVIEW_MAX = 12;
+// Plafond de sécurité (la grille CSS auto-fill s'adapte au nombre réel de tuiles).
+// On garde un cap élevé — assez pour toutes les scènes d'un culte — mais le CPU
+// est borné dynamiquement par le budget de redraw ci-dessous, pas par ce nombre.
+const MULTIVIEW_MAX = 32;
 const MULTIVIEW_FPS = 5;
+// Budget de redessin local : on vise ~60 redraws/s au total (tuiles × fps).
+// Au-delà de 12 tuiles, le fps baisse automatiquement pour ne pas saturer le CPU,
+// plutôt que de masquer les scènes en trop.
+const MULTIVIEW_REDRAW_BUDGET = 60;
 let multiviewOn = localStorage.getItem(MULTIVIEW_KEY) === '1';
 let multiviewTimer = null;
 let multiviewLastSig = '';
@@ -1595,12 +1602,18 @@ function setMultiview(on) {
 // Allège le multiview quand plusieurs encodeurs tournent en parallèle (record + stream +
 // replay buffer = 3 pass d'encodage du canvas). Garder 5 fps pendant ces moments
 // saturait le CPU sur Mac modeste, d'où le freeze observé pendant le filmage.
-function getMultiviewIntervalMs() {
+function getMultiviewIntervalMs(tileCount) {
   const load = getEncoderLoad();
-  if (load >= 3) return 1000; // 1 fps
-  if (load >= 2) return 500;  // 2 fps
-  if (load >= 1) return 333;  // 3 fps
-  return Math.round(1000 / MULTIVIEW_FPS); // 5 fps par défaut
+  let base;
+  if (load >= 3) base = 1000; // 1 fps
+  else if (load >= 2) base = 500;  // 2 fps
+  else if (load >= 1) base = 333;  // 3 fps
+  else base = Math.round(1000 / MULTIVIEW_FPS); // 5 fps par défaut
+  // Borne le CPU quand il y a beaucoup de tuiles : plus de tuiles → intervalle plus
+  // long, de sorte que tuiles × fps ≤ budget. Ne remonte jamais au-dessus du base.
+  const n = Math.max(1, tileCount || 1);
+  const budgetMs = Math.round((n / MULTIVIEW_REDRAW_BUDGET) * 1000);
+  return Math.max(base, budgetMs);
 }
 
 function startMultiview() {
@@ -1608,8 +1621,10 @@ function startMultiview() {
   if (multiviewTimer) { clearTimeout(multiviewTimer); multiviewTimer = null; }
   const tick = () => {
     if (!multiviewOn) return;
+    const grid = $('multiviewGrid');
+    const tiles = grid ? grid.children.length : 0;
     try { renderMultiviewFrame(); } catch (e) {}
-    multiviewTimer = setTimeout(tick, getMultiviewIntervalMs());
+    multiviewTimer = setTimeout(tick, getMultiviewIntervalMs(tiles));
   };
   tick();
 }
