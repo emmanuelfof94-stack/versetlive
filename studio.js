@@ -579,17 +579,6 @@ function saveActiveSceneAsUser() {
   toast(`Scène enregistrée : ${name}`);
 }
 
-function renameUserScene(id) {
-  const us = getUserSceneById(id);
-  if (!us) return;
-  const name = (prompt('Nouveau nom :', us.name) || '').trim();
-  if (!name || name === us.name) return;
-  us.name = name;
-  saveUserScenes();
-  renderScenes();
-  if (typeof coopBroadcast === 'function') coopBroadcast();
-}
-
 function removeUserScene(id) {
   const idx = userScenes.findIndex(s => s.id === id);
   if (idx < 0) return;
@@ -616,6 +605,303 @@ function moveUserScene(id, dir) {
   saveUserScenes();
   renderScenes();
   if (typeof coopBroadcast === 'function') coopBroadcast();
+}
+
+// ============ Éditeur de couches (Phase 3 : composition style OBS) ============
+// Presets de position (rect en fraction 0..1). Appliqués aux couches caméra et
+// image ; les autres (verset/logo/carte) ont une position sémantique fixe.
+const LAYER_RECT_PRESETS = [
+  { key: 'full', label: 'Plein', rect: null },
+  { key: 'left', label: 'Gauche', rect: { x: 0, y: 0, w: 0.5, h: 1 } },
+  { key: 'right', label: 'Droite', rect: { x: 0.5, y: 0, w: 0.5, h: 1 } },
+  { key: 'top', label: 'Haut', rect: { x: 0, y: 0, w: 1, h: 0.5 } },
+  { key: 'bottom', label: 'Bas', rect: { x: 0, y: 0.5, w: 1, h: 0.5 } },
+  { key: 'cornerTR', label: 'Coin ↗', rect: { x: 0.66, y: 0.05, w: 0.30, h: 0.30 } },
+  { key: 'cornerBR', label: 'Coin ↘', rect: { x: 0.66, y: 0.65, w: 0.30, h: 0.30 } },
+  { key: 'center', label: 'Centré', rect: { x: 0.1, y: 0.1, w: 0.8, h: 0.8 } },
+];
+
+// { id, scene } — la scène pointée est l'objet vivant de userScenes : les
+// mutations se répercutent en direct dans l'aperçu (renderSceneEditorPreview,
+// accroché à renderTick) et sont persistées à chaque changement.
+let sceneEditor = null;
+
+function layerDisplayLabel(layer) {
+  switch (layer.type) {
+    case 'camera': {
+      const src = resolveLayerSource(layer);
+      return '🎥 ' + (src ? src.label : (layer.sourceLabel ? layer.sourceLabel + ' (déconnectée)' : 'Caméra (déconnectée)'));
+    }
+    case 'pipCorner': return '🎥 Coin caméra';
+    case 'image': {
+      const img = imageSources.find(i => i.id === layer.imageId);
+      return '🖼 ' + (img ? img.name : 'Image (absente)');
+    }
+    case 'card': {
+      const card = getCardById(layer.cardId);
+      return '🎴 ' + (card ? card.name : 'Carte (absente)');
+    }
+    case 'verseBar': return '📖 Barre verset';
+    case 'verseFull': return '📖 Verset plein écran';
+    case 'logo': return '✨ Logo';
+    default: return layer.type;
+  }
+}
+
+function createEmptyUserScene() {
+  const name = (prompt('Nom de la nouvelle scène :', `Scène ${userScenes.length + 1}`) || '').trim();
+  if (!name) return;
+  const us = { kind: 'user', id: 'u' + (nextUserSceneId++), name, layers: [] };
+  userScenes.push(us);
+  saveUserScenes();
+  renderScenes();
+  if (typeof coopBroadcast === 'function') coopBroadcast();
+  openSceneEditor(us.id);
+}
+
+function openSceneEditor(id) {
+  const us = getUserSceneById(id);
+  if (!us) return;
+  sceneEditor = { id, scene: us };
+  renderSceneEditor();
+  const m = $('sceneEditorModal');
+  if (m) m.classList.add('show');
+}
+
+function closeSceneEditor() {
+  const m = $('sceneEditorModal');
+  if (m) m.classList.remove('show');
+  sceneEditor = null;
+}
+
+// Appelée après chaque mutation de couche : persiste, rafraîchit l'éditeur, la
+// liste des scènes et diffuse aux copilotes. L'aperçu se met à jour tout seul.
+function sceneEditorChanged() {
+  saveUserScenes();
+  renderEditorLayers();
+  renderScenes();
+  if (typeof coopBroadcast === 'function') coopBroadcast();
+}
+
+function renderSceneEditor() {
+  if (!sceneEditor) return;
+  const nameInput = $('sceneEditorName');
+  if (nameInput) nameInput.value = sceneEditor.scene.name || '';
+  renderEditorLayers();
+}
+
+// Fabrique une nouvelle couche du type demandé, avec une référence par défaut.
+function makeLayer(type) {
+  if (type === 'camera') {
+    const src = sources[0];
+    if (!src) { toast('Ajoute d\'abord une caméra dans la colonne de gauche.', true); return null; }
+    return { type: 'camera', sourceId: src.id, deviceId: src.deviceId || '', sourceLabel: src.label || '' };
+  }
+  if (type === 'image') {
+    const img = imageSources[0];
+    if (!img) { toast('Importe d\'abord une image (section 🖼).', true); return null; }
+    return { type: 'image', imageId: img.id };
+  }
+  if (type === 'card') {
+    if (!cards.length) { toast('Crée d\'abord une carte (section 🎴).', true); return null; }
+    return { type: 'card', cardId: cards[0].id };
+  }
+  if (type === 'verseBar') return { type: 'verseBar' };
+  if (type === 'verseFull') return { type: 'verseFull' };
+  if (type === 'logo') return { type: 'logo' };
+  return null;
+}
+
+function editorAddLayer(type) {
+  if (!sceneEditor) return;
+  const layer = makeLayer(type);
+  if (!layer) return;
+  sceneEditor.scene.layers.push(layer);
+  sceneEditorChanged();
+}
+
+function editorRemoveLayer(arrIdx) {
+  if (!sceneEditor) return;
+  sceneEditor.scene.layers.splice(arrIdx, 1);
+  sceneEditorChanged();
+}
+
+// dir = +1 vers l'avant (dessiné plus tard), -1 vers l'arrière.
+function editorMoveLayer(arrIdx, dir) {
+  if (!sceneEditor) return;
+  const L = sceneEditor.scene.layers;
+  const j = arrIdx + dir;
+  if (j < 0 || j >= L.length) return;
+  const tmp = L[arrIdx]; L[arrIdx] = L[j]; L[j] = tmp;
+  sceneEditorChanged();
+}
+
+function editorToggleHidden(arrIdx) {
+  if (!sceneEditor) return;
+  const l = sceneEditor.scene.layers[arrIdx];
+  if (!l) return;
+  l.hidden = !l.hidden;
+  sceneEditorChanged();
+}
+
+function editorSetLayerRef(arrIdx, value) {
+  if (!sceneEditor) return;
+  const l = sceneEditor.scene.layers[arrIdx];
+  if (!l) return;
+  if (l.type === 'camera') {
+    const src = sources.find(s => s.id === value);
+    l.sourceId = value;
+    if (src) { l.deviceId = src.deviceId || ''; l.sourceLabel = src.label || ''; }
+  } else if (l.type === 'image') {
+    l.imageId = value;
+  } else if (l.type === 'card') {
+    l.cardId = value;
+  }
+  sceneEditorChanged();
+}
+
+function editorSetLayerRect(arrIdx, presetKey) {
+  if (!sceneEditor) return;
+  const l = sceneEditor.scene.layers[arrIdx];
+  if (!l) return;
+  const preset = LAYER_RECT_PRESETS.find(p => p.key === presetKey);
+  if (!preset) return;
+  if (preset.rect) l.rect = { ...preset.rect };
+  else delete l.rect;
+  sceneEditorChanged();
+}
+
+// Clé du preset actif d'une couche (pour surligner le bouton).
+function activeRectPreset(layer) {
+  if (!layer.rect) return 'full';
+  const r = layer.rect;
+  const p = LAYER_RECT_PRESETS.find(p => p.rect &&
+    Math.abs(p.rect.x - r.x) < 0.001 && Math.abs(p.rect.y - r.y) < 0.001 &&
+    Math.abs(p.rect.w - r.w) < 0.001 && Math.abs(p.rect.h - r.h) < 0.001);
+  return p ? p.key : null;
+}
+
+function renderEditorLayers() {
+  const box = $('sceneEditorLayers');
+  if (!box || !sceneEditor) return;
+  const L = sceneEditor.scene.layers;
+  box.innerHTML = '';
+  if (!L.length) {
+    box.innerHTML = '<div class="studio-empty">Aucune couche. Ajoute une caméra, une image ou un verset ci-dessus.</div>';
+    return;
+  }
+  // Affichage haut → bas = avant → arrière (comme OBS). On itère à l'envers.
+  for (let i = L.length - 1; i >= 0; i--) {
+    const layer = L[i];
+    const row = document.createElement('div');
+    row.className = 'scene-editor-layer' + (layer.hidden ? ' hidden' : '');
+
+    const head = document.createElement('div');
+    head.className = 'scene-editor-layer-head';
+    const name = document.createElement('span');
+    name.className = 'scene-editor-layer-name';
+    name.textContent = layerDisplayLabel(layer);
+    head.appendChild(name);
+
+    const actions = document.createElement('div');
+    actions.className = 'scene-editor-layer-actions';
+    const mkBtn = (txt, title, disabled, fn, cls) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'studio-scene-ctrl' + (cls ? ' ' + cls : '');
+      b.textContent = txt; b.title = title;
+      if (disabled) b.disabled = true;
+      b.addEventListener('click', () => fn());
+      return b;
+    };
+    actions.appendChild(mkBtn(layer.hidden ? '🚫' : '👁', layer.hidden ? 'Afficher' : 'Masquer', false, () => editorToggleHidden(i)));
+    actions.appendChild(mkBtn('↑', 'Vers l\'avant', i === L.length - 1, () => editorMoveLayer(i, 1)));
+    actions.appendChild(mkBtn('↓', 'Vers l\'arrière', i === 0, () => editorMoveLayer(i, -1)));
+    actions.appendChild(mkBtn('✕', 'Supprimer la couche', false, () => editorRemoveLayer(i), 'danger'));
+    head.appendChild(actions);
+    row.appendChild(head);
+
+    // Sélecteur de source (caméra / image / carte)
+    if (layer.type === 'camera' || layer.type === 'image' || layer.type === 'card') {
+      const sel = document.createElement('select');
+      sel.className = 'scene-editor-layer-ref';
+      const opts = layer.type === 'camera'
+        ? sources.map(s => ({ v: s.id, t: s.label }))
+        : layer.type === 'image'
+          ? imageSources.map(im => ({ v: im.id, t: im.name }))
+          : cards.map(c => ({ v: c.id, t: c.name }));
+      const cur = layer.type === 'camera' ? layer.sourceId : layer.type === 'image' ? layer.imageId : layer.cardId;
+      opts.forEach(o => {
+        const opt = document.createElement('option');
+        opt.value = o.v; opt.textContent = o.t;
+        if (o.v === cur) opt.selected = true;
+        sel.appendChild(opt);
+      });
+      sel.addEventListener('change', () => editorSetLayerRef(i, sel.value));
+      row.appendChild(sel);
+    }
+
+    // Presets de position (caméra + image uniquement)
+    if (layer.type === 'camera' || layer.type === 'image') {
+      const presets = document.createElement('div');
+      presets.className = 'scene-editor-presets';
+      const active = activeRectPreset(layer);
+      LAYER_RECT_PRESETS.forEach(p => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'scene-editor-preset' + (p.key === active ? ' active' : '');
+        b.textContent = p.label; b.title = 'Position : ' + p.label;
+        b.addEventListener('click', () => editorSetLayerRect(i, p.key));
+        presets.appendChild(b);
+      });
+      row.appendChild(presets);
+    }
+
+    box.appendChild(row);
+  }
+}
+
+// Aperçu live de la scène en cours d'édition. Rendu dans le canvas du modal en
+// réutilisant drawScene : on bascule activeCtx sur le contexte du modal le temps
+// du dessin (synchrone, pas d'entrelacement avec la boucle principale).
+function renderSceneEditorPreview() {
+  if (!sceneEditor) return;
+  const canvas = $('sceneEditorCanvas');
+  if (!canvas) return;
+  if (canvas.width !== OUTPUT_W) canvas.width = OUTPUT_W;
+  if (canvas.height !== OUTPUT_H) canvas.height = OUTPUT_H;
+  const ectx = canvas.getContext('2d', { alpha: false });
+  const prev = activeCtx;
+  activeCtx = ectx;
+  try {
+    ectx.fillStyle = '#000';
+    ectx.fillRect(0, 0, OUTPUT_W, OUTPUT_H);
+    drawScene(sceneEditor.scene);
+  } catch (e) {
+    /* isolé : un dessin fautif ne casse pas la boucle */
+  } finally {
+    activeCtx = prev;
+  }
+}
+
+function bindSceneEditorUi() {
+  const nb = $('newSceneBtn');
+  if (nb) nb.addEventListener('click', createEmptyUserScene);
+  const close = $('sceneEditorClose');
+  if (close) close.addEventListener('click', closeSceneEditor);
+  const done = $('sceneEditorDone');
+  if (done) done.addEventListener('click', closeSceneEditor);
+  const name = $('sceneEditorName');
+  if (name) name.addEventListener('input', () => {
+    if (!sceneEditor) return;
+    sceneEditor.scene.name = name.value;
+    saveUserScenes();
+    renderScenes();
+    if (typeof coopBroadcast === 'function') coopBroadcast();
+  });
+  document.querySelectorAll('#sceneEditorModal [data-add]').forEach(b => {
+    b.addEventListener('click', () => editorAddLayer(b.dataset.add));
+  });
 }
 
 // Détection manuelle du double-clic sur une scène : le simple clic reconstruit
@@ -686,7 +972,7 @@ function renderScenes() {
       };
       ctrls.appendChild(mkBtn('↑', 'Monter', idx <= 0, () => moveUserScene(id, -1)));
       ctrls.appendChild(mkBtn('↓', 'Descendre', idx >= userScenes.length - 1, () => moveUserScene(id, 1)));
-      ctrls.appendChild(mkBtn('✎', 'Renommer', false, () => renameUserScene(id)));
+      ctrls.appendChild(mkBtn('✎', 'Éditer (couches, nom)', false, () => openSceneEditor(id)));
       ctrls.appendChild(mkBtn('✕', 'Supprimer', false, () => removeUserScene(id)));
       item.appendChild(ctrls);
     }
@@ -1345,16 +1631,22 @@ function drawLayer(layer) {
   } else if (t === 'image') {
     const img = imageSources.find(i => i.id === layer.imageId);
     if (!img || !img.imgEl) return;
-    // Taille + position réglables PAR IMAGE (centrée, marge autour si < 100 %).
-    // Repli sur la taille globale (fullImageScale) pour les images sans réglage
-    // propre, afin de préserver le comportement existant.
-    const sc = img.scale != null
-      ? Math.max(0.1, Math.min(1, img.scale))
-      : Math.max(0.1, Math.min(1, fullImageScale));
-    const ox = img.offsetX != null ? Math.max(-0.5, Math.min(0.5, img.offsetX)) : 0;
-    const oy = img.offsetY != null ? Math.max(-0.5, Math.min(0.5, img.offsetY)) : 0;
-    const iw = OUTPUT_W * sc, ih = OUTPUT_H * sc;
-    drawImageContain(img.imgEl, (OUTPUT_W - iw) / 2 + ox * OUTPUT_W, (OUTPUT_H - ih) / 2 + oy * OUTPUT_H, iw, ih);
+    // Positionnée par rect (éditeur de couches) : image contenue dans la zone.
+    if (layer.rect) {
+      const { x, y, w, h } = layerRect(layer);
+      drawImageContain(img.imgEl, x, y, w, h);
+    } else {
+      // Sans rect (gabarit image) : taille + position réglables PAR IMAGE (centrée,
+      // marge autour si < 100 %). Repli sur la taille globale (fullImageScale) pour
+      // les images sans réglage propre, afin de préserver le comportement existant.
+      const sc = img.scale != null
+        ? Math.max(0.1, Math.min(1, img.scale))
+        : Math.max(0.1, Math.min(1, fullImageScale));
+      const ox = img.offsetX != null ? Math.max(-0.5, Math.min(0.5, img.offsetX)) : 0;
+      const oy = img.offsetY != null ? Math.max(-0.5, Math.min(0.5, img.offsetY)) : 0;
+      const iw = OUTPUT_W * sc, ih = OUTPUT_H * sc;
+      drawImageContain(img.imgEl, (OUTPUT_W - iw) / 2 + ox * OUTPUT_W, (OUTPUT_H - ih) / 2 + oy * OUTPUT_H, iw, ih);
+    }
   } else if (t === 'logo') {
     drawLogoOverlay();
   } else if (t === 'verseBar') {
@@ -1620,6 +1912,9 @@ function renderTick() {
   perfFramesDrawn++;
   if (perfLastDrawTs && (ts - perfLastDrawTs) > RENDER_INTERVAL_MS * 1.8) perfLateFrames++;
   perfLastDrawTs = ts;
+  // Aperçu live de l'éditeur de scène (Phase 3), si ouvert. Isolé : swap
+  // activeCtx en interne et le restaure, indépendant du dessin programme.
+  if (sceneEditor) { try { renderSceneEditorPreview(); } catch (e) {} }
   return true;
 }
 
@@ -6237,6 +6532,7 @@ async function init() {
   bindShortcuts();
   bindImagesUi();
   bindCardsUi();
+  bindSceneEditorUi();
   bindStudioModeUi();
   bindTransitionUi();
   bindCoopUi();
