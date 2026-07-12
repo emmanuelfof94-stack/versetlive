@@ -1482,11 +1482,11 @@ function drawTitle(state, x, y, w, h, baseFont, fontFamily, color, align) {
   }
 }
 
-// Renvoie le texte à la ligne pour tenir dans maxWidth. `weight` (ex. 'bold')
-// est inclus dans la mesure pour que le gras ne déborde pas. Les retours à la
-// ligne explicites saisis par l'utilisateur (\n) sont respectés.
-function wrapText(text, maxWidth, fontSize, fontFamily, weight) {
-  activeCtx.font = `${weight ? weight + ' ' : ''}${fontSize}px ${fontFamily}`;
+// Renvoie le texte à la ligne pour tenir dans maxWidth, en mesurant sur le
+// contexte fourni (mesure = police définie sur ce contexte). Les retours à la
+// ligne explicites (\n) sont respectés. Utilisé pour tout rendu texte canvas.
+function wrapTextOn(ctx2, text, maxWidth, fontStr) {
+  ctx2.font = fontStr;
   const lines = [];
   // Chaque paragraphe (séparé par un retour à la ligne manuel) est enveloppé
   // indépendamment, puis les lignes sont concaténées.
@@ -1496,7 +1496,7 @@ function wrapText(text, maxWidth, fontSize, fontFamily, weight) {
     let line = '';
     for (const word of words) {
       const test = line ? line + ' ' + word : word;
-      if (activeCtx.measureText(test).width > maxWidth && line) {
+      if (ctx2.measureText(test).width > maxWidth && line) {
         lines.push(line);
         line = word;
       } else {
@@ -1506,6 +1506,12 @@ function wrapText(text, maxWidth, fontSize, fontFamily, weight) {
     if (line) lines.push(line);
   }
   return lines;
+}
+
+// Enveloppe sur le contexte actif. `weight` (ex. 'bold') inclus dans la mesure
+// pour que le gras ne déborde pas.
+function wrapText(text, maxWidth, fontSize, fontFamily, weight) {
+  return wrapTextOn(activeCtx, text, maxWidth, `${weight ? weight + ' ' : ''}${fontSize}px ${fontFamily}`);
 }
 
 function applyShadow(kind) {
@@ -5506,22 +5512,36 @@ function drawCardContent(ctx2, card, w, h) {
     ctx2.fillStyle = '#222';
     ctx2.fillRect(0, 0, w, h);
   }
-  // 2) Texte
+  // 2) Texte — multi-lignes + auto-réduction pour tenir dans la carte.
   const scale = h / 1080; // tailles définies en référence 1080p
-  const tSize = Math.max(8, card.titleSize * scale);
-  const sSize = Math.max(6, card.subtitleSize * scale);
-  const lineGap = tSize * 0.25;
   const title = (card.title || '').trim();
   const subtitle = (card.subtitle || '').trim();
   if (!title && !subtitle) return;
 
+  const padX = w * 0.05, padY = h * 0.05;
+  const maxW = w - padX * 2;
+  const maxH = h - padY * 2;
+  const font = (px, weight) => `${weight} ${px}px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
+
+  let tSize = Math.max(8, card.titleSize * scale);
+  let sSize = Math.max(6, card.subtitleSize * scale);
+  let tLines = [], sLines = [], tLH = 0, sLH = 0, gap = 0, totalH = 0, guard = 0;
+  do {
+    tLines = title ? wrapTextOn(ctx2, title, maxW, font(tSize, '700')) : [];
+    sLines = subtitle ? wrapTextOn(ctx2, subtitle, maxW, font(sSize, '400')) : [];
+    tLH = tSize * 1.2;
+    sLH = sSize * 1.3;
+    gap = (title && subtitle) ? tSize * 0.25 : 0;
+    totalH = tLines.length * tLH + sLines.length * sLH + gap;
+    if (totalH <= maxH || tSize <= 10) break;
+    tSize = Math.max(10, Math.floor(tSize * 0.94));
+    sSize = Math.max(8, Math.floor(sSize * 0.94));
+  } while (guard++ < 80);
+
   ctx2.textBaseline = 'middle';
   ctx2.textAlign = card.hAlign === 'left' ? 'left' : card.hAlign === 'right' ? 'right' : 'center';
-  const padX = w * 0.05;
   const x = card.hAlign === 'left' ? padX : card.hAlign === 'right' ? w - padX : w / 2;
 
-  const totalH = (title ? tSize : 0) + (subtitle ? sSize : 0) + (title && subtitle ? lineGap : 0);
-  const padY = h * 0.05;
   let topY;
   if (card.vAlign === 'top') topY = padY;
   else if (card.vAlign === 'bottom') topY = h - padY - totalH;
@@ -5529,7 +5549,6 @@ function drawCardContent(ctx2, card, w, h) {
 
   if (card.bgBox) {
     ctx2.fillStyle = 'rgba(0,0,0,0.55)';
-    const boxPadX = w * 0.04;
     const boxPadY = h * 0.03;
     ctx2.fillRect(0, topY - boxPadY, w, totalH + boxPadY * 2);
   }
@@ -5542,15 +5561,15 @@ function drawCardContent(ctx2, card, w, h) {
     ctx2.shadowOffsetY = Math.max(1, tSize * 0.04);
   }
 
-  let y = topY;
-  if (title) {
-    ctx2.font = `700 ${tSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
-    ctx2.fillText(title, x, y + tSize / 2);
-    y += tSize + lineGap;
+  let cursor = topY;
+  if (tLines.length) {
+    ctx2.font = font(tSize, '700');
+    tLines.forEach(line => { ctx2.fillText(line, x, cursor + tLH / 2); cursor += tLH; });
   }
-  if (subtitle) {
-    ctx2.font = `400 ${sSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
-    ctx2.fillText(subtitle, x, y + sSize / 2);
+  if (sLines.length) {
+    cursor += gap;
+    ctx2.font = font(sSize, '400');
+    sLines.forEach(line => { ctx2.fillText(line, x, cursor + sLH / 2); cursor += sLH; });
   }
   ctx2.shadowColor = 'transparent';
   ctx2.shadowBlur = 0;
