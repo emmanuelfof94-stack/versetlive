@@ -6762,8 +6762,11 @@ async function init() {
   startBgRenderLoop();
   startPerfHud();
   rebuildProgramStream();
-  await refreshDeviceList();
+  // Charge images, cartes et scènes utilisateur AVANT d'attendre la permission
+  // caméra : refreshDeviceList() peut rester bloqué (prompt non répondu, caméra
+  // absente/refusée), et le contenu sauvegardé ne doit pas dépendre de ça.
   loadStoredImages();
+  await refreshDeviceList();
   initSignaling();
   connectRelay();
 
