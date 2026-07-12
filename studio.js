@@ -62,8 +62,18 @@ const CARDS_KEY = 'versetlive:cards';
 const cards = []; // [{ id, name, imageId, title, subtitle, vAlign, hAlign, titleSize, subtitleSize, color, shadow, bgBox }]
 let nextCardId = 1;
 
+// Scènes utilisateur nommées & sauvegardées (Phase 2) — style OBS.
+// Objet scène composé de couches : { kind:'user', id, name, layers:[...] }.
+// Persistées en localStorage, référencées par id ; buildSceneList() les préfixe,
+// donc elles héritent gratuitement du clic/take, du multiview, de la sélection
+// et de la diffusion coop (l'objet complet, layers compris, voyage vers les
+// copilotes). Le rendu passe par sceneToLayers()/drawLayer() (Phase 1).
+const SCENES_KEY = 'versetlive:scenes';
+const userScenes = []; // [{ kind:'user', id, name, layers:[...] }]
+let nextUserSceneId = 1;
+
 // Scène active : { kind, primaryId?, secondaryId? }
-//   kind ∈ { 'camera', 'camera+verse', 'pip', 'image', 'image+verse', 'card', 'verse', 'intro', 'outro', 'black' }
+//   kind ∈ { 'camera', 'camera+verse', 'pip', 'image', 'image+verse', 'card', 'verse', 'intro', 'outro', 'black', 'user' }
 let programScene = { kind: 'black' };
 let previewScene = { kind: 'black' };
 let previousProgramScene = null;
@@ -454,6 +464,10 @@ function renderSources() {
 // ============ Scènes ============
 function buildSceneList() {
   const list = [];
+  // Scènes utilisateur nommées d'abord (⭐ Mes scènes), avant les gabarits auto.
+  userScenes.forEach(us => {
+    list.push({ key: `user-${us.id}`, label: us.name, scene: us, user: true });
+  });
   sources.forEach((s, i) => {
     list.push({ key: `cam-${s.id}`, label: `Cam ${i + 1} plein`, scene: { kind: 'camera', primaryId: s.id } });
     list.push({ key: `cam-verse-${s.id}`, label: `Cam ${i + 1} + verset`, scene: { kind: 'camera+verse', primaryId: s.id } });
@@ -484,6 +498,124 @@ function buildSceneList() {
   }
   list.push({ key: 'black', label: 'Noir', scene: { kind: 'black' } });
   return list;
+}
+
+// ============ Scènes utilisateur (Phase 2 : nommées & sauvegardées) ============
+function loadUserScenes() {
+  let raw;
+  try { raw = JSON.parse(localStorage.getItem(SCENES_KEY) || '[]'); }
+  catch (e) { raw = []; }
+  userScenes.length = 0;
+  let maxId = 0;
+  for (const s of raw) {
+    if (!s || !Array.isArray(s.layers)) continue;
+    const us = { kind: 'user', id: s.id, name: s.name || 'Scène', layers: s.layers };
+    userScenes.push(us);
+    const n = parseInt(String(s.id || '').replace(/^u/, ''), 10);
+    if (!isNaN(n) && n > maxId) maxId = n;
+  }
+  nextUserSceneId = maxId + 1;
+}
+
+function saveUserScenes() {
+  try {
+    // On ne persiste que les champs propres à la scène (kind:'user' implicite).
+    const data = userScenes.map(s => ({ id: s.id, name: s.name, layers: s.layers }));
+    localStorage.setItem(SCENES_KEY, JSON.stringify(data));
+  } catch (e) { console.warn('saveUserScenes failed', e); }
+}
+
+function getUserSceneById(id) {
+  return userScenes.find(s => s.id === id) || null;
+}
+
+// Copie profonde des couches (objets plats sérialisables) pour découpler la
+// scène enregistrée de la scène source.
+function cloneLayers(layers) {
+  return (layers || []).map(l => ({ ...l, rect: l.rect ? { ...l.rect } : undefined }));
+}
+
+// Enregistre la scène actuellement composée (preview en Studio Mode, sinon
+// programme) comme scène utilisateur nommée et réutilisable.
+function saveActiveSceneAsUser() {
+  const current = studioMode ? previewScene : programScene;
+  if (!current || current.kind === 'black') {
+    toast('Compose d\'abord une scène (caméra, image, verset…) avant d\'enregistrer.', true);
+    return;
+  }
+  if (current.kind === 'mosaic') {
+    toast('La mosaïque ne peut pas être enregistrée comme scène.', true);
+    return;
+  }
+  // Contenus dynamiques (vidéo/intro/outro/lien externe) : déjà des gabarits en
+  // un clic, et leur lecture dépend de déclencheurs liés au kind. On ne les fige
+  // pas en scène utilisateur tant que les déclencheurs ne sont pas conscients des
+  // couches (Phase 3).
+  if (['video', 'video+verse', 'intro', 'outro', 'iframe'].includes(current.kind)) {
+    toast('Vidéos, intro/outro et liens externes s\'utilisent directement depuis la liste (pas d\'enregistrement).', true);
+    return;
+  }
+  const layers = cloneLayers(sceneToLayers(current));
+  if (!layers.length) {
+    toast('Rien à enregistrer dans cette scène.', true);
+    return;
+  }
+  // Enrichit les couches caméra d'un identifiant stable (deviceId) pour que la
+  // scène retrouve sa caméra après un redémarrage (voir resolveLayerSource).
+  layers.forEach(l => {
+    if (l.type === 'camera' || l.type === 'pipCorner') {
+      const src = sources.find(s => s.id === l.sourceId);
+      if (src) { l.deviceId = src.deviceId || ''; l.sourceLabel = src.label || ''; }
+    }
+  });
+  const defaultName = current.kind === 'user' ? `${current.name} (copie)` : `Scène ${userScenes.length + 1}`;
+  const name = (prompt('Nom de la scène :', defaultName) || '').trim();
+  if (!name) return;
+  const us = { kind: 'user', id: 'u' + (nextUserSceneId++), name, layers };
+  userScenes.push(us);
+  saveUserScenes();
+  renderScenes();
+  if (typeof coopBroadcast === 'function') coopBroadcast();
+  toast(`Scène enregistrée : ${name}`);
+}
+
+function renameUserScene(id) {
+  const us = getUserSceneById(id);
+  if (!us) return;
+  const name = (prompt('Nouveau nom :', us.name) || '').trim();
+  if (!name || name === us.name) return;
+  us.name = name;
+  saveUserScenes();
+  renderScenes();
+  if (typeof coopBroadcast === 'function') coopBroadcast();
+}
+
+function removeUserScene(id) {
+  const idx = userScenes.findIndex(s => s.id === id);
+  if (idx < 0) return;
+  const removed = userScenes[idx];
+  userScenes.splice(idx, 1);
+  saveUserScenes();
+  // Si la scène supprimée est à l'écran, retomber sur noir.
+  if (programScene.kind === 'user' && programScene.id === id) setProgramScene({ kind: 'black' });
+  if (previewScene.kind === 'user' && previewScene.id === id) setPreviewScene({ kind: 'black' });
+  renderScenes();
+  if (typeof coopBroadcast === 'function') coopBroadcast();
+  toast(`Scène retirée : ${removed.name}`);
+}
+
+// Réordonne dans le tableau (dir = -1 monter, +1 descendre).
+function moveUserScene(id, dir) {
+  const idx = userScenes.findIndex(s => s.id === id);
+  if (idx < 0) return;
+  const j = idx + dir;
+  if (j < 0 || j >= userScenes.length) return;
+  const tmp = userScenes[idx];
+  userScenes[idx] = userScenes[j];
+  userScenes[j] = tmp;
+  saveUserScenes();
+  renderScenes();
+  if (typeof coopBroadcast === 'function') coopBroadcast();
 }
 
 // Détection manuelle du double-clic sur une scène : le simple clic reconstruit
@@ -535,6 +667,29 @@ function renderScenes() {
       toggleSceneSelection(s.key);
     });
     item.appendChild(btn);
+    // Scènes utilisateur (⭐ Mes scènes) : contrôles réordonner / renommer / supprimer.
+    if (s.user) {
+      item.classList.add('studio-scene-user');
+      const id = s.scene.id;
+      const idx = userScenes.findIndex(u => u.id === id);
+      const ctrls = document.createElement('div');
+      ctrls.className = 'studio-scene-user-ctrls';
+      const mkBtn = (txt, title, disabled, fn) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'studio-scene-ctrl';
+        b.textContent = txt;
+        b.title = title;
+        if (disabled) b.disabled = true;
+        b.addEventListener('click', (e) => { e.stopPropagation(); fn(); });
+        return b;
+      };
+      ctrls.appendChild(mkBtn('↑', 'Monter', idx <= 0, () => moveUserScene(id, -1)));
+      ctrls.appendChild(mkBtn('↓', 'Descendre', idx >= userScenes.length - 1, () => moveUserScene(id, 1)));
+      ctrls.appendChild(mkBtn('✎', 'Renommer', false, () => renameUserScene(id)));
+      ctrls.appendChild(mkBtn('✕', 'Supprimer', false, () => removeUserScene(id)));
+      item.appendChild(ctrls);
+    }
     item.appendChild(pick);
     list.appendChild(item);
   });
@@ -542,6 +697,7 @@ function renderScenes() {
 
 function sceneKey(scene) {
   if (!scene) return 'black';
+  if (scene.kind === 'user') return `user-${scene.id}`;
   if (scene.kind === 'camera') return `cam-${scene.primaryId}`;
   if (scene.kind === 'camera+verse') return `cam-verse-${scene.primaryId}`;
   if (scene.kind === 'image') return `img-${scene.imageId}`;
@@ -1050,6 +1206,8 @@ function drawMosaic(s) {
 }
 
 function bindSelectionUi() {
+  const saveScene = $('saveSceneBtn');
+  if (saveScene) saveScene.addEventListener('click', saveActiveSceneAsUser);
   const start = $('startSlideshowBtn');
   if (start) start.addEventListener('click', startSlideshow);
   const mosaic = $('startMosaicBtn');
@@ -1143,6 +1301,19 @@ function getImageForScene(scene) {
 //         'logo' · 'verseBar' · 'verseFull' · 'card' (cardId) · 'video' (videoId) ·
 //         'introOutro' (mode) · 'iframe' (label,url)
 
+// Résout la source (caméra) d'une couche. Par sourceId (session courante)
+// d'abord ; repli sur deviceId pour les scènes utilisateur SAUVEGARDÉES, dont
+// le sourceId de session n'existe plus après un redémarrage. Les caméras locales
+// gardent un deviceId stable → la scène retrouve sa caméra. Les caméras distantes
+// (téléphone/copilote) ont un deviceId de session : la couche reste vide tant que
+// la caméra n'est pas reconnectée (limite inhérente).
+function resolveLayerSource(layer) {
+  if (!layer) return null;
+  let src = layer.sourceId ? sources.find(s => s.id === layer.sourceId) : null;
+  if (!src && layer.deviceId) src = sources.find(s => s.deviceId === layer.deviceId);
+  return src || null;
+}
+
 // Rect d'une couche en pixels de sortie. Défaut = plein écran.
 function layerRect(layer) {
   const r = layer && layer.rect;
@@ -1156,13 +1327,13 @@ function drawLayer(layer) {
   if (!layer || layer.hidden) return;
   const t = layer.type;
   if (t === 'camera') {
-    const src = sources.find(s => s.id === layer.sourceId);
+    const src = resolveLayerSource(layer);
     if (!src) return;
     const { x, y, w, h } = layerRect(layer);
     drawVideoCover(src.videoEl, x, y, w, h, src);
   } else if (t === 'pipCorner') {
     // Vignette caméra en coin, cadre blanc — géométrie fixe historique du PiP.
-    const corner = sources.find(s => s.id === layer.sourceId);
+    const corner = resolveLayerSource(layer);
     if (!corner) return;
     const pipW = OUTPUT_W * 0.28;
     const pipH = pipW * 9 / 16;
@@ -4531,6 +4702,7 @@ async function loadStoredImages() {
   nextImageId = maxId + 1;
   loadLogoCfg();
   loadCards();
+  loadUserScenes();
   renderImages();
   renderLogoOverlayUi();
   renderCards();

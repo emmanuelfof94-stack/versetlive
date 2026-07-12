@@ -2092,6 +2092,27 @@ kbd {
 }
 .studio-scene-item.selected .studio-scene-btn { box-shadow: inset 0 0 0 2px var(--accent); }
 
+/* Scènes utilisateur (⭐ Mes scènes) : barre d'enregistrement + contrôles */
+.studio-scenes-toolbar { margin-bottom: 8px; display: flex; gap: 8px; }
+.studio-scene-user .studio-scene-btn {
+  padding-bottom: 32px;
+  border-color: #fbbf24;
+}
+.studio-scene-user .studio-scene-btn.active { border-color: var(--accent-hover); }
+.studio-scene-user-ctrls {
+  position: absolute; left: 5px; bottom: 5px;
+  display: flex; gap: 3px;
+}
+.studio-scene-ctrl {
+  width: 24px; height: 24px; padding: 0;
+  background: rgba(15, 23, 42, 0.85); color: #fff;
+  border: 1px solid var(--border); border-radius: 5px;
+  cursor: pointer; font-size: 13px; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+}
+.studio-scene-ctrl:hover:not(:disabled) { background: var(--accent); border-color: var(--accent); }
+.studio-scene-ctrl:disabled { opacity: 0.35; cursor: not-allowed; }
+
 .studio-selection-bar, .studio-slideshow-controls {
   display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
   margin-top: 10px; padding: 8px 10px;
