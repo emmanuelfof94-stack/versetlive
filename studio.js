@@ -62,8 +62,18 @@ const CARDS_KEY = 'versetlive:cards';
 const cards = []; // [{ id, name, imageId, title, subtitle, vAlign, hAlign, titleSize, subtitleSize, color, shadow, bgBox }]
 let nextCardId = 1;
 
+// Scènes utilisateur nommées & sauvegardées (Phase 2) — style OBS.
+// Objet scène composé de couches : { kind:'user', id, name, layers:[...] }.
+// Persistées en localStorage, référencées par id ; buildSceneList() les préfixe,
+// donc elles héritent gratuitement du clic/take, du multiview, de la sélection
+// et de la diffusion coop (l'objet complet, layers compris, voyage vers les
+// copilotes). Le rendu passe par sceneToLayers()/drawLayer() (Phase 1).
+const SCENES_KEY = 'versetlive:scenes';
+const userScenes = []; // [{ kind:'user', id, name, layers:[...] }]
+let nextUserSceneId = 1;
+
 // Scène active : { kind, primaryId?, secondaryId? }
-//   kind ∈ { 'camera', 'camera+verse', 'pip', 'image', 'image+verse', 'card', 'verse', 'intro', 'outro', 'black' }
+//   kind ∈ { 'camera', 'camera+verse', 'pip', 'image', 'image+verse', 'card', 'verse', 'intro', 'outro', 'black', 'user' }
 let programScene = { kind: 'black' };
 let previewScene = { kind: 'black' };
 let previousProgramScene = null;
@@ -454,6 +464,10 @@ function renderSources() {
 // ============ Scènes ============
 function buildSceneList() {
   const list = [];
+  // Scènes utilisateur nommées d'abord (⭐ Mes scènes), avant les gabarits auto.
+  userScenes.forEach(us => {
+    list.push({ key: `user-${us.id}`, label: us.name, scene: us, user: true });
+  });
   sources.forEach((s, i) => {
     list.push({ key: `cam-${s.id}`, label: `Cam ${i + 1} plein`, scene: { kind: 'camera', primaryId: s.id } });
     list.push({ key: `cam-verse-${s.id}`, label: `Cam ${i + 1} + verset`, scene: { kind: 'camera+verse', primaryId: s.id } });
@@ -484,6 +498,596 @@ function buildSceneList() {
   }
   list.push({ key: 'black', label: 'Noir', scene: { kind: 'black' } });
   return list;
+}
+
+// ============ Scènes utilisateur (Phase 2 : nommées & sauvegardées) ============
+function loadUserScenes() {
+  let raw;
+  try { raw = JSON.parse(localStorage.getItem(SCENES_KEY) || '[]'); }
+  catch (e) { raw = []; }
+  userScenes.length = 0;
+  let maxId = 0;
+  for (const s of raw) {
+    if (!s || !Array.isArray(s.layers)) continue;
+    const us = { kind: 'user', id: s.id, name: s.name || 'Scène', layers: s.layers };
+    userScenes.push(us);
+    const n = parseInt(String(s.id || '').replace(/^u/, ''), 10);
+    if (!isNaN(n) && n > maxId) maxId = n;
+  }
+  nextUserSceneId = maxId + 1;
+}
+
+function saveUserScenes() {
+  try {
+    // On ne persiste que les champs propres à la scène (kind:'user' implicite).
+    const data = userScenes.map(s => ({ id: s.id, name: s.name, layers: s.layers }));
+    localStorage.setItem(SCENES_KEY, JSON.stringify(data));
+  } catch (e) { console.warn('saveUserScenes failed', e); }
+}
+
+function getUserSceneById(id) {
+  return userScenes.find(s => s.id === id) || null;
+}
+
+// Copie profonde des couches (objets plats sérialisables) pour découpler la
+// scène enregistrée de la scène source.
+function cloneLayers(layers) {
+  return (layers || []).map(l => ({ ...l, rect: l.rect ? { ...l.rect } : undefined }));
+}
+
+// Enregistre la scène actuellement composée (preview en Studio Mode, sinon
+// programme) comme scène utilisateur nommée et réutilisable.
+function saveActiveSceneAsUser() {
+  const current = studioMode ? previewScene : programScene;
+  if (!current || current.kind === 'black') {
+    toast('Compose d\'abord une scène (caméra, image, verset…) avant d\'enregistrer.', true);
+    return;
+  }
+  if (current.kind === 'mosaic') {
+    toast('La mosaïque ne peut pas être enregistrée comme scène.', true);
+    return;
+  }
+  // Contenus dynamiques (vidéo/intro/outro/lien externe) : déjà des gabarits en
+  // un clic, et leur lecture dépend de déclencheurs liés au kind. On ne les fige
+  // pas en scène utilisateur tant que les déclencheurs ne sont pas conscients des
+  // couches (Phase 3).
+  if (['video', 'video+verse', 'intro', 'outro', 'iframe'].includes(current.kind)) {
+    toast('Vidéos, intro/outro et liens externes s\'utilisent directement depuis la liste (pas d\'enregistrement).', true);
+    return;
+  }
+  const layers = cloneLayers(sceneToLayers(current));
+  if (!layers.length) {
+    toast('Rien à enregistrer dans cette scène.', true);
+    return;
+  }
+  // Enrichit les couches caméra d'un identifiant stable (deviceId) pour que la
+  // scène retrouve sa caméra après un redémarrage (voir resolveLayerSource).
+  layers.forEach(l => {
+    if (l.type === 'camera' || l.type === 'pipCorner') {
+      const src = sources.find(s => s.id === l.sourceId);
+      if (src) { l.deviceId = src.deviceId || ''; l.sourceLabel = src.label || ''; }
+    }
+  });
+  const defaultName = current.kind === 'user' ? `${current.name} (copie)` : `Scène ${userScenes.length + 1}`;
+  const name = (prompt('Nom de la scène :', defaultName) || '').trim();
+  if (!name) return;
+  const us = { kind: 'user', id: 'u' + (nextUserSceneId++), name, layers };
+  userScenes.push(us);
+  saveUserScenes();
+  renderScenes();
+  if (typeof coopBroadcast === 'function') coopBroadcast();
+  toast(`Scène enregistrée : ${name}`);
+}
+
+function removeUserScene(id) {
+  const idx = userScenes.findIndex(s => s.id === id);
+  if (idx < 0) return;
+  const removed = userScenes[idx];
+  userScenes.splice(idx, 1);
+  saveUserScenes();
+  // Si la scène supprimée est à l'écran, retomber sur noir.
+  if (programScene.kind === 'user' && programScene.id === id) setProgramScene({ kind: 'black' });
+  if (previewScene.kind === 'user' && previewScene.id === id) setPreviewScene({ kind: 'black' });
+  renderScenes();
+  if (typeof coopBroadcast === 'function') coopBroadcast();
+  toast(`Scène retirée : ${removed.name}`);
+}
+
+// Réordonne dans le tableau (dir = -1 monter, +1 descendre).
+function moveUserScene(id, dir) {
+  const idx = userScenes.findIndex(s => s.id === id);
+  if (idx < 0) return;
+  const j = idx + dir;
+  if (j < 0 || j >= userScenes.length) return;
+  const tmp = userScenes[idx];
+  userScenes[idx] = userScenes[j];
+  userScenes[j] = tmp;
+  saveUserScenes();
+  renderScenes();
+  if (typeof coopBroadcast === 'function') coopBroadcast();
+}
+
+// ============ Éditeur de couches (Phase 3 : composition style OBS) ============
+// Presets de position (rect en fraction 0..1). Appliqués aux couches caméra et
+// image ; les autres (verset/logo/carte) ont une position sémantique fixe.
+const LAYER_RECT_PRESETS = [
+  { key: 'full', label: 'Plein', rect: null },
+  { key: 'left', label: 'Gauche', rect: { x: 0, y: 0, w: 0.5, h: 1 } },
+  { key: 'right', label: 'Droite', rect: { x: 0.5, y: 0, w: 0.5, h: 1 } },
+  { key: 'top', label: 'Haut', rect: { x: 0, y: 0, w: 1, h: 0.5 } },
+  { key: 'bottom', label: 'Bas', rect: { x: 0, y: 0.5, w: 1, h: 0.5 } },
+  { key: 'cornerTR', label: 'Coin ↗', rect: { x: 0.66, y: 0.05, w: 0.30, h: 0.30 } },
+  { key: 'cornerBR', label: 'Coin ↘', rect: { x: 0.66, y: 0.65, w: 0.30, h: 0.30 } },
+  { key: 'center', label: 'Centré', rect: { x: 0.1, y: 0.1, w: 0.8, h: 0.8 } },
+];
+
+// { id, scene } — la scène pointée est l'objet vivant de userScenes : les
+// mutations se répercutent en direct dans l'aperçu (renderSceneEditorPreview,
+// accroché à renderTick) et sont persistées à chaque changement.
+let sceneEditor = null;
+
+function layerDisplayLabel(layer) {
+  switch (layer.type) {
+    case 'camera': {
+      const src = resolveLayerSource(layer);
+      return '🎥 ' + (src ? src.label : (layer.sourceLabel ? layer.sourceLabel + ' (déconnectée)' : 'Caméra (déconnectée)'));
+    }
+    case 'pipCorner': return '🎥 Coin caméra';
+    case 'image': {
+      const img = imageSources.find(i => i.id === layer.imageId);
+      return '🖼 ' + (img ? img.name : 'Image (absente)');
+    }
+    case 'card': {
+      const card = getCardById(layer.cardId);
+      return '🎴 ' + (card ? card.name : 'Carte (absente)');
+    }
+    case 'verseBar': return '📖 Barre verset';
+    case 'verseFull': return '📖 Verset plein écran';
+    case 'logo': return '✨ Logo';
+    default: return layer.type;
+  }
+}
+
+function createEmptyUserScene() {
+  const name = (prompt('Nom de la nouvelle scène :', `Scène ${userScenes.length + 1}`) || '').trim();
+  if (!name) return;
+  const us = { kind: 'user', id: 'u' + (nextUserSceneId++), name, layers: [] };
+  userScenes.push(us);
+  saveUserScenes();
+  renderScenes();
+  if (typeof coopBroadcast === 'function') coopBroadcast();
+  openSceneEditor(us.id);
+}
+
+function openSceneEditor(id) {
+  const us = getUserSceneById(id);
+  if (!us) return;
+  // selectedIndex : couche active pour le drag/resize sur le canvas (Phase 4).
+  sceneEditor = { id, scene: us, selectedIndex: us.layers.length - 1 };
+  renderSceneEditor();
+  const m = $('sceneEditorModal');
+  if (m) m.classList.add('show');
+}
+
+function closeSceneEditor() {
+  const m = $('sceneEditorModal');
+  if (m) m.classList.remove('show');
+  sceneEditor = null;
+}
+
+// Appelée après chaque mutation de couche : persiste, rafraîchit l'éditeur, la
+// liste des scènes et diffuse aux copilotes. L'aperçu se met à jour tout seul.
+function sceneEditorChanged() {
+  saveUserScenes();
+  renderEditorLayers();
+  renderScenes();
+  if (typeof coopBroadcast === 'function') coopBroadcast();
+}
+
+function renderSceneEditor() {
+  if (!sceneEditor) return;
+  const nameInput = $('sceneEditorName');
+  if (nameInput) nameInput.value = sceneEditor.scene.name || '';
+  renderEditorLayers();
+}
+
+// Fabrique une nouvelle couche du type demandé, avec une référence par défaut.
+function makeLayer(type) {
+  if (type === 'camera') {
+    const src = sources[0];
+    if (!src) { toast('Ajoute d\'abord une caméra dans la colonne de gauche.', true); return null; }
+    return { type: 'camera', sourceId: src.id, deviceId: src.deviceId || '', sourceLabel: src.label || '' };
+  }
+  if (type === 'image') {
+    const img = imageSources[0];
+    if (!img) { toast('Importe d\'abord une image (section 🖼).', true); return null; }
+    return { type: 'image', imageId: img.id };
+  }
+  if (type === 'card') {
+    if (!cards.length) { toast('Crée d\'abord une carte (section 🎴).', true); return null; }
+    return { type: 'card', cardId: cards[0].id };
+  }
+  if (type === 'verseBar') return { type: 'verseBar' };
+  if (type === 'verseFull') return { type: 'verseFull' };
+  if (type === 'logo') return { type: 'logo' };
+  return null;
+}
+
+function editorAddLayer(type) {
+  if (!sceneEditor) return;
+  const layer = makeLayer(type);
+  if (!layer) return;
+  sceneEditor.scene.layers.push(layer);
+  sceneEditor.selectedIndex = sceneEditor.scene.layers.length - 1;
+  sceneEditorChanged();
+}
+
+function editorRemoveLayer(arrIdx) {
+  if (!sceneEditor) return;
+  sceneEditor.scene.layers.splice(arrIdx, 1);
+  // Réajuste la sélection pour rester dans les bornes.
+  if (sceneEditor.selectedIndex >= sceneEditor.scene.layers.length) {
+    sceneEditor.selectedIndex = sceneEditor.scene.layers.length - 1;
+  }
+  sceneEditorChanged();
+}
+
+// dir = +1 vers l'avant (dessiné plus tard), -1 vers l'arrière.
+function editorMoveLayer(arrIdx, dir) {
+  if (!sceneEditor) return;
+  const L = sceneEditor.scene.layers;
+  const j = arrIdx + dir;
+  if (j < 0 || j >= L.length) return;
+  const tmp = L[arrIdx]; L[arrIdx] = L[j]; L[j] = tmp;
+  // La sélection suit la couche déplacée.
+  if (sceneEditor.selectedIndex === arrIdx) sceneEditor.selectedIndex = j;
+  else if (sceneEditor.selectedIndex === j) sceneEditor.selectedIndex = arrIdx;
+  sceneEditorChanged();
+}
+
+function editorToggleHidden(arrIdx) {
+  if (!sceneEditor) return;
+  const l = sceneEditor.scene.layers[arrIdx];
+  if (!l) return;
+  l.hidden = !l.hidden;
+  sceneEditorChanged();
+}
+
+function editorSetLayerRef(arrIdx, value) {
+  if (!sceneEditor) return;
+  const l = sceneEditor.scene.layers[arrIdx];
+  if (!l) return;
+  if (l.type === 'camera') {
+    const src = sources.find(s => s.id === value);
+    l.sourceId = value;
+    if (src) { l.deviceId = src.deviceId || ''; l.sourceLabel = src.label || ''; }
+  } else if (l.type === 'image') {
+    l.imageId = value;
+  } else if (l.type === 'card') {
+    l.cardId = value;
+  }
+  sceneEditorChanged();
+}
+
+function editorSetLayerRect(arrIdx, presetKey) {
+  if (!sceneEditor) return;
+  const l = sceneEditor.scene.layers[arrIdx];
+  if (!l) return;
+  const preset = LAYER_RECT_PRESETS.find(p => p.key === presetKey);
+  if (!preset) return;
+  if (preset.rect) l.rect = { ...preset.rect };
+  else delete l.rect;
+  sceneEditorChanged();
+}
+
+// Clé du preset actif d'une couche (pour surligner le bouton).
+function activeRectPreset(layer) {
+  if (!layer.rect) return 'full';
+  const r = layer.rect;
+  const p = LAYER_RECT_PRESETS.find(p => p.rect &&
+    Math.abs(p.rect.x - r.x) < 0.001 && Math.abs(p.rect.y - r.y) < 0.001 &&
+    Math.abs(p.rect.w - r.w) < 0.001 && Math.abs(p.rect.h - r.h) < 0.001);
+  return p ? p.key : null;
+}
+
+function renderEditorLayers() {
+  const box = $('sceneEditorLayers');
+  if (!box || !sceneEditor) return;
+  const L = sceneEditor.scene.layers;
+  box.innerHTML = '';
+  if (!L.length) {
+    box.innerHTML = '<div class="studio-empty">Aucune couche. Ajoute une caméra, une image ou un verset ci-dessus.</div>';
+    return;
+  }
+  // Affichage haut → bas = avant → arrière (comme OBS). On itère à l'envers.
+  for (let i = L.length - 1; i >= 0; i--) {
+    const layer = L[i];
+    const row = document.createElement('div');
+    row.className = 'scene-editor-layer'
+      + (layer.hidden ? ' hidden' : '')
+      + (i === sceneEditor.selectedIndex ? ' selected' : '');
+
+    const head = document.createElement('div');
+    head.className = 'scene-editor-layer-head';
+    const name = document.createElement('span');
+    name.className = 'scene-editor-layer-name';
+    name.textContent = layerDisplayLabel(layer);
+    // Clic sur le nom = sélectionner cette couche (pour le drag sur le canvas).
+    name.addEventListener('click', () => {
+      sceneEditor.selectedIndex = i;
+      renderEditorLayers();
+    });
+    head.appendChild(name);
+
+    const actions = document.createElement('div');
+    actions.className = 'scene-editor-layer-actions';
+    const mkBtn = (txt, title, disabled, fn, cls) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'studio-scene-ctrl' + (cls ? ' ' + cls : '');
+      b.textContent = txt; b.title = title;
+      if (disabled) b.disabled = true;
+      b.addEventListener('click', () => fn());
+      return b;
+    };
+    actions.appendChild(mkBtn(layer.hidden ? '🚫' : '👁', layer.hidden ? 'Afficher' : 'Masquer', false, () => editorToggleHidden(i)));
+    actions.appendChild(mkBtn('↑', 'Vers l\'avant', i === L.length - 1, () => editorMoveLayer(i, 1)));
+    actions.appendChild(mkBtn('↓', 'Vers l\'arrière', i === 0, () => editorMoveLayer(i, -1)));
+    actions.appendChild(mkBtn('✕', 'Supprimer la couche', false, () => editorRemoveLayer(i), 'danger'));
+    head.appendChild(actions);
+    row.appendChild(head);
+
+    // Sélecteur de source (caméra / image / carte)
+    if (layer.type === 'camera' || layer.type === 'image' || layer.type === 'card') {
+      const sel = document.createElement('select');
+      sel.className = 'scene-editor-layer-ref';
+      const opts = layer.type === 'camera'
+        ? sources.map(s => ({ v: s.id, t: s.label }))
+        : layer.type === 'image'
+          ? imageSources.map(im => ({ v: im.id, t: im.name }))
+          : cards.map(c => ({ v: c.id, t: c.name }));
+      const cur = layer.type === 'camera' ? layer.sourceId : layer.type === 'image' ? layer.imageId : layer.cardId;
+      opts.forEach(o => {
+        const opt = document.createElement('option');
+        opt.value = o.v; opt.textContent = o.t;
+        if (o.v === cur) opt.selected = true;
+        sel.appendChild(opt);
+      });
+      sel.addEventListener('change', () => editorSetLayerRef(i, sel.value));
+      row.appendChild(sel);
+    }
+
+    // Presets de position (caméra + image uniquement)
+    if (layer.type === 'camera' || layer.type === 'image') {
+      const presets = document.createElement('div');
+      presets.className = 'scene-editor-presets';
+      const active = activeRectPreset(layer);
+      LAYER_RECT_PRESETS.forEach(p => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'scene-editor-preset' + (p.key === active ? ' active' : '');
+        b.textContent = p.label; b.title = 'Position : ' + p.label;
+        b.addEventListener('click', () => editorSetLayerRect(i, p.key));
+        presets.appendChild(b);
+      });
+      row.appendChild(presets);
+    }
+
+    box.appendChild(row);
+  }
+}
+
+// Aperçu live de la scène en cours d'édition. Rendu dans le canvas du modal en
+// réutilisant drawScene : on bascule activeCtx sur le contexte du modal le temps
+// du dessin (synchrone, pas d'entrelacement avec la boucle principale).
+function renderSceneEditorPreview() {
+  if (!sceneEditor) return;
+  const canvas = $('sceneEditorCanvas');
+  if (!canvas) return;
+  if (canvas.width !== OUTPUT_W) canvas.width = OUTPUT_W;
+  if (canvas.height !== OUTPUT_H) canvas.height = OUTPUT_H;
+  const ectx = canvas.getContext('2d', { alpha: false });
+  const prev = activeCtx;
+  activeCtx = ectx;
+  try {
+    ectx.fillStyle = '#000';
+    ectx.fillRect(0, 0, OUTPUT_W, OUTPUT_H);
+    drawScene(sceneEditor.scene);
+    drawEditorSelection(ectx);
+  } catch (e) {
+    /* isolé : un dessin fautif ne casse pas la boucle */
+  } finally {
+    activeCtx = prev;
+  }
+}
+
+// ===== Composition libre au drag/resize sur le canvas (Phase 4) =====
+// Seules les couches caméra et image sont positionnables (elles respectent rect).
+// Le rect est manipulé en coordonnées normalisées 0..1 ; le drag n'a lieu que dans
+// l'éditeur (canvas du modal), jamais sur le programme live.
+const EDITOR_MIN_SIZE = 0.05;     // taille minimale d'une couche (fraction)
+const EDITOR_HANDLE_TOL = 0.022;  // tolérance de préhension d'une poignée (fraction)
+
+function isPositionableLayer(l) {
+  return l && (l.type === 'camera' || l.type === 'image');
+}
+
+// Rect d'édition d'une couche : son rect explicite, ou plein écran par défaut.
+function layerEditRect(l) {
+  return l && l.rect ? { x: l.rect.x, y: l.rect.y, w: l.rect.w, h: l.rect.h } : { x: 0, y: 0, w: 1, h: 1 };
+}
+
+function selectedEditorLayer() {
+  if (!sceneEditor) return null;
+  const l = sceneEditor.scene.layers[sceneEditor.selectedIndex];
+  return isPositionableLayer(l) ? l : null;
+}
+
+// Poignées d'un rect (8) en coordonnées normalisées, avec leur id.
+function editorHandlePoints(r) {
+  const cx = r.x + r.w / 2, cy = r.y + r.h / 2;
+  return [
+    { id: 'nw', nx: r.x, ny: r.y }, { id: 'n', nx: cx, ny: r.y }, { id: 'ne', nx: r.x + r.w, ny: r.y },
+    { id: 'e', nx: r.x + r.w, ny: cy }, { id: 'se', nx: r.x + r.w, ny: r.y + r.h },
+    { id: 's', nx: cx, ny: r.y + r.h }, { id: 'sw', nx: r.x, ny: r.y + r.h }, { id: 'w', nx: r.x, ny: cy },
+  ];
+}
+
+// Dessine le cadre + poignées de la couche sélectionnée dans le canvas éditeur.
+function drawEditorSelection(ectx) {
+  const l = selectedEditorLayer();
+  if (!l) return;
+  const r = layerEditRect(l);
+  const x = r.x * OUTPUT_W, y = r.y * OUTPUT_H, w = r.w * OUTPUT_W, h = r.h * OUTPUT_H;
+  ectx.save();
+  ectx.strokeStyle = '#fbbf24';
+  ectx.lineWidth = Math.max(2, OUTPUT_W * 0.0018);
+  ectx.setLineDash([OUTPUT_W * 0.01, OUTPUT_W * 0.006]);
+  ectx.strokeRect(x, y, w, h);
+  ectx.setLineDash([]);
+  const hs = OUTPUT_W * 0.011;
+  ectx.fillStyle = '#fbbf24';
+  editorHandlePoints(r).forEach(p => {
+    ectx.fillRect(p.nx * OUTPUT_W - hs / 2, p.ny * OUTPUT_H - hs / 2, hs, hs);
+  });
+  ectx.restore();
+}
+
+// Coordonnées normalisées 0..1 d'un évènement pointeur sur le canvas.
+function editorPointerNorm(e, canvas) {
+  const b = canvas.getBoundingClientRect();
+  return {
+    nx: Math.max(0, Math.min(1, (e.clientX - b.left) / b.width)),
+    ny: Math.max(0, Math.min(1, (e.clientY - b.top) / b.height)),
+  };
+}
+
+// Poignée sous le pointeur (pour la couche sélectionnée), ou null.
+function editorHitHandle(nx, ny) {
+  const l = selectedEditorLayer();
+  if (!l) return null;
+  const r = layerEditRect(l);
+  for (const p of editorHandlePoints(r)) {
+    if (Math.abs(nx - p.nx) < EDITOR_HANDLE_TOL && Math.abs(ny - p.ny) < EDITOR_HANDLE_TOL) return p.id;
+  }
+  return null;
+}
+
+// Index de la couche positionnable la plus en avant sous le pointeur, ou -1.
+function editorHitLayer(nx, ny) {
+  if (!sceneEditor) return -1;
+  const L = sceneEditor.scene.layers;
+  for (let i = L.length - 1; i >= 0; i--) {
+    if (!isPositionableLayer(L[i]) || L[i].hidden) continue;
+    const r = layerEditRect(L[i]);
+    if (nx >= r.x && nx <= r.x + r.w && ny >= r.y && ny <= r.y + r.h) return i;
+  }
+  return -1;
+}
+
+// Curseur adapté à la poignée survolée.
+const EDITOR_HANDLE_CURSOR = {
+  nw: 'nwse-resize', se: 'nwse-resize', ne: 'nesw-resize', sw: 'nesw-resize',
+  n: 'ns-resize', s: 'ns-resize', e: 'ew-resize', w: 'ew-resize',
+};
+
+let editorDrag = null; // { mode:'move'|'resize', handle, startNX, startNY, startRect }
+
+function editorPointerDown(e) {
+  if (!sceneEditor) return;
+  const canvas = $('sceneEditorCanvas');
+  if (!canvas) return;
+  const { nx, ny } = editorPointerNorm(e, canvas);
+  // 1) Poignée de la couche déjà sélectionnée → redimensionnement.
+  const handle = editorHitHandle(nx, ny);
+  if (handle) {
+    const l = selectedEditorLayer();
+    editorDrag = { mode: 'resize', handle, startNX: nx, startNY: ny, startRect: layerEditRect(l) };
+    canvas.setPointerCapture(e.pointerId);
+    e.preventDefault();
+    return;
+  }
+  // 2) Sinon, sélectionner la couche sous le pointeur et démarrer un déplacement.
+  const hit = editorHitLayer(nx, ny);
+  if (hit >= 0) {
+    sceneEditor.selectedIndex = hit;
+    renderEditorLayers();
+    const l = sceneEditor.scene.layers[hit];
+    editorDrag = { mode: 'move', handle: null, startNX: nx, startNY: ny, startRect: layerEditRect(l) };
+    canvas.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  }
+}
+
+function editorPointerMove(e) {
+  const canvas = $('sceneEditorCanvas');
+  if (!canvas || !sceneEditor) return;
+  const { nx, ny } = editorPointerNorm(e, canvas);
+  if (!editorDrag) {
+    // Feedback curseur (survol poignée / couche).
+    const h = editorHitHandle(nx, ny);
+    canvas.style.cursor = h ? EDITOR_HANDLE_CURSOR[h] : (editorHitLayer(nx, ny) >= 0 ? 'move' : 'default');
+    return;
+  }
+  const l = selectedEditorLayer();
+  if (!l) return;
+  const s = editorDrag.startRect;
+  const dnx = nx - editorDrag.startNX, dny = ny - editorDrag.startNY;
+  let r;
+  if (editorDrag.mode === 'move') {
+    r = {
+      x: Math.max(0, Math.min(1 - s.w, s.x + dnx)),
+      y: Math.max(0, Math.min(1 - s.h, s.y + dny)),
+      w: s.w, h: s.h,
+    };
+  } else {
+    r = { x: s.x, y: s.y, w: s.w, h: s.h };
+    const H = editorDrag.handle;
+    if (H.includes('w')) { const nxp = Math.min(s.x + s.w - EDITOR_MIN_SIZE, Math.max(0, s.x + dnx)); r.w = s.x + s.w - nxp; r.x = nxp; }
+    if (H.includes('e')) { r.w = Math.max(EDITOR_MIN_SIZE, Math.min(1 - s.x, s.w + dnx)); }
+    if (H.includes('n')) { const nyp = Math.min(s.y + s.h - EDITOR_MIN_SIZE, Math.max(0, s.y + dny)); r.h = s.y + s.h - nyp; r.y = nyp; }
+    if (H.includes('s')) { r.h = Math.max(EDITOR_MIN_SIZE, Math.min(1 - s.y, s.h + dny)); }
+  }
+  l.rect = r; // mutation directe : l'aperçu se met à jour via renderTick, sans reconstruire le DOM
+  e.preventDefault();
+}
+
+function editorPointerUp(e) {
+  const canvas = $('sceneEditorCanvas');
+  if (editorDrag) {
+    editorDrag = null;
+    // Persiste + rafraîchit la liste (presets) + diffuse aux copilotes.
+    sceneEditorChanged();
+  }
+  if (canvas) { try { canvas.releasePointerCapture(e.pointerId); } catch (err) {} }
+}
+
+function bindSceneEditorUi() {
+  const nb = $('newSceneBtn');
+  if (nb) nb.addEventListener('click', createEmptyUserScene);
+  const close = $('sceneEditorClose');
+  if (close) close.addEventListener('click', closeSceneEditor);
+  const done = $('sceneEditorDone');
+  if (done) done.addEventListener('click', closeSceneEditor);
+  const name = $('sceneEditorName');
+  if (name) name.addEventListener('input', () => {
+    if (!sceneEditor) return;
+    sceneEditor.scene.name = name.value;
+    saveUserScenes();
+    renderScenes();
+    if (typeof coopBroadcast === 'function') coopBroadcast();
+  });
+  document.querySelectorAll('#sceneEditorModal [data-add]').forEach(b => {
+    b.addEventListener('click', () => editorAddLayer(b.dataset.add));
+  });
+  // Drag/resize libre sur le canvas d'aperçu (Phase 4).
+  const canvas = $('sceneEditorCanvas');
+  if (canvas) {
+    canvas.addEventListener('pointerdown', editorPointerDown);
+    canvas.addEventListener('pointermove', editorPointerMove);
+    canvas.addEventListener('pointerup', editorPointerUp);
+    canvas.addEventListener('pointercancel', editorPointerUp);
+  }
 }
 
 // Détection manuelle du double-clic sur une scène : le simple clic reconstruit
@@ -535,6 +1139,29 @@ function renderScenes() {
       toggleSceneSelection(s.key);
     });
     item.appendChild(btn);
+    // Scènes utilisateur (⭐ Mes scènes) : contrôles réordonner / renommer / supprimer.
+    if (s.user) {
+      item.classList.add('studio-scene-user');
+      const id = s.scene.id;
+      const idx = userScenes.findIndex(u => u.id === id);
+      const ctrls = document.createElement('div');
+      ctrls.className = 'studio-scene-user-ctrls';
+      const mkBtn = (txt, title, disabled, fn) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'studio-scene-ctrl';
+        b.textContent = txt;
+        b.title = title;
+        if (disabled) b.disabled = true;
+        b.addEventListener('click', (e) => { e.stopPropagation(); fn(); });
+        return b;
+      };
+      ctrls.appendChild(mkBtn('↑', 'Monter', idx <= 0, () => moveUserScene(id, -1)));
+      ctrls.appendChild(mkBtn('↓', 'Descendre', idx >= userScenes.length - 1, () => moveUserScene(id, 1)));
+      ctrls.appendChild(mkBtn('✎', 'Éditer (couches, nom)', false, () => openSceneEditor(id)));
+      ctrls.appendChild(mkBtn('✕', 'Supprimer', false, () => removeUserScene(id)));
+      item.appendChild(ctrls);
+    }
     item.appendChild(pick);
     list.appendChild(item);
   });
@@ -542,6 +1169,7 @@ function renderScenes() {
 
 function sceneKey(scene) {
   if (!scene) return 'black';
+  if (scene.kind === 'user') return `user-${scene.id}`;
   if (scene.kind === 'camera') return `cam-${scene.primaryId}`;
   if (scene.kind === 'camera+verse') return `cam-verse-${scene.primaryId}`;
   if (scene.kind === 'image') return `img-${scene.imageId}`;
@@ -1050,6 +1678,8 @@ function drawMosaic(s) {
 }
 
 function bindSelectionUi() {
+  const saveScene = $('saveSceneBtn');
+  if (saveScene) saveScene.addEventListener('click', saveActiveSceneAsUser);
   const start = $('startSlideshowBtn');
   if (start) start.addEventListener('click', startSlideshow);
   const mosaic = $('startMosaicBtn');
@@ -1131,38 +1761,70 @@ function getImageForScene(scene) {
   return imageSources.find(i => i.id === scene.imageId);
 }
 
-function drawScene(s) {
-  if (s.kind === 'camera' || s.kind === 'camera+verse') {
-    const src = getSourceForScene(s, 'primary');
-    if (src) drawVideoCover(src.videoEl, 0, 0, OUTPUT_W, OUTPUT_H, src);
-    drawLogoOverlay();
-    if (s.kind === 'camera+verse') {
-      // Verset en bas, sur le tiers inférieur, fond translucide
-      const h = OUTPUT_H * 0.30;
-      activeCtx.fillStyle = 'rgba(0,0,0,0.55)';
-      activeCtx.fillRect(0, OUTPUT_H - h, OUTPUT_W, h);
-      drawVerseOverlay({ x: 0, y: OUTPUT_H - h, w: OUTPUT_W, h });
-    }
-  } else if (s.kind === 'pip') {
-    const main = getSourceForScene(s, 'primary');
-    const corner = getSourceForScene(s, 'secondary');
-    if (main) drawVideoCover(main.videoEl, 0, 0, OUTPUT_W, OUTPUT_H, main);
-    if (corner) {
-      const pipW = OUTPUT_W * 0.28;
-      const pipH = pipW * 9 / 16;
-      const pipX = OUTPUT_W - pipW - 40;
-      const pipY = 40;
-      activeCtx.fillStyle = '#fff';
-      activeCtx.fillRect(pipX - 4, pipY - 4, pipW + 8, pipH + 8);
-      drawVideoCover(corner.videoEl, pipX, pipY, pipW, pipH, corner);
-    }
-    drawLogoOverlay();
-  } else if (s.kind === 'image' || s.kind === 'image+verse') {
-    const img = getImageForScene(s);
-    if (img && img.imgEl) {
-      // Taille + position réglables PAR IMAGE (centrée, marge autour si < 100 %).
-      // Repli sur la taille globale (fullImageScale) pour les images sans réglage
-      // propre, afin de préserver le comportement existant.
+// ============ Modèle de scène en couches (Phase 1) ============
+// Une scène est rendue comme une PILE DE COUCHES dessinées de bas en haut.
+// Les gabarits historiques ({kind:'camera'}, 'camera+verse', 'pip'…) sont
+// convertis à la volée en couches équivalentes par sceneToLayers(), de sorte
+// que le rendu reste STRICTEMENT identique. Les scènes composées à la main
+// (Phases 2+) porteront directement un tableau `s.layers`.
+//
+// Couche : { type, hidden?, rect? {x,y,w,h en fraction 0..1}, ...props }
+// Types : 'camera' (sourceId) · 'pipCorner' (sourceId) · 'image' (imageId) ·
+//         'logo' · 'verseBar' · 'verseFull' · 'card' (cardId) · 'video' (videoId) ·
+//         'introOutro' (mode) · 'iframe' (label,url)
+
+// Résout la source (caméra) d'une couche. Par sourceId (session courante)
+// d'abord ; repli sur deviceId pour les scènes utilisateur SAUVEGARDÉES, dont
+// le sourceId de session n'existe plus après un redémarrage. Les caméras locales
+// gardent un deviceId stable → la scène retrouve sa caméra. Les caméras distantes
+// (téléphone/copilote) ont un deviceId de session : la couche reste vide tant que
+// la caméra n'est pas reconnectée (limite inhérente).
+function resolveLayerSource(layer) {
+  if (!layer) return null;
+  let src = layer.sourceId ? sources.find(s => s.id === layer.sourceId) : null;
+  if (!src && layer.deviceId) src = sources.find(s => s.deviceId === layer.deviceId);
+  return src || null;
+}
+
+// Rect d'une couche en pixels de sortie. Défaut = plein écran.
+function layerRect(layer) {
+  const r = layer && layer.rect;
+  if (!r) return { x: 0, y: 0, w: OUTPUT_W, h: OUTPUT_H };
+  return { x: r.x * OUTPUT_W, y: r.y * OUTPUT_H, w: r.w * OUTPUT_W, h: r.h * OUTPUT_H };
+}
+
+// Dessine une couche unique dans activeCtx. Chaque branche reproduit à
+// l'identique le code du gabarit d'origine (mêmes primitives, même géométrie).
+function drawLayer(layer) {
+  if (!layer || layer.hidden) return;
+  const t = layer.type;
+  if (t === 'camera') {
+    const src = resolveLayerSource(layer);
+    if (!src) return;
+    const { x, y, w, h } = layerRect(layer);
+    drawVideoCover(src.videoEl, x, y, w, h, src);
+  } else if (t === 'pipCorner') {
+    // Vignette caméra en coin, cadre blanc — géométrie fixe historique du PiP.
+    const corner = resolveLayerSource(layer);
+    if (!corner) return;
+    const pipW = OUTPUT_W * 0.28;
+    const pipH = pipW * 9 / 16;
+    const pipX = OUTPUT_W - pipW - 40;
+    const pipY = 40;
+    activeCtx.fillStyle = '#fff';
+    activeCtx.fillRect(pipX - 4, pipY - 4, pipW + 8, pipH + 8);
+    drawVideoCover(corner.videoEl, pipX, pipY, pipW, pipH, corner);
+  } else if (t === 'image') {
+    const img = imageSources.find(i => i.id === layer.imageId);
+    if (!img || !img.imgEl) return;
+    // Positionnée par rect (éditeur de couches) : image contenue dans la zone.
+    if (layer.rect) {
+      const { x, y, w, h } = layerRect(layer);
+      drawImageContain(img.imgEl, x, y, w, h);
+    } else {
+      // Sans rect (gabarit image) : taille + position réglables PAR IMAGE (centrée,
+      // marge autour si < 100 %). Repli sur la taille globale (fullImageScale) pour
+      // les images sans réglage propre, afin de préserver le comportement existant.
       const sc = img.scale != null
         ? Math.max(0.1, Math.min(1, img.scale))
         : Math.max(0.1, Math.min(1, fullImageScale));
@@ -1171,30 +1833,24 @@ function drawScene(s) {
       const iw = OUTPUT_W * sc, ih = OUTPUT_H * sc;
       drawImageContain(img.imgEl, (OUTPUT_W - iw) / 2 + ox * OUTPUT_W, (OUTPUT_H - ih) / 2 + oy * OUTPUT_H, iw, ih);
     }
-    if (s.kind === 'image+verse') {
-      const h = OUTPUT_H * 0.30;
-      activeCtx.fillStyle = 'rgba(0,0,0,0.55)';
-      activeCtx.fillRect(0, OUTPUT_H - h, OUTPUT_W, h);
-      drawVerseOverlay({ x: 0, y: OUTPUT_H - h, w: OUTPUT_W, h });
-    }
-  } else if (s.kind === 'card') {
-    const card = getCardById(s.cardId);
-    if (card) drawCardContent(activeCtx, card, OUTPUT_W, OUTPUT_H);
-  } else if (s.kind === 'verse') {
+  } else if (t === 'logo') {
+    drawLogoOverlay();
+  } else if (t === 'verseBar') {
+    // Verset en bas, sur le tiers inférieur, fond translucide.
+    const h = OUTPUT_H * 0.30;
+    activeCtx.fillStyle = 'rgba(0,0,0,0.55)';
+    activeCtx.fillRect(0, OUTPUT_H - h, OUTPUT_W, h);
+    drawVerseOverlay({ x: 0, y: OUTPUT_H - h, w: OUTPUT_W, h });
+  } else if (t === 'verseFull') {
     drawVerseOverlay({ x: 0, y: 0, w: OUTPUT_W, h: OUTPUT_H });
-  } else if (s.kind === 'mosaic') {
-    drawMosaic(s);
-  } else if (s.kind === 'intro' || s.kind === 'outro') {
-    if (window.IntroOutro) window.IntroOutro.draw(activeCtx, s.kind, OUTPUT_W, OUTPUT_H);
-  } else if (s.kind === 'video' || s.kind === 'video+verse') {
-    if (window.VideoLibrary) window.VideoLibrary.draw(activeCtx, s.videoId, OUTPUT_W, OUTPUT_H);
-    if (s.kind === 'video+verse') {
-      const h = OUTPUT_H * 0.30;
-      activeCtx.fillStyle = 'rgba(0,0,0,0.55)';
-      activeCtx.fillRect(0, OUTPUT_H - h, OUTPUT_W, h);
-      drawVerseOverlay({ x: 0, y: OUTPUT_H - h, w: OUTPUT_W, h });
-    }
-  } else if (s.kind === 'iframe') {
+  } else if (t === 'card') {
+    const card = getCardById(layer.cardId);
+    if (card) drawCardContent(activeCtx, card, OUTPUT_W, OUTPUT_H);
+  } else if (t === 'video') {
+    if (window.VideoLibrary) window.VideoLibrary.draw(activeCtx, layer.videoId, OUTPUT_W, OUTPUT_H);
+  } else if (t === 'introOutro') {
+    if (window.IntroOutro) window.IntroOutro.draw(activeCtx, layer.mode, OUTPUT_W, OUTPUT_H);
+  } else if (t === 'iframe') {
     // La lecture réelle se fait dans la fenêtre projecteur via une iframe ;
     // le canvas (et donc le live RTMP) ne reçoit qu'un placeholder.
     activeCtx.fillStyle = '#0a0a0a';
@@ -1205,9 +1861,74 @@ function drawScene(s) {
     activeCtx.fillText('▶ Lecture externe sur le projecteur', OUTPUT_W / 2, OUTPUT_H / 2 - 10);
     activeCtx.fillStyle = '#555';
     activeCtx.font = `${Math.round(OUTPUT_H * 0.035)}px -apple-system, sans-serif`;
-    activeCtx.fillText(s.label || '', OUTPUT_W / 2, OUTPUT_H / 2 + Math.round(OUTPUT_H * 0.06));
+    activeCtx.fillText(layer.label || '', OUTPUT_W / 2, OUTPUT_H / 2 + Math.round(OUTPUT_H * 0.06));
   }
-  // 'black' → rien à dessiner
+}
+
+// Convertit un gabarit historique en pile de couches équivalente. Une scène qui
+// porte déjà `s.layers` (composée à la main) est renvoyée telle quelle.
+// L'ORDRE des couches = ordre de dessin (bas → haut) : il doit reproduire
+// exactement la séquence des appels de l'ancien drawScene pour rester au pixel.
+function sceneToLayers(s) {
+  if (!s) return [];
+  if (Array.isArray(s.layers)) return s.layers;
+  const L = [];
+  switch (s.kind) {
+    case 'camera':
+      L.push({ type: 'camera', sourceId: s.primaryId });
+      L.push({ type: 'logo' });
+      break;
+    case 'camera+verse':
+      L.push({ type: 'camera', sourceId: s.primaryId });
+      L.push({ type: 'logo' });
+      L.push({ type: 'verseBar' });
+      break;
+    case 'pip':
+      L.push({ type: 'camera', sourceId: s.primaryId });
+      L.push({ type: 'pipCorner', sourceId: s.secondaryId });
+      L.push({ type: 'logo' });
+      break;
+    case 'image':
+      L.push({ type: 'image', imageId: s.imageId });
+      break;
+    case 'image+verse':
+      L.push({ type: 'image', imageId: s.imageId });
+      L.push({ type: 'verseBar' });
+      break;
+    case 'card':
+      L.push({ type: 'card', cardId: s.cardId });
+      break;
+    case 'verse':
+      L.push({ type: 'verseFull' });
+      break;
+    case 'video':
+      L.push({ type: 'video', videoId: s.videoId });
+      break;
+    case 'video+verse':
+      L.push({ type: 'video', videoId: s.videoId });
+      L.push({ type: 'verseBar' });
+      break;
+    case 'intro':
+      L.push({ type: 'introOutro', mode: 'intro' });
+      break;
+    case 'outro':
+      L.push({ type: 'introOutro', mode: 'outro' });
+      break;
+    case 'iframe':
+      L.push({ type: 'iframe', label: s.label, url: s.url });
+      break;
+    // 'black' → pile vide (rien à dessiner)
+    // 'mosaic' → composition spéciale gérée à part dans drawScene
+  }
+  return L;
+}
+
+function drawScene(s) {
+  if (!s) return;
+  // La mosaïque est une composition de sous-scènes (grille), traitée à part.
+  if (s.kind === 'mosaic') { drawMosaic(s); return; }
+  const layers = sceneToLayers(s);
+  for (let i = 0; i < layers.length; i++) drawLayer(layers[i]);
 }
 
 // Cap le rendu à OUTPUT_FPS (30) pour éviter de dessiner à la fréquence native
@@ -1377,6 +2098,9 @@ function renderTick() {
   perfFramesDrawn++;
   if (perfLastDrawTs && (ts - perfLastDrawTs) > RENDER_INTERVAL_MS * 1.8) perfLateFrames++;
   perfLastDrawTs = ts;
+  // Aperçu live de l'éditeur de scène (Phase 3), si ouvert. Isolé : swap
+  // activeCtx en interne et le restaure, indépendant du dessin programme.
+  if (sceneEditor) { try { renderSceneEditorPreview(); } catch (e) {} }
   return true;
 }
 
@@ -4459,6 +5183,7 @@ async function loadStoredImages() {
   nextImageId = maxId + 1;
   loadLogoCfg();
   loadCards();
+  loadUserScenes();
   renderImages();
   renderLogoOverlayUi();
   renderCards();
@@ -5993,6 +6718,7 @@ async function init() {
   bindShortcuts();
   bindImagesUi();
   bindCardsUi();
+  bindSceneEditorUi();
   bindStudioModeUi();
   bindTransitionUi();
   bindCoopUi();
@@ -6036,8 +6762,11 @@ async function init() {
   startBgRenderLoop();
   startPerfHud();
   rebuildProgramStream();
-  await refreshDeviceList();
+  // Charge images, cartes et scènes utilisateur AVANT d'attendre la permission
+  // caméra : refreshDeviceList() peut rester bloqué (prompt non répondu, caméra
+  // absente/refusée), et le contenu sauvegardé ne doit pas dépendre de ça.
   loadStoredImages();
+  await refreshDeviceList();
   initSignaling();
   connectRelay();
 

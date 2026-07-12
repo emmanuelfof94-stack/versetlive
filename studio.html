@@ -463,6 +463,10 @@
             <span class="studio-transition-value" id="transitionDurationVal">300 ms</span>
           </div>
         </div>
+        <div class="studio-scenes-toolbar">
+          <button class="btn btn-sm" id="newSceneBtn" title="Créer une scène vide et la composer couche par couche (caméras, image, verset, logo…) — comme dans OBS.">➕ Nouvelle scène</button>
+          <button class="btn btn-sm" id="saveSceneBtn" title="Enregistre la scène actuellement à l'écran (aperçu en Studio Mode, sinon programme) comme scène nommée et réutilisable.">⭐ Enregistrer la scène active</button>
+        </div>
         <div class="studio-scenes" id="scenesList">
           <div class="studio-empty">Ajoute des caméras pour générer des scènes.</div>
         </div>
@@ -1396,6 +1400,47 @@
           <button class="btn" id="cardModalCancel">Annuler</button>
           <button class="btn btn-primary" id="cardModalSave">💾 Sauvegarder</button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Éditeur de scène (Phase 3) : composition en couches, façon OBS -->
+  <div class="modal-backdrop" id="sceneEditorModal">
+    <div class="modal modal-wide">
+      <div class="modal-header">
+        <h2>🎬 Éditer la scène</h2>
+        <button class="modal-close" id="sceneEditorClose">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="scene-editor-namebar">
+          <label>Nom de la scène
+            <input type="text" id="sceneEditorName" maxlength="60" placeholder="Ex : Prédication">
+          </label>
+        </div>
+        <div class="scene-editor-grid">
+          <div class="scene-editor-preview">
+            <div class="scene-editor-preview-label">Aperçu live</div>
+            <canvas id="sceneEditorCanvas" width="1280" height="720"></canvas>
+            <div class="scene-editor-preview-hint">Aperçu live (caméras en direct). Clique une couche caméra/image pour la sélectionner, puis <strong>glisse</strong> pour la déplacer ou tire les <strong>poignées</strong> pour la redimensionner. Les couches du haut de la liste passent devant.</div>
+          </div>
+          <div class="scene-editor-side">
+            <div class="scene-editor-addbar">
+              <span class="scene-editor-addlabel">➕ Ajouter une couche</span>
+              <div class="scene-editor-addbtns">
+                <button class="btn btn-sm" data-add="camera" title="Ajouter une caméra">🎥 Caméra</button>
+                <button class="btn btn-sm" data-add="image" title="Ajouter une image">🖼 Image</button>
+                <button class="btn btn-sm" data-add="card" title="Ajouter une carte">🎴 Carte</button>
+                <button class="btn btn-sm" data-add="verseBar" title="Bandeau verset en bas de l'écran">📖 Barre verset</button>
+                <button class="btn btn-sm" data-add="verseFull" title="Verset plein écran">📖 Verset plein</button>
+                <button class="btn btn-sm" data-add="logo" title="Logo en coin">✨ Logo</button>
+              </div>
+            </div>
+            <div class="scene-editor-layers" id="sceneEditorLayers"></div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" id="sceneEditorDone">✓ Terminé</button>
       </div>
     </div>
   </div>
