@@ -1440,38 +1440,71 @@ function drawVerseOverlay(area) {
 }
 
 function drawTitle(state, x, y, w, h, baseFont, fontFamily, color, align) {
-  const main = state.title || '';
-  const sub = state.subtitle || '';
-  const mainSize = Math.round(baseFont * 1.4);
-  const subSize = Math.round(baseFont * 0.55);
-  const mx = align === 'left' ? x + w * 0.05 : align === 'right' ? x + w - w * 0.05 : x + w / 2;
-  activeCtx.fillStyle = color;
+  const main = (state.title || '').trim();
+  const sub = (state.subtitle || '').trim();
+  if (!main && !sub) return;
+
+  const padX = w * 0.05, padY = h * 0.08;
+  const maxW = w - padX * 2;
+  const maxH = h - padY * 2;
+  const mx = align === 'left' ? x + padX : align === 'right' ? x + w - padX : x + w / 2;
   activeCtx.textAlign = align;
   activeCtx.textBaseline = 'middle';
+
+  // Multi-lignes + auto-réduction : on enveloppe le texte dans la largeur puis on
+  // réduit la police jusqu'à ce que l'ensemble (titre + sous-titre) tienne dans la
+  // hauteur disponible. Évite le débordement des textes libres longs.
+  let mainSize = Math.round(baseFont * 1.4);
+  let subSize = Math.round(baseFont * 0.55);
+  let mainLines = [], subLines = [], mainLH = 0, subLH = 0, gap = 0, totalH = 0, guard = 0;
+  do {
+    mainLines = main ? wrapText(main, maxW, mainSize, fontFamily, 'bold') : [];
+    subLines = sub ? wrapText(sub, maxW, subSize, fontFamily) : [];
+    mainLH = mainSize * 1.2;
+    subLH = subSize * 1.35;
+    gap = (main && sub) ? mainSize * 0.4 : 0;
+    totalH = mainLines.length * mainLH + subLines.length * subLH + gap;
+    if (totalH <= maxH || mainSize <= 16) break;
+    mainSize = Math.max(16, Math.floor(mainSize * 0.94));
+    subSize = Math.max(12, Math.floor(subSize * 0.94));
+  } while (guard++ < 80);
+
+  // Empilement centré verticalement dans la zone.
+  let cursor = y + (h - totalH) / 2;
+  activeCtx.fillStyle = color;
   activeCtx.font = `bold ${mainSize}px ${fontFamily}`;
-  activeCtx.fillText(main, mx, y + h / 2 - subSize);
-  if (sub) {
-    activeCtx.font = `${subSize}px ${fontFamily}`;
+  mainLines.forEach(line => { activeCtx.fillText(line, mx, cursor + mainLH / 2); cursor += mainLH; });
+  if (subLines.length) {
+    cursor += gap;
     activeCtx.fillStyle = state.accent || '#d4af37';
-    activeCtx.fillText(sub, mx, y + h / 2 + mainSize * 0.6);
+    activeCtx.font = `${subSize}px ${fontFamily}`;
+    subLines.forEach(line => { activeCtx.fillText(line, mx, cursor + subLH / 2); cursor += subLH; });
   }
 }
 
-function wrapText(text, maxWidth, fontSize, fontFamily) {
-  activeCtx.font = `${fontSize}px ${fontFamily}`;
-  const words = text.split(/\s+/);
+// Renvoie le texte à la ligne pour tenir dans maxWidth. `weight` (ex. 'bold')
+// est inclus dans la mesure pour que le gras ne déborde pas. Les retours à la
+// ligne explicites saisis par l'utilisateur (\n) sont respectés.
+function wrapText(text, maxWidth, fontSize, fontFamily, weight) {
+  activeCtx.font = `${weight ? weight + ' ' : ''}${fontSize}px ${fontFamily}`;
   const lines = [];
-  let line = '';
-  for (const word of words) {
-    const test = line ? line + ' ' + word : word;
-    if (activeCtx.measureText(test).width > maxWidth && line) {
-      lines.push(line);
-      line = word;
-    } else {
-      line = test;
+  // Chaque paragraphe (séparé par un retour à la ligne manuel) est enveloppé
+  // indépendamment, puis les lignes sont concaténées.
+  for (const paragraph of String(text).split('\n')) {
+    const words = paragraph.split(/\s+/).filter(Boolean);
+    if (!words.length) { lines.push(''); continue; } // ligne vide volontaire
+    let line = '';
+    for (const word of words) {
+      const test = line ? line + ' ' + word : word;
+      if (activeCtx.measureText(test).width > maxWidth && line) {
+        lines.push(line);
+        line = word;
+      } else {
+        line = test;
+      }
     }
+    if (line) lines.push(line);
   }
-  if (line) lines.push(line);
   return lines;
 }
 
