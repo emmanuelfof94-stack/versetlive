@@ -3162,6 +3162,7 @@ window.addEventListener('storage', (e) => {
   try {
     const state = JSON.parse(e.newValue);
     applyVerseState(state);
+    lastSyncedVerseRaw = e.newValue;
     // Forward to TV
     if (state.kind === 'title' && state.title) sendToTv({ type: 'showTitle', payload: state });
     else if (state.text) sendToTv({ type: 'show', payload: state });
@@ -3169,6 +3170,41 @@ window.addEventListener('storage', (e) => {
     if (state.style) sendToTv({ type: 'style', payload: state.style });
   } catch (err) {}
 });
+
+// Réconciliateur verset — filet de sécurité.
+// Les 3 chemins de sync (BroadcastChannel, event storage, init) peuvent perdre
+// un message si la fenêtre studio est gelée/throttlée par le navigateur quand
+// elle n'a pas le focus (2e écran, arrière-plan). Résultat : « parfois le verset
+// ne change pas ». On relit donc périodiquement le dernier verset diffusé par le
+// panneau (source de vérité = localStorage) et on le ré-applique s'il a changé.
+// Idempotent : ré-appliquer le même état ne fait que redessiner à l'identique.
+let lastSyncedVerseRaw = (() => {
+  try { return localStorage.getItem(STORAGE_KEY); } catch (e) { return null; }
+})();
+
+function reconcileVerseFromStorage() {
+  let raw = null;
+  try { raw = localStorage.getItem(STORAGE_KEY); } catch (e) { return; }
+  if (raw == null || raw === lastSyncedVerseRaw) return;
+  lastSyncedVerseRaw = raw;
+  try {
+    const state = JSON.parse(raw);
+    applyVerseState(state);
+    if (state.kind === 'title' && state.title) sendToTv({ type: 'showTitle', payload: state });
+    else if (state.text) sendToTv({ type: 'show', payload: state });
+    else sendToTv({ type: 'clear' });
+    if (state.style) sendToTv({ type: 'style', payload: state.style });
+  } catch (err) {}
+}
+
+// Tic lent en continu + reconciliation immédiate au retour au premier plan
+// (moment précis où un message a pu être manqué pendant le gel de la fenêtre).
+setInterval(reconcileVerseFromStorage, 1000);
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') reconcileVerseFromStorage();
+});
+window.addEventListener('focus', reconcileVerseFromStorage);
+window.addEventListener('pageshow', reconcileVerseFromStorage);
 
 // ============ Utilitaires ============
 function escapeHtml(s) {
