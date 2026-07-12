@@ -662,7 +662,8 @@ function createEmptyUserScene() {
 function openSceneEditor(id) {
   const us = getUserSceneById(id);
   if (!us) return;
-  sceneEditor = { id, scene: us };
+  // selectedIndex : couche active pour le drag/resize sur le canvas (Phase 4).
+  sceneEditor = { id, scene: us, selectedIndex: us.layers.length - 1 };
   renderSceneEditor();
   const m = $('sceneEditorModal');
   if (m) m.classList.add('show');
@@ -717,12 +718,17 @@ function editorAddLayer(type) {
   const layer = makeLayer(type);
   if (!layer) return;
   sceneEditor.scene.layers.push(layer);
+  sceneEditor.selectedIndex = sceneEditor.scene.layers.length - 1;
   sceneEditorChanged();
 }
 
 function editorRemoveLayer(arrIdx) {
   if (!sceneEditor) return;
   sceneEditor.scene.layers.splice(arrIdx, 1);
+  // Réajuste la sélection pour rester dans les bornes.
+  if (sceneEditor.selectedIndex >= sceneEditor.scene.layers.length) {
+    sceneEditor.selectedIndex = sceneEditor.scene.layers.length - 1;
+  }
   sceneEditorChanged();
 }
 
@@ -733,6 +739,9 @@ function editorMoveLayer(arrIdx, dir) {
   const j = arrIdx + dir;
   if (j < 0 || j >= L.length) return;
   const tmp = L[arrIdx]; L[arrIdx] = L[j]; L[j] = tmp;
+  // La sélection suit la couche déplacée.
+  if (sceneEditor.selectedIndex === arrIdx) sceneEditor.selectedIndex = j;
+  else if (sceneEditor.selectedIndex === j) sceneEditor.selectedIndex = arrIdx;
   sceneEditorChanged();
 }
 
@@ -794,13 +803,20 @@ function renderEditorLayers() {
   for (let i = L.length - 1; i >= 0; i--) {
     const layer = L[i];
     const row = document.createElement('div');
-    row.className = 'scene-editor-layer' + (layer.hidden ? ' hidden' : '');
+    row.className = 'scene-editor-layer'
+      + (layer.hidden ? ' hidden' : '')
+      + (i === sceneEditor.selectedIndex ? ' selected' : '');
 
     const head = document.createElement('div');
     head.className = 'scene-editor-layer-head';
     const name = document.createElement('span');
     name.className = 'scene-editor-layer-name';
     name.textContent = layerDisplayLabel(layer);
+    // Clic sur le nom = sélectionner cette couche (pour le drag sur le canvas).
+    name.addEventListener('click', () => {
+      sceneEditor.selectedIndex = i;
+      renderEditorLayers();
+    });
     head.appendChild(name);
 
     const actions = document.createElement('div');
@@ -877,11 +893,173 @@ function renderSceneEditorPreview() {
     ectx.fillStyle = '#000';
     ectx.fillRect(0, 0, OUTPUT_W, OUTPUT_H);
     drawScene(sceneEditor.scene);
+    drawEditorSelection(ectx);
   } catch (e) {
     /* isolé : un dessin fautif ne casse pas la boucle */
   } finally {
     activeCtx = prev;
   }
+}
+
+// ===== Composition libre au drag/resize sur le canvas (Phase 4) =====
+// Seules les couches caméra et image sont positionnables (elles respectent rect).
+// Le rect est manipulé en coordonnées normalisées 0..1 ; le drag n'a lieu que dans
+// l'éditeur (canvas du modal), jamais sur le programme live.
+const EDITOR_MIN_SIZE = 0.05;     // taille minimale d'une couche (fraction)
+const EDITOR_HANDLE_TOL = 0.022;  // tolérance de préhension d'une poignée (fraction)
+
+function isPositionableLayer(l) {
+  return l && (l.type === 'camera' || l.type === 'image');
+}
+
+// Rect d'édition d'une couche : son rect explicite, ou plein écran par défaut.
+function layerEditRect(l) {
+  return l && l.rect ? { x: l.rect.x, y: l.rect.y, w: l.rect.w, h: l.rect.h } : { x: 0, y: 0, w: 1, h: 1 };
+}
+
+function selectedEditorLayer() {
+  if (!sceneEditor) return null;
+  const l = sceneEditor.scene.layers[sceneEditor.selectedIndex];
+  return isPositionableLayer(l) ? l : null;
+}
+
+// Poignées d'un rect (8) en coordonnées normalisées, avec leur id.
+function editorHandlePoints(r) {
+  const cx = r.x + r.w / 2, cy = r.y + r.h / 2;
+  return [
+    { id: 'nw', nx: r.x, ny: r.y }, { id: 'n', nx: cx, ny: r.y }, { id: 'ne', nx: r.x + r.w, ny: r.y },
+    { id: 'e', nx: r.x + r.w, ny: cy }, { id: 'se', nx: r.x + r.w, ny: r.y + r.h },
+    { id: 's', nx: cx, ny: r.y + r.h }, { id: 'sw', nx: r.x, ny: r.y + r.h }, { id: 'w', nx: r.x, ny: cy },
+  ];
+}
+
+// Dessine le cadre + poignées de la couche sélectionnée dans le canvas éditeur.
+function drawEditorSelection(ectx) {
+  const l = selectedEditorLayer();
+  if (!l) return;
+  const r = layerEditRect(l);
+  const x = r.x * OUTPUT_W, y = r.y * OUTPUT_H, w = r.w * OUTPUT_W, h = r.h * OUTPUT_H;
+  ectx.save();
+  ectx.strokeStyle = '#fbbf24';
+  ectx.lineWidth = Math.max(2, OUTPUT_W * 0.0018);
+  ectx.setLineDash([OUTPUT_W * 0.01, OUTPUT_W * 0.006]);
+  ectx.strokeRect(x, y, w, h);
+  ectx.setLineDash([]);
+  const hs = OUTPUT_W * 0.011;
+  ectx.fillStyle = '#fbbf24';
+  editorHandlePoints(r).forEach(p => {
+    ectx.fillRect(p.nx * OUTPUT_W - hs / 2, p.ny * OUTPUT_H - hs / 2, hs, hs);
+  });
+  ectx.restore();
+}
+
+// Coordonnées normalisées 0..1 d'un évènement pointeur sur le canvas.
+function editorPointerNorm(e, canvas) {
+  const b = canvas.getBoundingClientRect();
+  return {
+    nx: Math.max(0, Math.min(1, (e.clientX - b.left) / b.width)),
+    ny: Math.max(0, Math.min(1, (e.clientY - b.top) / b.height)),
+  };
+}
+
+// Poignée sous le pointeur (pour la couche sélectionnée), ou null.
+function editorHitHandle(nx, ny) {
+  const l = selectedEditorLayer();
+  if (!l) return null;
+  const r = layerEditRect(l);
+  for (const p of editorHandlePoints(r)) {
+    if (Math.abs(nx - p.nx) < EDITOR_HANDLE_TOL && Math.abs(ny - p.ny) < EDITOR_HANDLE_TOL) return p.id;
+  }
+  return null;
+}
+
+// Index de la couche positionnable la plus en avant sous le pointeur, ou -1.
+function editorHitLayer(nx, ny) {
+  if (!sceneEditor) return -1;
+  const L = sceneEditor.scene.layers;
+  for (let i = L.length - 1; i >= 0; i--) {
+    if (!isPositionableLayer(L[i]) || L[i].hidden) continue;
+    const r = layerEditRect(L[i]);
+    if (nx >= r.x && nx <= r.x + r.w && ny >= r.y && ny <= r.y + r.h) return i;
+  }
+  return -1;
+}
+
+// Curseur adapté à la poignée survolée.
+const EDITOR_HANDLE_CURSOR = {
+  nw: 'nwse-resize', se: 'nwse-resize', ne: 'nesw-resize', sw: 'nesw-resize',
+  n: 'ns-resize', s: 'ns-resize', e: 'ew-resize', w: 'ew-resize',
+};
+
+let editorDrag = null; // { mode:'move'|'resize', handle, startNX, startNY, startRect }
+
+function editorPointerDown(e) {
+  if (!sceneEditor) return;
+  const canvas = $('sceneEditorCanvas');
+  if (!canvas) return;
+  const { nx, ny } = editorPointerNorm(e, canvas);
+  // 1) Poignée de la couche déjà sélectionnée → redimensionnement.
+  const handle = editorHitHandle(nx, ny);
+  if (handle) {
+    const l = selectedEditorLayer();
+    editorDrag = { mode: 'resize', handle, startNX: nx, startNY: ny, startRect: layerEditRect(l) };
+    canvas.setPointerCapture(e.pointerId);
+    e.preventDefault();
+    return;
+  }
+  // 2) Sinon, sélectionner la couche sous le pointeur et démarrer un déplacement.
+  const hit = editorHitLayer(nx, ny);
+  if (hit >= 0) {
+    sceneEditor.selectedIndex = hit;
+    renderEditorLayers();
+    const l = sceneEditor.scene.layers[hit];
+    editorDrag = { mode: 'move', handle: null, startNX: nx, startNY: ny, startRect: layerEditRect(l) };
+    canvas.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  }
+}
+
+function editorPointerMove(e) {
+  const canvas = $('sceneEditorCanvas');
+  if (!canvas || !sceneEditor) return;
+  const { nx, ny } = editorPointerNorm(e, canvas);
+  if (!editorDrag) {
+    // Feedback curseur (survol poignée / couche).
+    const h = editorHitHandle(nx, ny);
+    canvas.style.cursor = h ? EDITOR_HANDLE_CURSOR[h] : (editorHitLayer(nx, ny) >= 0 ? 'move' : 'default');
+    return;
+  }
+  const l = selectedEditorLayer();
+  if (!l) return;
+  const s = editorDrag.startRect;
+  const dnx = nx - editorDrag.startNX, dny = ny - editorDrag.startNY;
+  let r;
+  if (editorDrag.mode === 'move') {
+    r = {
+      x: Math.max(0, Math.min(1 - s.w, s.x + dnx)),
+      y: Math.max(0, Math.min(1 - s.h, s.y + dny)),
+      w: s.w, h: s.h,
+    };
+  } else {
+    r = { x: s.x, y: s.y, w: s.w, h: s.h };
+    const H = editorDrag.handle;
+    if (H.includes('w')) { const nxp = Math.min(s.x + s.w - EDITOR_MIN_SIZE, Math.max(0, s.x + dnx)); r.w = s.x + s.w - nxp; r.x = nxp; }
+    if (H.includes('e')) { r.w = Math.max(EDITOR_MIN_SIZE, Math.min(1 - s.x, s.w + dnx)); }
+    if (H.includes('n')) { const nyp = Math.min(s.y + s.h - EDITOR_MIN_SIZE, Math.max(0, s.y + dny)); r.h = s.y + s.h - nyp; r.y = nyp; }
+    if (H.includes('s')) { r.h = Math.max(EDITOR_MIN_SIZE, Math.min(1 - s.y, s.h + dny)); }
+  }
+  l.rect = r; // mutation directe : l'aperçu se met à jour via renderTick, sans reconstruire le DOM
+  e.preventDefault();
+}
+
+function editorPointerUp(e) {
+  const canvas = $('sceneEditorCanvas');
+  if (editorDrag) {
+    editorDrag = null;
+    // Persiste + rafraîchit la liste (presets) + diffuse aux copilotes.
+    sceneEditorChanged();
+  }
+  if (canvas) { try { canvas.releasePointerCapture(e.pointerId); } catch (err) {} }
 }
 
 function bindSceneEditorUi() {
@@ -902,6 +1080,14 @@ function bindSceneEditorUi() {
   document.querySelectorAll('#sceneEditorModal [data-add]').forEach(b => {
     b.addEventListener('click', () => editorAddLayer(b.dataset.add));
   });
+  // Drag/resize libre sur le canvas d'aperçu (Phase 4).
+  const canvas = $('sceneEditorCanvas');
+  if (canvas) {
+    canvas.addEventListener('pointerdown', editorPointerDown);
+    canvas.addEventListener('pointermove', editorPointerMove);
+    canvas.addEventListener('pointerup', editorPointerUp);
+    canvas.addEventListener('pointercancel', editorPointerUp);
+  }
 }
 
 // Détection manuelle du double-clic sur une scène : le simple clic reconstruit

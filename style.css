@@ -2130,6 +2130,7 @@ kbd {
 .scene-editor-preview canvas {
   width: 100%; height: auto; aspect-ratio: 16 / 9;
   background: #000; border: 1px solid var(--border); border-radius: 6px; display: block;
+  touch-action: none; /* le drag/resize gère lui-même le geste (Phase 4) */
 }
 .scene-editor-preview-hint { font-size: 11px; color: var(--text-secondary); margin-top: 6px; }
 .scene-editor-addbar { margin-bottom: 12px; }
@@ -2140,6 +2141,8 @@ kbd {
   padding: 8px 10px;
 }
 .scene-editor-layer.hidden { opacity: 0.5; }
+.scene-editor-layer.selected { border-color: #fbbf24; box-shadow: 0 0 0 1px #fbbf24; }
+.scene-editor-layer-name { cursor: pointer; }
 .scene-editor-layer-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .scene-editor-layer-name { font-size: 13px; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .scene-editor-layer-actions { display: flex; gap: 3px; flex-shrink: 0; }
