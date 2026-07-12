@@ -1131,70 +1131,77 @@ function getImageForScene(scene) {
   return imageSources.find(i => i.id === scene.imageId);
 }
 
-function drawScene(s) {
-  if (s.kind === 'camera' || s.kind === 'camera+verse') {
-    const src = getSourceForScene(s, 'primary');
-    if (src) drawVideoCover(src.videoEl, 0, 0, OUTPUT_W, OUTPUT_H, src);
+// ============ Modèle de scène en couches (Phase 1) ============
+// Une scène est rendue comme une PILE DE COUCHES dessinées de bas en haut.
+// Les gabarits historiques ({kind:'camera'}, 'camera+verse', 'pip'…) sont
+// convertis à la volée en couches équivalentes par sceneToLayers(), de sorte
+// que le rendu reste STRICTEMENT identique. Les scènes composées à la main
+// (Phases 2+) porteront directement un tableau `s.layers`.
+//
+// Couche : { type, hidden?, rect? {x,y,w,h en fraction 0..1}, ...props }
+// Types : 'camera' (sourceId) · 'pipCorner' (sourceId) · 'image' (imageId) ·
+//         'logo' · 'verseBar' · 'verseFull' · 'card' (cardId) · 'video' (videoId) ·
+//         'introOutro' (mode) · 'iframe' (label,url)
+
+// Rect d'une couche en pixels de sortie. Défaut = plein écran.
+function layerRect(layer) {
+  const r = layer && layer.rect;
+  if (!r) return { x: 0, y: 0, w: OUTPUT_W, h: OUTPUT_H };
+  return { x: r.x * OUTPUT_W, y: r.y * OUTPUT_H, w: r.w * OUTPUT_W, h: r.h * OUTPUT_H };
+}
+
+// Dessine une couche unique dans activeCtx. Chaque branche reproduit à
+// l'identique le code du gabarit d'origine (mêmes primitives, même géométrie).
+function drawLayer(layer) {
+  if (!layer || layer.hidden) return;
+  const t = layer.type;
+  if (t === 'camera') {
+    const src = sources.find(s => s.id === layer.sourceId);
+    if (!src) return;
+    const { x, y, w, h } = layerRect(layer);
+    drawVideoCover(src.videoEl, x, y, w, h, src);
+  } else if (t === 'pipCorner') {
+    // Vignette caméra en coin, cadre blanc — géométrie fixe historique du PiP.
+    const corner = sources.find(s => s.id === layer.sourceId);
+    if (!corner) return;
+    const pipW = OUTPUT_W * 0.28;
+    const pipH = pipW * 9 / 16;
+    const pipX = OUTPUT_W - pipW - 40;
+    const pipY = 40;
+    activeCtx.fillStyle = '#fff';
+    activeCtx.fillRect(pipX - 4, pipY - 4, pipW + 8, pipH + 8);
+    drawVideoCover(corner.videoEl, pipX, pipY, pipW, pipH, corner);
+  } else if (t === 'image') {
+    const img = imageSources.find(i => i.id === layer.imageId);
+    if (!img || !img.imgEl) return;
+    // Taille + position réglables PAR IMAGE (centrée, marge autour si < 100 %).
+    // Repli sur la taille globale (fullImageScale) pour les images sans réglage
+    // propre, afin de préserver le comportement existant.
+    const sc = img.scale != null
+      ? Math.max(0.1, Math.min(1, img.scale))
+      : Math.max(0.1, Math.min(1, fullImageScale));
+    const ox = img.offsetX != null ? Math.max(-0.5, Math.min(0.5, img.offsetX)) : 0;
+    const oy = img.offsetY != null ? Math.max(-0.5, Math.min(0.5, img.offsetY)) : 0;
+    const iw = OUTPUT_W * sc, ih = OUTPUT_H * sc;
+    drawImageContain(img.imgEl, (OUTPUT_W - iw) / 2 + ox * OUTPUT_W, (OUTPUT_H - ih) / 2 + oy * OUTPUT_H, iw, ih);
+  } else if (t === 'logo') {
     drawLogoOverlay();
-    if (s.kind === 'camera+verse') {
-      // Verset en bas, sur le tiers inférieur, fond translucide
-      const h = OUTPUT_H * 0.30;
-      activeCtx.fillStyle = 'rgba(0,0,0,0.55)';
-      activeCtx.fillRect(0, OUTPUT_H - h, OUTPUT_W, h);
-      drawVerseOverlay({ x: 0, y: OUTPUT_H - h, w: OUTPUT_W, h });
-    }
-  } else if (s.kind === 'pip') {
-    const main = getSourceForScene(s, 'primary');
-    const corner = getSourceForScene(s, 'secondary');
-    if (main) drawVideoCover(main.videoEl, 0, 0, OUTPUT_W, OUTPUT_H, main);
-    if (corner) {
-      const pipW = OUTPUT_W * 0.28;
-      const pipH = pipW * 9 / 16;
-      const pipX = OUTPUT_W - pipW - 40;
-      const pipY = 40;
-      activeCtx.fillStyle = '#fff';
-      activeCtx.fillRect(pipX - 4, pipY - 4, pipW + 8, pipH + 8);
-      drawVideoCover(corner.videoEl, pipX, pipY, pipW, pipH, corner);
-    }
-    drawLogoOverlay();
-  } else if (s.kind === 'image' || s.kind === 'image+verse') {
-    const img = getImageForScene(s);
-    if (img && img.imgEl) {
-      // Taille + position réglables PAR IMAGE (centrée, marge autour si < 100 %).
-      // Repli sur la taille globale (fullImageScale) pour les images sans réglage
-      // propre, afin de préserver le comportement existant.
-      const sc = img.scale != null
-        ? Math.max(0.1, Math.min(1, img.scale))
-        : Math.max(0.1, Math.min(1, fullImageScale));
-      const ox = img.offsetX != null ? Math.max(-0.5, Math.min(0.5, img.offsetX)) : 0;
-      const oy = img.offsetY != null ? Math.max(-0.5, Math.min(0.5, img.offsetY)) : 0;
-      const iw = OUTPUT_W * sc, ih = OUTPUT_H * sc;
-      drawImageContain(img.imgEl, (OUTPUT_W - iw) / 2 + ox * OUTPUT_W, (OUTPUT_H - ih) / 2 + oy * OUTPUT_H, iw, ih);
-    }
-    if (s.kind === 'image+verse') {
-      const h = OUTPUT_H * 0.30;
-      activeCtx.fillStyle = 'rgba(0,0,0,0.55)';
-      activeCtx.fillRect(0, OUTPUT_H - h, OUTPUT_W, h);
-      drawVerseOverlay({ x: 0, y: OUTPUT_H - h, w: OUTPUT_W, h });
-    }
-  } else if (s.kind === 'card') {
-    const card = getCardById(s.cardId);
-    if (card) drawCardContent(activeCtx, card, OUTPUT_W, OUTPUT_H);
-  } else if (s.kind === 'verse') {
+  } else if (t === 'verseBar') {
+    // Verset en bas, sur le tiers inférieur, fond translucide.
+    const h = OUTPUT_H * 0.30;
+    activeCtx.fillStyle = 'rgba(0,0,0,0.55)';
+    activeCtx.fillRect(0, OUTPUT_H - h, OUTPUT_W, h);
+    drawVerseOverlay({ x: 0, y: OUTPUT_H - h, w: OUTPUT_W, h });
+  } else if (t === 'verseFull') {
     drawVerseOverlay({ x: 0, y: 0, w: OUTPUT_W, h: OUTPUT_H });
-  } else if (s.kind === 'mosaic') {
-    drawMosaic(s);
-  } else if (s.kind === 'intro' || s.kind === 'outro') {
-    if (window.IntroOutro) window.IntroOutro.draw(activeCtx, s.kind, OUTPUT_W, OUTPUT_H);
-  } else if (s.kind === 'video' || s.kind === 'video+verse') {
-    if (window.VideoLibrary) window.VideoLibrary.draw(activeCtx, s.videoId, OUTPUT_W, OUTPUT_H);
-    if (s.kind === 'video+verse') {
-      const h = OUTPUT_H * 0.30;
-      activeCtx.fillStyle = 'rgba(0,0,0,0.55)';
-      activeCtx.fillRect(0, OUTPUT_H - h, OUTPUT_W, h);
-      drawVerseOverlay({ x: 0, y: OUTPUT_H - h, w: OUTPUT_W, h });
-    }
-  } else if (s.kind === 'iframe') {
+  } else if (t === 'card') {
+    const card = getCardById(layer.cardId);
+    if (card) drawCardContent(activeCtx, card, OUTPUT_W, OUTPUT_H);
+  } else if (t === 'video') {
+    if (window.VideoLibrary) window.VideoLibrary.draw(activeCtx, layer.videoId, OUTPUT_W, OUTPUT_H);
+  } else if (t === 'introOutro') {
+    if (window.IntroOutro) window.IntroOutro.draw(activeCtx, layer.mode, OUTPUT_W, OUTPUT_H);
+  } else if (t === 'iframe') {
     // La lecture réelle se fait dans la fenêtre projecteur via une iframe ;
     // le canvas (et donc le live RTMP) ne reçoit qu'un placeholder.
     activeCtx.fillStyle = '#0a0a0a';
@@ -1205,9 +1212,74 @@ function drawScene(s) {
     activeCtx.fillText('▶ Lecture externe sur le projecteur', OUTPUT_W / 2, OUTPUT_H / 2 - 10);
     activeCtx.fillStyle = '#555';
     activeCtx.font = `${Math.round(OUTPUT_H * 0.035)}px -apple-system, sans-serif`;
-    activeCtx.fillText(s.label || '', OUTPUT_W / 2, OUTPUT_H / 2 + Math.round(OUTPUT_H * 0.06));
+    activeCtx.fillText(layer.label || '', OUTPUT_W / 2, OUTPUT_H / 2 + Math.round(OUTPUT_H * 0.06));
   }
-  // 'black' → rien à dessiner
+}
+
+// Convertit un gabarit historique en pile de couches équivalente. Une scène qui
+// porte déjà `s.layers` (composée à la main) est renvoyée telle quelle.
+// L'ORDRE des couches = ordre de dessin (bas → haut) : il doit reproduire
+// exactement la séquence des appels de l'ancien drawScene pour rester au pixel.
+function sceneToLayers(s) {
+  if (!s) return [];
+  if (Array.isArray(s.layers)) return s.layers;
+  const L = [];
+  switch (s.kind) {
+    case 'camera':
+      L.push({ type: 'camera', sourceId: s.primaryId });
+      L.push({ type: 'logo' });
+      break;
+    case 'camera+verse':
+      L.push({ type: 'camera', sourceId: s.primaryId });
+      L.push({ type: 'logo' });
+      L.push({ type: 'verseBar' });
+      break;
+    case 'pip':
+      L.push({ type: 'camera', sourceId: s.primaryId });
+      L.push({ type: 'pipCorner', sourceId: s.secondaryId });
+      L.push({ type: 'logo' });
+      break;
+    case 'image':
+      L.push({ type: 'image', imageId: s.imageId });
+      break;
+    case 'image+verse':
+      L.push({ type: 'image', imageId: s.imageId });
+      L.push({ type: 'verseBar' });
+      break;
+    case 'card':
+      L.push({ type: 'card', cardId: s.cardId });
+      break;
+    case 'verse':
+      L.push({ type: 'verseFull' });
+      break;
+    case 'video':
+      L.push({ type: 'video', videoId: s.videoId });
+      break;
+    case 'video+verse':
+      L.push({ type: 'video', videoId: s.videoId });
+      L.push({ type: 'verseBar' });
+      break;
+    case 'intro':
+      L.push({ type: 'introOutro', mode: 'intro' });
+      break;
+    case 'outro':
+      L.push({ type: 'introOutro', mode: 'outro' });
+      break;
+    case 'iframe':
+      L.push({ type: 'iframe', label: s.label, url: s.url });
+      break;
+    // 'black' → pile vide (rien à dessiner)
+    // 'mosaic' → composition spéciale gérée à part dans drawScene
+  }
+  return L;
+}
+
+function drawScene(s) {
+  if (!s) return;
+  // La mosaïque est une composition de sous-scènes (grille), traitée à part.
+  if (s.kind === 'mosaic') { drawMosaic(s); return; }
+  const layers = sceneToLayers(s);
+  for (let i = 0; i < layers.length; i++) drawLayer(layers[i]);
 }
 
 // Cap le rendu à OUTPUT_FPS (30) pour éviter de dessiner à la fréquence native
