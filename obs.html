@@ -134,6 +134,9 @@
       line-height: 1.1;
       letter-spacing: 0.05em;
       margin: 0;
+      /* pre-wrap : respecte les retours à la ligne manuels (\n) tout en
+         continuant d'envelopper les lignes longues. */
+      white-space: pre-wrap;
     }
     .title-sub {
       font-size: 2.6vw;
@@ -142,6 +145,7 @@
       opacity: 0.92;
       font-style: italic;
       line-height: 1.4;
+      white-space: pre-wrap;
     }
     .title-sub:empty { display: none; }
     .title-deco-top, .title-deco-mid, .title-deco-bottom {

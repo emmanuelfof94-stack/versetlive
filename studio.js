@@ -3662,8 +3662,11 @@ function renderTextModeContent(containerId, prefix, mode, big) {
       <textarea id="${prefix}VerseText" rows="${rowsVerse}" placeholder="Texte du verset à diffuser..." style="${fieldStyle()}"></textarea>
     `;
   } else if (mode === 'title') {
+    // Titre en textarea : permet les retours à la ligne manuels (Entrée) pour
+    // annoncer plusieurs points, un par ligne. drawTitle rend chaque ligne.
+    const rowsTitle = big ? 4 : 2;
     wrap.innerHTML = `
-      <input type="text" id="${prefix}Title" placeholder="Titre principal (ex: Réunion de prière)" style="${fieldStyle()}">
+      <textarea id="${prefix}Title" rows="${rowsTitle}" placeholder="Titre / annonce (Entrée = nouvelle ligne pour un 2e point)" style="${fieldStyle()}"></textarea>
       <input type="text" id="${prefix}Subtitle" placeholder="Sous-titre (optionnel — ex: Ce soir 19h)" style="${fieldStyle()}">
     `;
   } else if (mode === 'keypoint') {
