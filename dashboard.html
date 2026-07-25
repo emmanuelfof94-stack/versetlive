@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VersetLive — Tableau de bord</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* ====== TABLEAU DE BORD ====== */
+    /* Page centrale : état de la diffusion en un coup d'œil + accès rapide
+       à tous les outils. Réutilise les tokens de couleur de style.css. */
+    .dash {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px 20px 60px;
+      display: grid;
+      gap: 20px;
+    }
+
+    .dash-section-title {
+      font-size: 13px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      margin: 8px 0 -4px;
+      font-weight: 700;
+    }
+
+    /* ---- Grille haute : à l'antenne + minuteur ---- */
+    .dash-top {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 20px;
+    }
+    @media (max-width: 860px) {
+      .dash-top { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    /* ---- À l'antenne ---- */
+    .onair-card { position: relative; overflow: hidden; }
+    .onair-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .onair-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: var(--bg-tertiary);
+      color: var(--text-secondary);
+    }
+    .onair-tag.live {
+      background: rgba(239, 68, 68, 0.15);
+      color: #fca5a5;
+    }
+    .onair-tag .dot {
+      width: 9px; height: 9px; border-radius: 50%;
+      background: currentColor;
+    }
+    .onair-tag.live .dot { animation: pulse 1.6s infinite; }
+
+    .onair-kind {
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+    }
+
+    .onair-body {
+      min-height: 150px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 8px 4px;
+    }
+    .onair-text {
+      font-size: clamp(20px, 2.6vw, 30px);
+      line-height: 1.45;
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+    .onair-ref {
+      margin-top: 14px;
+      font-size: 15px;
+      color: var(--accent-hover);
+      font-style: italic;
+    }
+    .onair-empty {
+      color: var(--text-secondary);
+      font-style: italic;
+      font-size: 18px;
+      text-align: center;
+      opacity: 0.7;
+    }
+    .song-badge {
+      display: inline-block;
+      margin-top: 12px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      padding: 4px 12px;
+      border-radius: 6px;
+      background: rgba(99, 102, 241, 0.18);
+      color: var(--accent-hover);
+    }
+
+    .onair-controls {
+      display: flex;
+      gap: 10px;
+      margin-top: 18px;
+      flex-wrap: wrap;
+    }
+    .onair-controls .btn { flex: 1; min-width: 120px; justify-content: center; }
+    .onair-hint {
+      margin-top: 10px;
+      font-size: 11.5px;
+      color: var(--text-secondary);
+      opacity: 0.75;
+    }
+
+    /* ---- Minuteur ---- */
+    .timer-card { display: flex; flex-direction: column; gap: 12px; }
+    .timer-label {
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+    }
+    .timer-value {
+      font-family: ui-monospace, "Courier New", monospace;
+      font-size: 52px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      font-variant-numeric: tabular-nums;
+      color: var(--text-primary);
+      line-height: 1;
+    }
+    .timer-value.warning { color: #f59e0b; }
+    .timer-value.critical { color: var(--danger); animation: pulse 1s infinite; }
+    .timer-value.over { color: var(--danger); text-shadow: 0 0 16px rgba(239,68,68,0.5); }
+    .timer-sub { font-size: 12px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.12em; }
+    .timer-clock {
+      font-family: ui-monospace, "Courier New", monospace;
+      font-size: 30px;
+      font-weight: 700;
+      color: var(--text-primary);
+      font-variant-numeric: tabular-nums;
+    }
+    .timer-controls { display: flex; gap: 8px; }
+    .timer-controls .btn { flex: 1; justify-content: center; }
+    .timer-divider { height: 1px; background: var(--border); margin: 4px 0; }
+
+    /* ---- Outils ---- */
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+      gap: 14px;
+    }
+    a.tool-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 16px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      text-decoration: none;
+      color: inherit;
+      transition: border-color 0.18s, transform 0.18s, background 0.18s;
+    }
+    a.tool-card:hover {
+      border-color: var(--accent);
+      background: var(--bg-tertiary);
+      transform: translateY(-2px);
+    }
+    .tool-icon {
+      width: 44px; height: 44px;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--accent), #a855f7);
+    }
+    .tool-name { font-weight: 700; font-size: 15px; margin-bottom: 3px; }
+    .tool-desc { font-size: 12.5px; color: var(--text-secondary); line-height: 1.4; }
+
+    /* ---- Stats + Historique ---- */
+    .dash-bottom {
+      display: grid;
+      grid-template-columns: 1fr 1.4fr;
+      gap: 20px;
+    }
+    @media (max-width: 860px) {
+      .dash-bottom { grid-template-columns: 1fr; }
+    }
+
+    .stat-row { display: flex; gap: 14px; flex-wrap: wrap; }
+    .stat {
+      flex: 1;
+      min-width: 120px;
+      background: var(--bg-tertiary);
+      border-radius: 10px;
+      padding: 14px 16px;
+    }
+    .stat-num { font-size: 28px; font-weight: 800; color: var(--text-primary); }
+    .stat-lbl { font-size: 11.5px; color: var(--text-secondary); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 2px; }
+
+    .hist-list { display: flex; flex-direction: column; gap: 8px; max-height: 340px; overflow-y: auto; }
+    .hist-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      background: var(--bg-tertiary);
+      border: 1px solid transparent;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .hist-item:hover { border-color: var(--accent); }
+    .hist-main { flex: 1; overflow: hidden; }
+    .hist-ref { font-weight: 700; font-size: 13.5px; color: var(--text-primary); }
+    .hist-text {
+      font-size: 12px;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 2px;
+    }
+    .hist-replay {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent-hover);
+      opacity: 0;
+      transition: opacity 0.15s;
+      white-space: nowrap;
+    }
+    .hist-item:hover .hist-replay { opacity: 1; }
+    .empty {
+      color: var(--text-secondary);
+      font-style: italic;
+      font-size: 14px;
+      text-align: center;
+      padding: 24px;
+      opacity: 0.7;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px; left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      padding: 12px 22px;
+      border-radius: 8px;
+      font-size: 14px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s, transform 0.25s;
+      z-index: 999;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="logo">
+      <div class="logo-icon">✝</div>
+      <div>VersetLive <span style="color:var(--text-secondary); font-weight:500;">· Tableau de bord</span></div>
+    </div>
+    <div class="topbar-actions">
+      <div class="status-indicator">
+        <div class="status-dot" id="liveDot"></div>
+        <span id="liveStatus">En attente</span>
+      </div>
+      <div class="status-indicator" title="Heure actuelle">
+        <span id="topClock" style="font-variant-numeric: tabular-nums;">--:--:--</span>
+      </div>
+      <a class="btn btn-primary" href="/" title="Panneau de contrôle principal">📖 Panneau</a>
+    </div>
+  </div>
+
+  <div class="dash">
+    <!-- HAUT : à l'antenne + minuteur -->
+    <div class="dash-top">
+      <!-- À L'ANTENNE -->
+      <div class="card onair-card">
+        <div class="onair-head">
+          <span class="onair-tag" id="onairTag"><span class="dot"></span><span id="onairTagText">En attente</span></span>
+          <span class="onair-kind" id="onairKind">À l'antenne</span>
+        </div>
+        <div class="onair-body" id="onairBody">
+          <div class="onair-empty">Aucun contenu diffusé</div>
+        </div>
+        <div class="onair-controls">
+          <button class="btn" id="prevBtn" title="Verset précédent (nécessite le panneau ouvert)">◀ Précédent</button>
+          <button class="btn" id="nextBtn" title="Verset suivant (nécessite le panneau ouvert)">Suivant ▶</button>
+          <button class="btn btn-danger" id="clearBtn">⏹ Effacer l'écran</button>
+        </div>
+        <div class="onair-hint">◀ / ▶ pilotent le panneau principal s'il est ouvert dans un autre onglet.</div>
+      </div>
+
+      <!-- MINUTEUR -->
+      <div class="card timer-card">
+        <div>
+          <div class="timer-label">⏱ Minuteur du culte</div>
+          <div class="timer-value" id="timerValue">00:00</div>
+          <div class="timer-sub" id="timerTag">À l'arrêt</div>
+        </div>
+        <div class="timer-controls">
+          <button class="btn btn-success" id="tStart">▶ Démarrer</button>
+          <button class="btn" id="tPause" style="display:none;">⏸ Pause</button>
+          <button class="btn" id="tReset">↺ Réinit.</button>
+        </div>
+        <div class="timer-divider"></div>
+        <div>
+          <div class="timer-label">🕐 Heure actuelle</div>
+          <div class="timer-clock" id="bigClock">--:--:--</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OUTILS -->
+    <div class="dash-section-title">Outils</div>
+    <div class="tools-grid" id="toolsGrid"></div>
+
+    <!-- BAS : stats + historique -->
+    <div class="dash-bottom">
+      <div>
+        <div class="dash-section-title">Statistiques de session</div>
+        <div class="card" style="margin-top:14px;">
+          <div class="stat-row">
+            <div class="stat">
+              <div class="stat-num" id="statHistory">0</div>
+              <div class="stat-lbl">Versets diffusés</div>
+            </div>
+            <div class="stat">
+              <div class="stat-num" id="statCurrent">—</div>
+              <div class="stat-lbl">À l'antenne</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="dash-section-title">Historique — cliquer pour re-diffuser</div>
+        <div class="card" style="margin-top:14px;">
+          <div class="hist-list" id="histList">
+            <div class="empty">Aucun verset diffusé</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="dashboard.js"></script>
+  <script src="/sw-register.js"></script>
+  <script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>

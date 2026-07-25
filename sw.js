@@ -3,7 +3,7 @@
 // (rarement modifiés) + network-first avec fallback cache pour le reste
 // (les mises à jour arrivent immédiatement en ligne, et l'app reste utilisable hors-ligne).
 
-const CACHE_VERSION = 'v23';
+const CACHE_VERSION = 'v24';
 const CACHE_NAME = `versetlive-${CACHE_VERSION}`;
 
 // Assets pré-chargés à l'installation. Tout ce qui est indispensable pour qu'une
@@ -12,6 +12,7 @@ const CACHE_NAME = `versetlive-${CACHE_VERSION}`;
 const PRECACHE_URLS = [
   '/',
   '/index.html',
+  '/dashboard.html',
   '/studio.html',
   '/obs.html',
   '/tv.html',
@@ -36,6 +37,7 @@ const PRECACHE_URLS = [
   '/intro-outro.js',
   '/timer.js',
   '/presenter.js',
+  '/dashboard.js',
   '/studio-camera.js',
   '/songselect-import.js',
   '/youtube-scheduler.js',

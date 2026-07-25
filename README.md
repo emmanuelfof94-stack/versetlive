@@ -56,6 +56,7 @@ VersetLive part de l'autre bout : **tout est dans le navigateur**, déployé sur
 ➡ **[versetlive.vercel.app](https://versetlive.vercel.app)**
 
 - Panneau principal : [/](https://versetlive.vercel.app)
+- Tableau de bord : [/dashboard](https://versetlive.vercel.app/dashboard)
 - Studio : [/studio](https://versetlive.vercel.app/studio)
 - TV : [/tv](https://versetlive.vercel.app/tv) (à ouvrir sur l'écran cible)
 
@@ -99,6 +100,7 @@ Le relais embarque `ffmpeg-static` (binaire ARM64 macOS) — pas besoin d'instal
 | URL | Rôle |
 |---|---|
 | `/` | Panneau principal — sélection verset/chant/titre, contrôle du direct |
+| `/dashboard` | Tableau de bord — état du direct en temps réel, accès rapide aux outils, historique re-diffusable |
 | `/studio` | Régie complète — mixeur multi-caméras, enregistrement, streaming |
 | `/obs` | Vue plein écran à capturer dans OBS Studio (optionnel) |
 | `/presenter` | Vue présentateur pour l'orateur (lecture + notes) |
