@@ -290,6 +290,14 @@ textarea { resize: vertical; min-height: 80px; }
 
 .verse-item:hover { background: #475569; }
 .verse-item.active { border-color: var(--accent); background: rgba(99, 102, 241, 0.15); }
+/* Plage sélectionnée (Maj+clic) : tous les versets de la plage sont marqués,
+   le verset « actif » gardant en plus sa bordure pleine. */
+.verse-item.in-range {
+  background: rgba(99, 102, 241, 0.1);
+  border-color: rgba(99, 102, 241, 0.45);
+  border-style: dashed;
+}
+.verse-item.in-range.active { border-style: solid; }
 
 .verse-num {
   font-weight: 700;

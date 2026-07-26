@@ -34,6 +34,170 @@ async function loadChapterAt(book, chap, verseNum) {
   renderVerseList();
 }
 
+// ====== RÉFÉRENCES ET PLAGES DE VERSETS ======
+// Un seul parseur pour TOUS les endroits où l'on tape une référence (barre du
+// Studio, recherche du panneau). Accepte, avec ou sans espaces :
+//   « Luc 2 »            → chapitre entier, verset 1
+//   « Luc 2:5 », « Luc 2. 5 »
+//   « Luc 2: 1-10 », « 1 Jean 4 : 7 – 12 »  → plage de versets
+// Les tirets typographiques (– —) sont normalisés en tiret simple.
+function parseVerseRef(input) {
+  const s = String(input || '').trim().replace(/[–—]/g, '-');
+  // Livre = éventuel chiffre initial (1 Jean) + lettres/espaces/points.
+  // Le quantificateur paresseux laisse les chiffres suivants au chapitre.
+  const m = s.match(/^(\d?\s*[A-Za-zÀ-ÖØ-öø-ÿ.\s]+?)\s*(\d+)\s*(?:[:.,]\s*(\d+)\s*(?:-\s*(\d+))?)?\s*$/);
+  if (!m) return null;
+  const bookName = m[1].trim().replace(/\.$/, '').toLowerCase();
+  const chap = parseInt(m[2], 10);
+  const start = m[3] ? parseInt(m[3], 10) : null;
+  let end = m[4] ? parseInt(m[4], 10) : start;
+  if (start && end && end < start) end = start; // « 10-1 » → verset 10 seul
+  const book = BIBLE_BOOKS.find(b =>
+    b.name.toLowerCase() === bookName ||
+    b.name.toLowerCase().startsWith(bookName) ||
+    b.short.toLowerCase() === bookName
+  );
+  if (!book) return { error: 'book-not-found' };
+  if (chap < 1 || chap > book.chapters) return { error: 'chapter-out-of-range' };
+  return { book, chap, start, end, isRange: !!(start && end && end > start) };
+}
+
+// ====== PLAGE DIFFUSÉE EN PAGES ======
+// Une plage longue (Luc 2:1-10 ≈ 1200 caractères) serait illisible d'un bloc :
+// l'auto-réduction du studio descendrait à 14 px. On découpe donc la plage en
+// « écrans » qui tiennent lisiblement, et Suivant/Précédent fait défiler ces
+// écrans (au lieu d'avancer verset par verset) tant que la plage est active.
+const RANGE_PAGE_MAX_CHARS = 320; // ≈ 4 lignes à la taille par défaut
+
+// verseRange = { bookName, chap, startNum, endNum, pages: [...], index }
+// pages[i] = { reference, text, startNum, endNum }
+let verseRange = null;
+
+// Découpage glouton : on remplit un écran tant qu'on reste sous le budget de
+// caractères, avec toujours AU MOINS un verset par écran (un verset très long
+// occupe son propre écran et sera réduit par le studio).
+function buildVersePages(bookName, chap, verses) {
+  const pages = [];
+  let cur = [];
+  let curLen = 0;
+  const flush = () => {
+    if (!cur.length) return;
+    const a = cur[0].num, b = cur[cur.length - 1].num;
+    pages.push({
+      reference: `${bookName} ${chap}:${a === b ? a : a + '-' + b}`,
+      // Numéros de verset en préfixe : indispensable dès qu'un écran en contient
+      // plusieurs, et cohérent quand la plage se réduit à un seul.
+      text: cur.map(v => `${v.num}. ${v.text}`).join(' '),
+      startNum: a,
+      endNum: b,
+    });
+    cur = [];
+    curLen = 0;
+  };
+  verses.forEach(v => {
+    const piece = `${v.num}. ${v.text}`;
+    if (cur.length && curLen + piece.length + 1 > RANGE_PAGE_MAX_CHARS) flush();
+    cur.push(v);
+    curLen += piece.length + 1;
+  });
+  flush();
+  return pages;
+}
+
+// Diffuse l'écran i de la plage active.
+function sendRangePage(i) {
+  if (!verseRange) return;
+  const n = verseRange.pages.length;
+  const idx = Math.max(0, Math.min(n - 1, i));
+  verseRange.index = idx;
+  const p = verseRange.pages[idx];
+  // Aligner la sélection de la liste sur le premier verset de l'écran : si l'on
+  // quitte la plage (Suivant en fin de plage), la navigation reprend au bon endroit.
+  const listIdx = chapterVerses.findIndex(cv => cv.num === p.startNum);
+  if (listIdx >= 0) activeIndex = listIdx;
+  highlightRangeInList();
+  broadcastVerse(p.reference, p.text, undefined, {
+    rangeRef: `${verseRange.bookName} ${verseRange.chap}:${verseRange.startNum}-${verseRange.endNum}`,
+    pageIndex: idx + 1,
+    pageCount: n,
+  });
+}
+
+// Prépare une plage à partir du chapitre déjà chargé (sélection Maj+clic), sans
+// la diffuser : l'opérateur envoie ensuite avec « Envoyer en direct ».
+function setRangeFromList(iStart, iEnd) {
+  const a = Math.min(iStart, iEnd), b = Math.max(iStart, iEnd);
+  const slice = chapterVerses.slice(a, b + 1);
+  if (!slice.length) return;
+  verseRange = {
+    bookName: currentBookName,
+    chap: currentChapter,
+    startNum: slice[0].num,
+    endNum: slice[slice.length - 1].num,
+    pages: buildVersePages(currentBookName, currentChapter, slice),
+    index: 0,
+  };
+  highlightRangeInList();
+  const n = verseRange.pages.length;
+  els.currentRef.textContent =
+    `${verseRange.bookName} ${verseRange.chap}:${verseRange.startNum}-${verseRange.endNum}`
+    + ` — ${slice.length} versets, ${n} écran${n > 1 ? 's' : ''} (sélectionné)`;
+}
+
+// Charge un chapitre puis diffuse la plage demandée (référence tapée).
+async function showVerseRange(book, chap, start, end) {
+  const verses = await fetchChapter(currentTranslation, book.id, chap);
+  if (!verses || !verses.length) throw new Error('Chapitre vide');
+  chapterVerses = verses.map(vx => ({
+    num: vx.verse,
+    text: cleanVerseHtml(vx.text),
+    reference: `${book.name} ${chap}:${vx.verse}`,
+  }));
+  currentBookName = book.name;
+  currentChapter = chap;
+  if (els.book) els.book.value = book.id;
+  if (els.chapter) {
+    els.chapter.innerHTML = Array.from({ length: book.chapters }, (_, i) =>
+      `<option value="${i + 1}">${i + 1}</option>`
+    ).join('');
+    els.chapter.value = chap;
+  }
+  renderVerseList();
+
+  const inRange = chapterVerses.filter(v => v.num >= start && v.num <= end);
+  if (!inRange.length) throw new Error('Versets hors du chapitre');
+  verseRange = {
+    bookName: book.name,
+    chap,
+    startNum: inRange[0].num,
+    endNum: inRange[inRange.length - 1].num,
+    pages: buildVersePages(book.name, chap, inRange),
+    index: 0,
+  };
+  sendRangePage(0);
+}
+
+// Surligne dans la liste tous les versets de la plage active.
+function highlightRangeInList() {
+  if (!els.verseList) return;
+  const items = els.verseList.querySelectorAll('.verse-item');
+  items.forEach((el, j) => {
+    const v = chapterVerses[j];
+    const inRange = verseRange && v && v.num >= verseRange.startNum && v.num <= verseRange.endNum;
+    el.classList.toggle('in-range', !!inRange);
+    el.classList.toggle('active', j === activeIndex);
+  });
+}
+
+// Sort du mode plage (retour au verset par verset).
+function clearVerseRange() {
+  if (!verseRange) return;
+  verseRange = null;
+  if (els.verseList) {
+    els.verseList.querySelectorAll('.verse-item').forEach(el => el.classList.remove('in-range'));
+  }
+}
+
 // Reçoit les commandes de navigation envoyées par le studio (sans
 // devoir revenir manuellement sur cet onglet). Le studio envoie
 // { type: 'nav', action: 'prev'|'next'|'clear'|'showRef', payload? }.
@@ -48,6 +212,27 @@ bc?.addEventListener('message', async (event) => {
     return;
   }
   if (msg.type !== 'nav') return;
+
+  // Plage active : Suivant/Précédent fait défiler les écrans de la plage. Aux
+  // bornes, on quitte la plage et la navigation verset par verset reprend là où
+  // la plage s'arrêtait (sendRangePage a déjà calé activeIndex).
+  if (verseRange && (msg.action === 'next' || msg.action === 'prev')) {
+    if (msg.action === 'next' && verseRange.index < verseRange.pages.length - 1) {
+      sendRangePage(verseRange.index + 1);
+      return;
+    }
+    if (msg.action === 'prev' && verseRange.index > 0) {
+      sendRangePage(verseRange.index - 1);
+      return;
+    }
+    // Sortie de plage : se positionner sur le dernier (Suivant) ou le premier
+    // (Précédent) verset de la plage, puis laisser la logique normale continuer.
+    const boundaryNum = msg.action === 'next' ? verseRange.endNum : verseRange.startNum;
+    const idx = chapterVerses.findIndex(cv => cv.num === boundaryNum);
+    if (idx >= 0) activeIndex = idx;
+    clearVerseRange();
+  }
+
   if (msg.action === 'next') {
     if (activeIndex < chapterVerses.length - 1) {
       selectVerse(activeIndex + 1);
@@ -96,22 +281,18 @@ bc?.addEventListener('message', async (event) => {
   } else if (msg.action === 'clear') {
     clearLive();
   } else if (msg.action === 'showRef' && msg.payload) {
-    const ref = String(msg.payload).trim();
-    const m = ref.match(/^([\d]?\s*[A-Za-zéèêàâîôùçÉÈÊÀÂÎÔÙÇ]+\.?)\s+(\d+)(?::(\d+))?$/);
-    if (!m) { bc?.postMessage({ type: 'navAck', ok: false, reason: 'parse' }); return; }
-    const bookName = m[1].trim().toLowerCase();
-    const chap = parseInt(m[2]);
-    const verseNum = m[3] ? parseInt(m[3]) : 1;
-    const book = BIBLE_BOOKS.find(b =>
-      b.name.toLowerCase() === bookName ||
-      b.name.toLowerCase().startsWith(bookName) ||
-      b.short.toLowerCase() === bookName
-    );
-    if (!book) { bc?.postMessage({ type: 'navAck', ok: false, reason: 'book-not-found' }); return; }
-    if (chap < 1 || chap > book.chapters) { bc?.postMessage({ type: 'navAck', ok: false, reason: 'chapter-out-of-range' }); return; }
+    // Accepte désormais les plages : « Luc 2:1-10 », « Luc 2: 1 - 10 »…
+    const parsed = parseVerseRef(msg.payload);
+    if (!parsed) { bc?.postMessage({ type: 'navAck', ok: false, reason: 'parse' }); return; }
+    if (parsed.error) { bc?.postMessage({ type: 'navAck', ok: false, reason: parsed.error }); return; }
     try {
-      await loadChapterAt(book, chap, verseNum);
-      sendCurrentVerse();
+      if (parsed.isRange) {
+        await showVerseRange(parsed.book, parsed.chap, parsed.start, parsed.end);
+      } else {
+        clearVerseRange();
+        await loadChapterAt(parsed.book, parsed.chap, parsed.start || 1);
+        sendCurrentVerse();
+      }
     } catch (e) {
       bc?.postMessage({ type: 'navAck', ok: false, reason: 'fetch-' + (e.message || 'error') });
     }
@@ -396,7 +577,11 @@ function broadcastVerse(reference, text, translation, meta) {
   bc?.postMessage({ type: 'show', payload: state });
   postToPreview({ type: 'show', payload: state });
 
-  els.currentRef.textContent = reference || '—';
+  // En mode plage, on indique quel écran est à l'antenne (l'écran de projection
+  // n'affiche que la référence de l'écran courant, ex. « Luc 2:1-2 »).
+  els.currentRef.textContent = (state.pageCount > 1)
+    ? `${reference} — écran ${state.pageIndex}/${state.pageCount}`
+    : (reference || '—');
   els.currentTrans.textContent = state.translation;
   els.liveDot.classList.add('live');
   els.liveStatus.textContent = 'En direct';
@@ -405,6 +590,7 @@ function broadcastVerse(reference, text, translation, meta) {
 }
 
 function clearLive() {
+  clearVerseRange(); // effacer l'écran sort aussi du mode plage
   localStorage.setItem(STORAGE_KEY, JSON.stringify({ style: getStyle() }));
   bc?.postMessage({ type: 'clear' });
   postToPreview({ type: 'clear' });
@@ -547,16 +733,23 @@ function renderVerseList() {
   `).join('');
   els.verseList.querySelectorAll('.verse-item').forEach(item => {
     const i = parseInt(item.dataset.i);
-    item.addEventListener('click', () => selectVerse(i));
+    item.addEventListener('click', (e) => {
+      // Maj+clic = sélectionner la plage depuis le verset déjà sélectionné.
+      if (e.shiftKey && activeIndex >= 0 && activeIndex !== i) setRangeFromList(activeIndex, i);
+      else selectVerse(i);
+    });
     item.addEventListener('dblclick', () => {
       selectVerse(i);
       sendCurrentVerse();
     });
   });
+  // Réafficher le surlignage si une plage est active (la liste vient d'être reconstruite).
+  if (verseRange) highlightRangeInList();
 }
 
 function selectVerse(i) {
   if (i < 0 || i >= chapterVerses.length) return;
+  clearVerseRange(); // un clic simple sort du mode plage
   activeIndex = i;
   els.verseList.querySelectorAll('.verse-item').forEach((el, j) => {
     el.classList.toggle('active', j === i);
@@ -567,6 +760,12 @@ function selectVerse(i) {
 }
 
 function sendCurrentVerse() {
+  // Plage sélectionnée (Maj+clic) : on diffuse son premier écran ; Suivant fait
+  // ensuite défiler les écrans.
+  if (verseRange) {
+    sendRangePage(verseRange.index || 0);
+    return;
+  }
   if (activeIndex < 0) {
     toast('Sélectionnez d\'abord un verset');
     return;
@@ -581,42 +780,39 @@ async function doSearch() {
   if (!q) return;
   els.searchResults.innerHTML = '<div class="empty">Recherche…</div>';
 
-  // Détecter si c'est une référence (ex: Jean 3:16, 1 Jean 4:8, Jean 3:18-20)
-  const refMatch = q.match(/^([\d]?\s*[A-Za-zéèêàâîôùçÉÈÊÀÂÎÔÙÇ]+\.?)\s+(\d+)(?::(\d+)(?:\s*-\s*(\d+))?)?$/);
-  if (refMatch) {
-    const bookName = refMatch[1].trim().toLowerCase();
-    const chap = parseInt(refMatch[2]);
-    const verseStart = refMatch[3] ? parseInt(refMatch[3]) : null;
-    const verseEnd = refMatch[4] ? parseInt(refMatch[4]) : verseStart;
-    const book = BIBLE_BOOKS.find(b =>
-      b.name.toLowerCase() === bookName ||
-      b.name.toLowerCase().startsWith(bookName) ||
-      b.short.toLowerCase() === bookName
-    );
-    if (book) {
-      try {
-        const verses = await fetchChapter(els.translation.value, book.id, chap);
-        const filtered = verseStart
-          ? verses.filter(v => v.verse >= verseStart && v.verse <= verseEnd)
-          : verses;
-        const results = filtered.map(v => ({
-          reference: `${book.name} ${chap}:${v.verse}`,
-          text: cleanVerseHtml(v.text),
-        }));
-        // Si plage de versets : ajouter en tête une entrée "combinée" diffusable d'un coup
-        if (verseStart && verseEnd > verseStart && results.length > 1) {
-          const combinedText = results
-            .map(r => `${r.reference.split(':')[1]}. ${r.text}`)
-            .join(' ');
-          results.unshift({
-            reference: `${book.name} ${chap}:${verseStart}-${verseEnd}`,
-            text: combinedText,
-          });
-        }
-        renderSearchResults(results);
-        return;
-      } catch (e) { /* fallback to keyword search */ }
-    }
+  // Détecter si c'est une référence — même parseur que la barre du Studio, donc
+  // « Luc 2:1-10 » comme « Luc 2: 1 - 10 » (espaces, tirets typographiques).
+  const parsed = parseVerseRef(q);
+  if (parsed && !parsed.error) {
+    const { book, chap } = parsed;
+    const verseStart = parsed.start;
+    const verseEnd = parsed.end;
+    try {
+      const verses = await fetchChapter(els.translation.value, book.id, chap);
+      const filtered = verseStart
+        ? verses.filter(v => v.verse >= verseStart && v.verse <= verseEnd)
+        : verses;
+      const results = filtered.map(v => ({
+        reference: `${book.name} ${chap}:${v.verse}`,
+        text: cleanVerseHtml(v.text),
+      }));
+      // Plage : entrée « toute la plage » en tête. Un clic dessus la diffuse en
+      // écrans successifs (Suivant/Précédent), les entrées suivantes restent
+      // des versets isolés.
+      if (parsed.isRange && results.length > 1) {
+        const pages = buildVersePages(book.name, chap,
+          filtered.map(v => ({ num: v.verse, text: cleanVerseHtml(v.text) })));
+        results.unshift({
+          reference: `${book.name} ${chap}:${verseStart}-${verseEnd}`,
+          text: `▶ Diffuser la plage entière — ${results.length} versets en `
+              + `${pages.length} écran${pages.length > 1 ? 's' : ''} : `
+              + pages.map(p => p.reference.split(':')[1]).join(' · '),
+          range: { bookId: book.id, chap, start: verseStart, end: verseEnd },
+        });
+      }
+      renderSearchResults(results);
+      return;
+    } catch (e) { /* fallback to keyword search */ }
   }
 
   // Recherche par mot-clé
@@ -648,8 +844,19 @@ function renderSearchResults(results) {
   `).join('');
   els.searchResults.querySelectorAll('.search-result').forEach(el => {
     const i = parseInt(el.dataset.i);
-    el.addEventListener('click', () => {
+    el.addEventListener('click', async () => {
       const r = results[i];
+      if (r.range) {
+        const book = BIBLE_BOOKS.find(b => b.id === r.range.bookId);
+        if (!book) return;
+        try {
+          await showVerseRange(book, r.range.chap, r.range.start, r.range.end);
+        } catch (e) {
+          toast('Impossible de charger la plage : ' + (e.message || 'erreur'));
+        }
+        return;
+      }
+      clearVerseRange();
       broadcastVerse(r.reference, r.text);
     });
   });
@@ -670,10 +877,24 @@ els.manualSendBtn.addEventListener('click', () => {
 
 els.sendLiveBtn.addEventListener('click', sendCurrentVerse);
 els.clearLiveBtn.addEventListener('click', clearLive);
+// Précédent / Suivant : font défiler les écrans quand une plage est diffusée,
+// sinon avancent verset par verset (comportement historique).
 els.prevBtn.addEventListener('click', () => {
+  if (verseRange) {
+    if (verseRange.index > 0) { sendRangePage(verseRange.index - 1); return; }
+    const idx = chapterVerses.findIndex(cv => cv.num === verseRange.startNum);
+    if (idx >= 0) activeIndex = idx;
+    clearVerseRange();
+  }
   if (activeIndex > 0) { selectVerse(activeIndex - 1); sendCurrentVerse(); }
 });
 els.nextBtn.addEventListener('click', () => {
+  if (verseRange) {
+    if (verseRange.index < verseRange.pages.length - 1) { sendRangePage(verseRange.index + 1); return; }
+    const idx = chapterVerses.findIndex(cv => cv.num === verseRange.endNum);
+    if (idx >= 0) activeIndex = idx;
+    clearVerseRange();
+  }
   if (activeIndex < chapterVerses.length - 1) { selectVerse(activeIndex + 1); sendCurrentVerse(); }
 });
 
