@@ -3412,8 +3412,9 @@ try {
         'end-of-bible': 'Fin de la Bible atteinte',
         'start-of-bible': 'Début de la Bible atteint',
         'chapter-out-of-range': 'Numéro de chapitre hors limites',
-        'parse': 'Référence invalide — exemple : Jean 3:16',
+        'parse': 'Référence invalide — exemples : Jean 3:16, Luc 2:1-10',
         'book-not-found': 'Livre introuvable',
+        'panel-not-ready': 'Onglet Panneau pas prêt — recharge un chapitre ou une référence',
       };
       toast(reasons[msg.reason] || ('Navigation : ' + msg.reason), true);
     }

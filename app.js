@@ -116,8 +116,16 @@ function sendRangePage(i) {
   const listIdx = chapterVerses.findIndex(cv => cv.num === p.startNum);
   if (listIdx >= 0) activeIndex = listIdx;
   highlightRangeInList();
+  // Les coordonnées de la plage voyagent AVEC l'état diffusé (persisté en
+  // localStorage) : c'est ce qui permet de reconstruire la plage si cet onglet
+  // est rechargé en cours de culte (voir ensureVerseContext).
+  const book = BIBLE_BOOKS.find(b => b.name === verseRange.bookName);
   broadcastVerse(p.reference, p.text, undefined, {
     rangeRef: `${verseRange.bookName} ${verseRange.chap}:${verseRange.startNum}-${verseRange.endNum}`,
+    rangeBookId: book ? book.id : null,
+    rangeChap: verseRange.chap,
+    rangeStart: verseRange.startNum,
+    rangeEnd: verseRange.endNum,
     pageIndex: idx + 1,
     pageCount: n,
   });
@@ -144,8 +152,8 @@ function setRangeFromList(iStart, iEnd) {
     + ` — ${slice.length} versets, ${n} écran${n > 1 ? 's' : ''} (sélectionné)`;
 }
 
-// Charge un chapitre puis diffuse la plage demandée (référence tapée).
-async function showVerseRange(book, chap, start, end) {
+// Charge le chapitre et prépare la plage SANS la diffuser.
+async function prepareVerseRange(book, chap, start, end) {
   const verses = await fetchChapter(currentTranslation, book.id, chap);
   if (!verses || !verses.length) throw new Error('Chapitre vide');
   chapterVerses = verses.map(vx => ({
@@ -174,7 +182,66 @@ async function showVerseRange(book, chap, start, end) {
     pages: buildVersePages(book.name, chap, inRange),
     index: 0,
   };
+}
+
+// Charge un chapitre puis diffuse le 1er écran de la plage (référence tapée).
+async function showVerseRange(book, chap, start, end) {
+  await prepareVerseRange(book, chap, start, end);
   sendRangePage(0);
+}
+
+// Reconstruit le contexte de navigation (chapitre chargé + plage éventuelle) à
+// partir de l'état diffusé, qui est persisté en localStorage.
+//
+// Ce contexte ne vivait QU'EN MÉMOIRE dans cet onglet : si le panneau était
+// rechargé (le Service Worker recharge les pages tout seul après un
+// déploiement, et l'opérateur peut aussi rafraîchir), l'écran restait affiché
+// mais « Suivant » n'avait plus rien à faire → il répondait « Dernier verset du
+// chapitre » et la plage semblait bloquée sur son premier écran.
+let ensuringContext = null;
+function ensureVerseContext() {
+  let st = null;
+  try { st = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); } catch (e) {}
+  // L'état DIFFUSÉ fait référence : si une plage est à l'antenne mais absente de
+  // la mémoire de cet onglet (rechargement, ou plage posée depuis un autre
+  // onglet panneau), on la reconstruit même si un chapitre est déjà chargé —
+  // sinon Suivant repartirait verset par verset au lieu d'enchaîner les écrans.
+  // À la sortie d'une plage, l'état diffusé est un verset simple (sans champs
+  // range*), donc on ne « retombe » jamais dans la plage qu'on vient de quitter.
+  const stateIsRange = !!(st && st.rangeBookId && st.rangeStart && st.rangeEnd);
+  if (verseRange || (!stateIsRange && chapterVerses.length && activeIndex >= 0)) return Promise.resolve();
+  if (ensuringContext) return ensuringContext; // reconstruction déjà en cours
+  ensuringContext = (async () => {
+    if (!st) return;
+    try {
+      // Plage : on la reconstruit et on se replace sur l'écran diffusé.
+      if (stateIsRange) {
+        const book = BIBLE_BOOKS.find(b => b.id === st.rangeBookId);
+        if (book) {
+          await prepareVerseRange(book, st.rangeChap, st.rangeStart, st.rangeEnd);
+          if (verseRange) {
+            const i = Math.max(0, Math.min(verseRange.pages.length - 1, (st.pageIndex || 1) - 1));
+            verseRange.index = i;
+            const listIdx = chapterVerses.findIndex(cv => cv.num === verseRange.pages[i].startNum);
+            if (listIdx >= 0) activeIndex = listIdx;
+            highlightRangeInList();
+          }
+          return;
+        }
+      }
+      // Verset simple : recharger le chapitre et se replacer dessus.
+      const parsed = st.reference ? parseVerseRef(st.reference) : null;
+      if (parsed && !parsed.error) {
+        await loadChapterAt(parsed.book, parsed.chap, parsed.start || 1);
+        selectVerse(activeIndex >= 0 ? activeIndex : 0);
+      }
+    } catch (e) {
+      // Hors ligne / chapitre injoignable : la nav répondra son échec habituel.
+      console.warn('[Versets] contexte non reconstruit :', e && e.message || e);
+    }
+  })();
+  ensuringContext.finally(() => { ensuringContext = null; });
+  return ensuringContext;
 }
 
 // Surligne dans la liste tous les versets de la plage active.
@@ -212,6 +279,16 @@ bc?.addEventListener('message', async (event) => {
     return;
   }
   if (msg.type !== 'nav') return;
+
+  // Le contexte de navigation peut avoir été perdu (onglet rechargé) : on le
+  // reconstruit depuis l'état diffusé avant de traiter Suivant/Précédent.
+  if (msg.action === 'next' || msg.action === 'prev') {
+    await ensureVerseContext();
+    if (!verseRange && !chapterVerses.length) {
+      bc?.postMessage({ type: 'navAck', ok: false, reason: 'panel-not-ready' });
+      return;
+    }
+  }
 
   // Plage active : Suivant/Précédent fait défiler les écrans de la plage. Aux
   // bornes, on quitte la plage et la navigation verset par verset reprend là où
@@ -879,7 +956,8 @@ els.sendLiveBtn.addEventListener('click', sendCurrentVerse);
 els.clearLiveBtn.addEventListener('click', clearLive);
 // Précédent / Suivant : font défiler les écrans quand une plage est diffusée,
 // sinon avancent verset par verset (comportement historique).
-els.prevBtn.addEventListener('click', () => {
+els.prevBtn.addEventListener('click', async () => {
+  await ensureVerseContext();
   if (verseRange) {
     if (verseRange.index > 0) { sendRangePage(verseRange.index - 1); return; }
     const idx = chapterVerses.findIndex(cv => cv.num === verseRange.startNum);
@@ -888,7 +966,8 @@ els.prevBtn.addEventListener('click', () => {
   }
   if (activeIndex > 0) { selectVerse(activeIndex - 1); sendCurrentVerse(); }
 });
-els.nextBtn.addEventListener('click', () => {
+els.nextBtn.addEventListener('click', async () => {
+  await ensureVerseContext();
   if (verseRange) {
     if (verseRange.index < verseRange.pages.length - 1) { sendRangePage(verseRange.index + 1); return; }
     const idx = chapterVerses.findIndex(cv => cv.num === verseRange.endNum);
@@ -1168,3 +1247,7 @@ restoreStyle();
 refreshRangeLabels();
 renderHistory();
 broadcastStyleOnly(); // pousse le style initial vers la preview
+// Reprendre là où on en était : après un rechargement de cet onglet (Service
+// Worker, F5 en pleine réunion), on recharge le chapitre / la plage en cours
+// pour que Suivant-Précédent marche immédiatement. Ne rediffuse rien.
+ensureVerseContext();
