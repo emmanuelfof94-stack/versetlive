@@ -4295,40 +4295,62 @@ async function probeRemoteStats(call, videoEl, label, key) {
     };
   };
 
-  const t0 = await sample().catch(() => null);
-  // ~7 s : laisse le temps à ICE d'aboutir et à quelques frames d'arriver.
-  await new Promise(r => setTimeout(r, 7000));
-  const t1 = await sample().catch(() => null);
-  if (!t1) return;
+  const PERIOD_S = 7; // fenêtre de mesure : assez longue pour lisser, assez courte pour réagir
+  let prev = await sample().catch(() => null);
+  let firstVerdict = true;
 
-  const dBytes = t1.bytes - ((t0 && t0.bytes) || 0);
-  const dFrames = t1.frames - ((t0 && t0.frames) || 0);
-  const dims = (videoEl.videoWidth && videoEl.videoHeight)
-    ? `${videoEl.videoWidth}×${videoEl.videoHeight}` : '0×0';
-  const fps = Math.round(dFrames / 7);
+  // Surveillance continue : une caméra peut aussi devenir noire EN COURS de culte
+  // (téléphone mis en veille, appli quittée). Le bloc de diagnostic doit alors le
+  // dire, pas rester sur son verdict de départ.
+  const timer = setInterval(async () => {
+    // Arrêt dès que cet appel n'est plus celui de la caméra (fermé/remplacé).
+    let stillActive = false;
+    remoteCalls.forEach((e) => { if (e.call === call) stillActive = true; });
+    if (!stillActive || pc.connectionState === 'closed') {
+      clearInterval(timer);
+      return;
+    }
 
-  console.log(`[Cam] ${label} — diagnostic`, {
-    route: t1.route, iceState: t1.iceState, connState: t1.connState,
-    bytesRecus: t1.bytes, octetsSur7s: dBytes, framesDecodees: t1.frames, framesSur7s: dFrames, dims
-  });
+    const cur = await sample().catch(() => null);
+    if (!cur) return;
+    const dBytes = cur.bytes - ((prev && prev.bytes) || 0);
+    const dFrames = cur.frames - ((prev && prev.frames) || 0);
+    prev = cur;
 
-  let html;
-  if (!t1.route) {
-    html = `<span class="diag-err">✖ ${escapeHtml(label)} : aucune route réseau établie (ICE ${t1.iceState}).</span>`
-         + ` Le téléphone et le Studio ne se joignent pas → il faut un relais TURN (voir /api/turn).`;
-    toast(`✖ ${label} : pas de route réseau (TURN requis)`, true);
-  } else if (dBytes <= 0) {
-    html = `<span class="diag-err">✖ ${escapeHtml(label)} : connecté via ${t1.route} mais 0 octet vidéo reçu.</span>`
-         + ` Média bloqué en chemin (pare-feu / isolation wifi) → relais TURN requis.`;
-    toast(`✖ ${label} : 0 octet reçu (${t1.route})`, true);
-  } else if (dFrames <= 0) {
-    html = `<span class="diag-warn">⚠ ${escapeHtml(label)} : ${Math.round(dBytes / 1024)} ko reçus via ${t1.route} mais 0 image décodée.</span>`
-         + ` La piste part noire du téléphone (canvas figé ou écran en veille).`;
-    toast(`⚠️ ${label} : données reçues mais image noire`, true);
-  } else {
-    html = `<span class="diag-ok">✔ ${escapeHtml(label)} : ${dims}, ~${fps} img/s via ${t1.route}.</span>`;
-  }
-  setRemoteDiag(key, html);
+    const dims = (videoEl.videoWidth && videoEl.videoHeight)
+      ? `${videoEl.videoWidth}×${videoEl.videoHeight}` : '0×0';
+    const fps = Math.round(dFrames / PERIOD_S);
+
+    console.log(`[Cam] ${label} — diagnostic`, {
+      route: cur.route, iceState: cur.iceState, connState: cur.connState,
+      octetsSurPeriode: dBytes, framesSurPeriode: dFrames, dims
+    });
+
+    let html;
+    if (!cur.route) {
+      html = `<span class="diag-err">✖ ${escapeHtml(label)} : aucune route réseau établie (ICE ${cur.iceState}).</span>`
+           + ` Le téléphone et le Studio ne se joignent pas → relais TURN requis (/api/turn).`;
+      if (firstVerdict) toast(`✖ ${label} : pas de route réseau (TURN requis)`, true);
+    } else if (dBytes <= 0) {
+      // Sur une route locale/directe, le réseau n'est pas en cause : c'est le
+      // téléphone qui n'émet plus d'image (page caméra en arrière-plan, écran
+      // éteint, ou onglet quitté). Le TURN n'y changerait rien.
+      const local = cur.route === 'réseau local' || cur.route === 'direct (STUN)';
+      html = `<span class="diag-err">✖ ${escapeHtml(label)} : connecté via ${cur.route} mais 0 octet vidéo reçu.</span>`
+           + (local
+              ? ` Le téléphone n'envoie plus d'image : remets la page Caméra au premier plan, écran allumé.`
+              : ` Média bloqué en chemin (pare-feu / isolation wifi) → relais TURN requis.`);
+      if (firstVerdict) toast(`✖ ${label} : 0 octet vidéo reçu`, true);
+    } else if (dFrames <= 0) {
+      html = `<span class="diag-warn">⚠ ${escapeHtml(label)} : ${Math.round(dBytes / 1024)} ko reçus via ${cur.route} mais 0 image décodée.</span>`
+           + ` La piste arrive noire (canvas figé côté téléphone).`;
+      if (firstVerdict) toast(`⚠️ ${label} : données reçues mais image noire`, true);
+    } else {
+      html = `<span class="diag-ok">✔ ${escapeHtml(label)} : ${dims}, ~${fps} img/s via ${cur.route}.</span>`;
+    }
+    setRemoteDiag(key, html);
+    firstVerdict = false;
+  }, PERIOD_S * 1000);
 }
 
 function removeRemoteCall(call) {

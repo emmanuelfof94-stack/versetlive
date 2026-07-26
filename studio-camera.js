@@ -181,9 +181,70 @@ function waitForVideoFrame(video, timeoutMs = 3000) {
 
 // ===== Boucle de rendu canvas =====
 // Dessine le srcVideo en cover dans le canvas en appliquant zoom + mirror.
-function renderFrame() {
+//
+// ⚠️ Ce canvas EST le flux envoyé au Studio (captureStream). S'il cesse d'être
+// peint, la piste vidéo n'émet plus AUCUNE image : le Studio reste « connecté »,
+// l'audio continue de passer, mais la tuile devient noire. Or les navigateurs
+// gèlent requestAnimationFrame dès que la page n'est plus visible au premier plan
+// (écran éteint, changement d'appli, onglet en fond). D'où la boucle de secours
+// ci-dessous, portée par un Web Worker — même motif que le Studio.
+const RENDER_INTERVAL_MS = 33; // ~30 fps, la cadence de captureStream
+
+// Dessin calé sur une grille de temps : plusieurs sources (rAF + timer + worker)
+// peuvent tiquer sans provoquer de double dessin inutile.
+let lastDrawTs = 0;
+function renderTick() {
+  const now = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+  if (now - lastDrawTs < RENDER_INTERVAL_MS - 4) return;
+  lastDrawTs = now;
   drawPreviewFrame();
+}
+
+// Le rAF suivant est TOUJOURS replanifié, même si le dessin lève une exception :
+// sinon une seule frame fautive tuerait la boucle → flux figé jusqu'au rechargement.
+function renderFrame() {
+  try { renderTick(); } catch (e) { console.error('[Cam] frame ignorée', e); }
   renderRaf = requestAnimationFrame(renderFrame);
+}
+
+// Boucle de secours : maintient le canvas vivant (donc le flux vidéo) quand rAF
+// est gelé. Le check document.hidden laisse rAF gérer le premier plan.
+let bgRenderTimer = null;
+let bgRenderWorker = null;
+function startBgRenderLoop() {
+  if (bgRenderTimer) return;
+  // 1) Timer classique : utile, mais le thread principal peut être throttlé à
+  //    ~1 Hz (voire 1/min) quand la page passe en arrière-plan.
+  bgRenderTimer = setInterval(() => {
+    if (document.hidden) renderTick();
+  }, RENDER_INTERVAL_MS);
+  // 2) Tick porté par un Web Worker : ses timers échappent au throttling agressif
+  //    des pages en arrière-plan → réveille le dessin à ~30 fps même écran éteint.
+  try {
+    const src = 'var h=null;onmessage=function(e){var ms=(e.data&&e.data.ms)||33;if(h)clearInterval(h);h=setInterval(function(){postMessage(1);},ms);};';
+    const url = URL.createObjectURL(new Blob([src], { type: 'application/javascript' }));
+    bgRenderWorker = new Worker(url);
+    bgRenderWorker.onmessage = () => { if (document.hidden) renderTick(); };
+    bgRenderWorker.postMessage({ ms: RENDER_INTERVAL_MS });
+  } catch (e) { /* worker indispo : le setInterval assure le repli */ }
+}
+
+// Son inaudible en boucle : une page qui joue de l'audio est exemptée du
+// throttling le plus agressif des timers → la boucle de secours garde sa cadence.
+let keepAliveCtx = null;
+function startAudioKeepAlive() {
+  if (keepAliveCtx) return;
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    keepAliveCtx = new AC();
+    const osc = keepAliveCtx.createOscillator();
+    const gain = keepAliveCtx.createGain();
+    gain.gain.value = 0.0001; // inaudible, mais l'onglet est considéré « sonore »
+    osc.connect(gain).connect(keepAliveCtx.destination);
+    osc.start();
+    if (keepAliveCtx.state === 'suspended') keepAliveCtx.resume().catch(() => {});
+  } catch (e) { /* pas de keepAlive = le worker fait déjà l'essentiel */ }
 }
 
 // Un seul dessin du canvas (sans reprogrammer la boucle). Utilisé aussi pour
@@ -299,6 +360,10 @@ async function startSession() {
   drawPreviewFrame();
   cancelAnimationFrame(renderRaf);
   renderRaf = requestAnimationFrame(renderFrame);
+  // Boucles de survie : sans elles, le flux vidéo meurt dès que la page n'est
+  // plus au premier plan (tuile noire côté Studio, audio toujours audible).
+  startBgRenderLoop();
+  startAudioKeepAlive();
 
   // Construire le flux sortant : vidéo issue du canvas + audio brut de la caméra
   const canvasStream = previewCanvas.captureStream(30);
@@ -468,28 +533,37 @@ async function probeOutgoingStats(activeCall) {
     };
   };
 
-  const t0 = await sample().catch(() => null);
-  await new Promise(r => setTimeout(r, 7000));
-  const t1 = await sample().catch(() => null);
-  if (!t1 || !call || call !== activeCall) return; // appel remplacé/fermé entre-temps
+  const PERIOD_S = 7;
+  let prev = await sample().catch(() => null);
 
-  const dBytes = t1.bytes - ((t0 && t0.bytes) || 0);
-  const dFrames = t1.frames - ((t0 && t0.frames) || 0);
-  console.log('[Cam] envoi — diagnostic', {
-    route: t1.route, iceState: t1.iceState,
-    octetsEnvoyes: t1.bytes, octetsSur7s: dBytes,
-    framesEnvoyees: t1.frames, framesSur7s: dFrames,
-  });
+  // Surveillance continue : si l'envoi meurt en cours de culte, l'opérateur du
+  // téléphone doit le voir sur son écran, pas seulement le régisseur au Studio.
+  const timer = setInterval(async () => {
+    if (!call || call !== activeCall || pc.connectionState === 'closed') {
+      clearInterval(timer);
+      return;
+    }
+    const cur = await sample().catch(() => null);
+    if (!cur) return;
+    const dBytes = cur.bytes - ((prev && prev.bytes) || 0);
+    const dFrames = cur.frames - ((prev && prev.frames) || 0);
+    prev = cur;
 
-  if (!t1.route) {
-    setLiveStatus('⚠️ Pas de route réseau vers le Studio', 'err');
-  } else if (dBytes <= 0) {
-    setLiveStatus('⚠️ Vidéo non transmise (0 octet)', 'err');
-  } else if (dFrames <= 0) {
-    setLiveStatus('⚠️ Image figée (aucune frame envoyée)', 'err');
-  } else {
-    setLiveStatus(`● En direct — ${Math.round(dFrames / 7)} img/s (${t1.route})`, 'live');
-  }
+    console.log('[Cam] envoi — diagnostic', {
+      route: cur.route, iceState: cur.iceState,
+      octetsSurPeriode: dBytes, framesSurPeriode: dFrames,
+    });
+
+    if (!cur.route) {
+      setLiveStatus('⚠️ Pas de route réseau vers le Studio', 'err');
+    } else if (dBytes <= 0) {
+      setLiveStatus('⚠️ Vidéo non transmise (0 octet)', 'err');
+    } else if (dFrames <= 0) {
+      setLiveStatus('⚠️ Image figée (aucune frame envoyée)', 'err');
+    } else {
+      setLiveStatus(`● En direct — ${Math.round(dFrames / PERIOD_S)} img/s (${cur.route})`, 'live');
+    }
+  }, PERIOD_S * 1000);
 }
 
 async function switchCamera() {
