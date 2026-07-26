@@ -4090,6 +4090,25 @@ function renderRemoteDiag() {
   el.innerHTML = parts.join('<br>');
   el.hidden = !parts.length;
 }
+// État du relais TURN, affiché DÈS l'ouverture de la salle (avant qu'un
+// téléphone se connecte). Sans relais, un téléphone qui ne joint pas le Studio
+// en direct — autre réseau, 4G, ou même wifi avec isolation des clients —
+// donnera une tuile noire ; autant le savoir en préparant, pas en plein culte.
+function reportTurnStatus() {
+  const st = window.VLCoop && window.VLCoop.iceStatus;
+  if (!st || !st.source) return;
+  if (st.source === 'cloudflare') {
+    setRemoteDiag('__turn__', '<span class="diag-ok">✔ Relais TURN Cloudflare actif</span>');
+  } else if (st.source === 'manuel') {
+    setRemoteDiag('__turn__', '<span class="diag-ok">✔ Relais TURN manuel actif</span> (identifiants saisis à la main)');
+  } else {
+    setRemoteDiag('__turn__',
+      '<span class="diag-err">⚠️ Aucun relais TURN</span> — une caméra-téléphone qui ne joint pas'
+      + ' directement ce poste restera NOIRE (autre réseau, 4G, ou wifi qui isole les appareils).'
+      + ' Configurer <code>CLOUDFLARE_TURN_TOKEN_ID</code> / <code>CLOUDFLARE_TURN_API_TOKEN</code> sur Vercel.');
+  }
+}
+
 function setRemoteDiag(key, html) {
   remoteDiagLines.set(key, html);
   renderRemoteDiag();
@@ -4119,6 +4138,7 @@ function initSignaling() {
     if (iceConfig) peerOpts.config = iceConfig;
     signalingPeer = new Peer(peerId, peerOpts);
     wireSignalingPeer(peerId);
+    reportTurnStatus();
   });
 }
 
@@ -4179,10 +4199,31 @@ function addRemoteSource(stream, call) {
   // on réutilise la MÊME caméra (même emplacement, même scène, mêmes filtres)
   // en remplaçant simplement le flux. Évite le doublon + l'ancienne figée.
   const existing = sources.find(s => s.kind === 'remote' && s.deviceKey === deviceKey);
+
+  // ⚠️ PeerJS émet 'stream' UNE FOIS PAR PISTE reçue : son negotiator branche
+  // pc.ontrack → mediaConnection.addStream(evt.streams[0]) → emit('stream').
+  // Un appel audio + vidéo déclenche donc CE handler DEUX FOIS avec le MÊME
+  // objet MediaStream. Sans ce garde, le 2e passage tombait dans la branche
+  // « même appareil » et arrêtait les pistes du flux qu'il était censé
+  // réutiliser (existing.stream === stream) → pistes 'ended', tuile noire 2×2
+  // et audio mort, alors que le RTP arrivait normalement. C'était LA cause des
+  // caméras-téléphone noires. Rien à refaire ici : le <video> suit le même
+  // MediaStream au fur et à mesure que ses pistes s'ajoutent.
+  if (existing && existing.stream === stream) {
+    existing.videoEl.play().catch(() => {});
+    renderSources();
+    return;
+  }
+
   if (existing) {
     const wasAudioRouted = existing.audioRouted;
     if (wasAudioRouted) disconnectSourceAudio(existing); // détache l'ancien stream
-    try { existing.stream.getTracks().forEach(t => t.stop()); } catch (e) {}
+    // Ne JAMAIS arrêter une piste qui appartient au flux entrant (cas d'un flux
+    // partiellement partagé) : on ne coupe que ce qui est réellement remplacé.
+    const incoming = new Set(stream.getTracks());
+    try {
+      existing.stream.getTracks().forEach(t => { if (!incoming.has(t)) t.stop(); });
+    } catch (e) {}
     existing.stream = stream;
     existing.videoEl.srcObject = stream;
     existing.videoEl.play().catch(() => {});
@@ -4234,11 +4275,18 @@ function addRemoteSource(stream, call) {
 }
 
 function diagnoseRemoteVideo(videoEl, label, call, key) {
-  const vTracks = videoEl.srcObject ? videoEl.srcObject.getVideoTracks() : [];
-  if (!vTracks.length) {
-    toast(`⚠️ ${label} : aucune piste vidéo reçue (audio seul)`);
-    setRemoteDiag(key, `<span class="diag-err">✖ ${escapeHtml(label)} : aucune piste vidéo (le téléphone n'envoie pas d'image)</span>`);
-    return;
+  // Les pistes n'arrivent pas ensemble : PeerJS émet 'stream' dès la première
+  // piste reçue (souvent l'audio), la vidéo suivant quelques ms plus tard. On
+  // laisse donc 3 s avant de conclure « aucune piste vidéo », sinon on accuse à
+  // tort un téléphone qui émet parfaitement.
+  const hasVideo = () => !!(videoEl.srcObject && videoEl.srcObject.getVideoTracks().length);
+  if (!hasVideo()) {
+    setTimeout(() => {
+      if (!hasVideo()) {
+        toast(`⚠️ ${label} : aucune piste vidéo reçue (audio seul)`);
+        setRemoteDiag(key, `<span class="diag-err">✖ ${escapeHtml(label)} : aucune piste vidéo (le téléphone n'envoie pas d'image)</span>`);
+      }
+    }, 3000);
   }
   let resolved = false;
   const report = () => {
@@ -4345,6 +4393,16 @@ async function probeRemoteStats(call, videoEl, label, key) {
       html = `<span class="diag-warn">⚠ ${escapeHtml(label)} : ${Math.round(dBytes / 1024)} ko reçus via ${cur.route} mais 0 image décodée.</span>`
            + ` La piste arrive noire (canvas figé côté téléphone).`;
       if (firstVerdict) toast(`⚠️ ${label} : données reçues mais image noire`, true);
+    } else if (videoEl.videoWidth <= 2 || videoEl.videoHeight <= 2) {
+      // Le RTP arrive ET se décode, mais l'élément <video> n'a pas de vraie
+      // dimension (0×0, ou le cadre 2×2 de remplacement de Chrome) : les pistes
+      // du flux affiché sont mortes côté Studio. Symptôme de piste arrêtée par
+      // erreur — ne jamais afficher « ✔ » dans ce cas, la tuile EST noire.
+      const dead = (videoEl.srcObject ? videoEl.srcObject.getVideoTracks() : [])
+        .some(t => t.readyState === 'ended');
+      html = `<span class="diag-err">✖ ${escapeHtml(label)} : ~${fps} img/s reçues mais image ${dims} — tuile noire.</span>`
+           + (dead ? ` La piste vidéo affichée est arrêtée (ended) côté Studio.` : ` Le flux affiché n'a pas d'image exploitable.`);
+      if (firstVerdict) toast(`✖ ${label} : flux reçu mais tuile noire`, true);
     } else {
       html = `<span class="diag-ok">✔ ${escapeHtml(label)} : ${dims}, ~${fps} img/s via ${cur.route}.</span>`;
     }
