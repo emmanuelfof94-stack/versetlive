@@ -27,8 +27,35 @@
   // TURN Cloudflare éphémères via /api/turn. Le résultat est mis en cache pour
   // toute la session (un seul appel réseau, partagé host + copilotes).
   //
-  // Renvoie une promesse vers un objet RTCConfiguration { iceServers: [...] },
-  // ou null en cas d'échec (PeerJS retombe alors sur ses serveurs par défaut).
+  // Renvoie une promesse vers un objet RTCConfiguration { iceServers: [...] } :
+  // Cloudflare si /api/turn répond, sinon le repli public ci-dessous.
+  //
+  // Repli sans compte (Open Relay Project) : utilisé quand /api/turn est
+  // indisponible (variables d'env Vercel absentes). Ça évite la tuile noire
+  // « sans rien configurer », mais la bande passante n'est PAS garantie :
+  // pour un direct, configurer Cloudflare reste la bonne solution.
+  const FALLBACK_ICE_SERVERS = [
+    { urls: 'stun:stun.l.google.com:19302' },
+    { urls: 'stun:stun1.l.google.com:19302' },
+    {
+      urls: [
+        'turn:openrelay.metered.ca:80',
+        'turn:openrelay.metered.ca:443',
+        'turn:openrelay.metered.ca:443?transport=tcp',
+      ],
+      username: 'openrelayproject',
+      credential: 'openrelayproject',
+    },
+    {
+      urls: [
+        'turn:staticauth.openrelay.metered.ca:80',
+        'turn:staticauth.openrelay.metered.ca:443',
+      ],
+      username: 'openrelayproject',
+      credential: 'openrelayproject',
+    },
+  ];
+
   let _iceConfigPromise = null;
   function loadIceConfig() {
     if (_iceConfigPromise) return _iceConfigPromise;
@@ -49,8 +76,8 @@
         servers.push({ urls: 'stun:stun.l.google.com:19302' });
         return { iceServers: servers };
       } catch (e) {
-        console.warn('[Coop] TURN indisponible, fallback PeerJS par défaut :', e && e.message || e);
-        return null;
+        console.warn('[Coop] TURN Cloudflare indisponible (' + (e && e.message || e) + ') → repli TURN public (fiabilité non garantie)');
+        return { iceServers: FALLBACK_ICE_SERVERS };
       }
     })();
     return _iceConfigPromise;

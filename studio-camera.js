@@ -329,7 +329,31 @@ async function startSession() {
 // Studio (4G, autre wifi, NAT strict) se connecte au signaling mais son flux
 // vidéo ne traverse pas le NAT → le Studio affiche une tuile NOIRE. On récupère
 // des identifiants TURN Cloudflare éphémères via /api/turn (même relais que la
-// coop). Repli sur les serveurs PeerJS par défaut si /api/turn est indisponible.
+// coop). Si /api/turn est indisponible (variables d'env absentes), on retombe
+// sur un TURN public sans compte (Open Relay) : mieux que rien, mais bande
+// passante non garantie — configurer Cloudflare reste la bonne solution.
+const FALLBACK_ICE_SERVERS = [
+  { urls: 'stun:stun.l.google.com:19302' },
+  { urls: 'stun:stun1.l.google.com:19302' },
+  {
+    urls: [
+      'turn:openrelay.metered.ca:80',
+      'turn:openrelay.metered.ca:443',
+      'turn:openrelay.metered.ca:443?transport=tcp',
+    ],
+    username: 'openrelayproject',
+    credential: 'openrelayproject',
+  },
+  {
+    urls: [
+      'turn:staticauth.openrelay.metered.ca:80',
+      'turn:staticauth.openrelay.metered.ca:443',
+    ],
+    username: 'openrelayproject',
+    credential: 'openrelayproject',
+  },
+];
+
 let _iceConfigPromise = null;
 function loadIceConfig() {
   if (_iceConfigPromise) return _iceConfigPromise;
@@ -349,8 +373,8 @@ function loadIceConfig() {
       servers.push({ urls: 'stun:stun.l.google.com:19302' });
       return { iceServers: servers };
     } catch (e) {
-      console.warn('[Cam] TURN indisponible, fallback PeerJS par défaut :', e && e.message || e);
-      return null;
+      console.warn('[Cam] TURN Cloudflare indisponible (' + (e && e.message || e) + ') → repli TURN public (fiabilité non garantie)');
+      return { iceServers: FALLBACK_ICE_SERVERS };
     }
   })();
   return _iceConfigPromise;
@@ -389,6 +413,11 @@ async function connectToStudio() {
         else if (s === 'closed') setLiveStatus('Fermé', 'err');
       });
     }
+
+    // Vérifier que la vidéo PART vraiment : « En direct » ne prouve que la
+    // signalisation. Si 0 octet ne sort après 7 s, le Studio affichera une tuile
+    // noire → autant le dire ici, sur le téléphone de l'opérateur.
+    probeOutgoingStats(call);
   });
 
   peer.on('error', (err) => {
@@ -406,6 +435,61 @@ async function connectToStudio() {
     setLiveStatus('Déconnecté — reconnexion…', 'err');
     setTimeout(() => peer && !peer.destroyed && peer.reconnect(), 2000);
   });
+}
+
+// Sonde les statistiques d'envoi : dit si la vidéo sort réellement du téléphone
+// et par quelle route (réseau local / direct / relais TURN). Résultat affiché
+// dans la barre de statut + console (préfixe [Cam]).
+async function probeOutgoingStats(activeCall) {
+  const pc = activeCall && activeCall.peerConnection;
+  if (!pc || typeof pc.getStats !== 'function') return;
+
+  const sample = async () => {
+    const stats = await pc.getStats();
+    let outbound = null, pair = null;
+    stats.forEach((r) => {
+      if (r.type === 'outbound-rtp' && (r.kind === 'video' || r.mediaType === 'video')) outbound = r;
+      if (r.type === 'candidate-pair' && (r.selected || (r.nominated && r.state === 'succeeded'))) pair = r;
+    });
+    let route = null;
+    if (pair) {
+      const local = stats.get(pair.localCandidateId);
+      const remote = stats.get(pair.remoteCandidateId);
+      const lt = local && local.candidateType, rt = remote && remote.candidateType;
+      if (lt === 'relay' || rt === 'relay') route = 'relais';
+      else if (lt === 'host' && rt === 'host') route = 'réseau local';
+      else route = 'direct';
+    }
+    return {
+      route,
+      bytes: (outbound && outbound.bytesSent) || 0,
+      frames: (outbound && outbound.framesSent) || 0,
+      iceState: pc.iceConnectionState,
+    };
+  };
+
+  const t0 = await sample().catch(() => null);
+  await new Promise(r => setTimeout(r, 7000));
+  const t1 = await sample().catch(() => null);
+  if (!t1 || !call || call !== activeCall) return; // appel remplacé/fermé entre-temps
+
+  const dBytes = t1.bytes - ((t0 && t0.bytes) || 0);
+  const dFrames = t1.frames - ((t0 && t0.frames) || 0);
+  console.log('[Cam] envoi — diagnostic', {
+    route: t1.route, iceState: t1.iceState,
+    octetsEnvoyes: t1.bytes, octetsSur7s: dBytes,
+    framesEnvoyees: t1.frames, framesSur7s: dFrames,
+  });
+
+  if (!t1.route) {
+    setLiveStatus('⚠️ Pas de route réseau vers le Studio', 'err');
+  } else if (dBytes <= 0) {
+    setLiveStatus('⚠️ Vidéo non transmise (0 octet)', 'err');
+  } else if (dFrames <= 0) {
+    setLiveStatus('⚠️ Image figée (aucune frame envoyée)', 'err');
+  } else {
+    setLiveStatus(`● En direct — ${Math.round(dFrames / 7)} img/s (${t1.route})`, 'live');
+  }
 }
 
 async function switchCamera() {

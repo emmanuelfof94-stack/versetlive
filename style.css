@@ -2277,6 +2277,23 @@ kbd {
   border-color: rgba(239, 68, 68, 0.3);
 }
 
+/* Diagnostic réseau des caméras-téléphone (persistant, lisible en direct) */
+.studio-remote-diag {
+  margin-top: 6px;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  line-height: 1.5;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  white-space: pre-wrap;
+  background: rgba(148, 163, 184, 0.12);
+  color: var(--text-secondary, #cbd5e1);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+}
+.studio-remote-diag .diag-ok { color: var(--success, #10b981); }
+.studio-remote-diag .diag-warn { color: #fbbf24; }
+.studio-remote-diag .diag-err { color: #fecaca; }
+
 /* ====================================================================
    STUDIO — Diffusion multi-plateformes (relais local)
    ==================================================================== */

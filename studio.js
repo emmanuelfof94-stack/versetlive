@@ -4078,6 +4078,27 @@ function setRemoteStatus(text, kind) {
   el.className = 'studio-remote-status' + (kind ? ' ' + kind : '');
 }
 
+// ===== Diagnostic caméras-téléphone (persistant) =====
+// Les toasts disparaissent en 2,4 s : illisibles quand on cherche pourquoi une
+// tuile est noire. Ce bloc reste affiché sous le code de salle, une ligne par
+// caméra, et est aussi écrit dans la console (préfixe [Cam]) pour copie.
+const remoteDiagLines = new Map(); // deviceKey → html
+function renderRemoteDiag() {
+  const el = $('remoteDiag');
+  if (!el) return;
+  const parts = Array.from(remoteDiagLines.values());
+  el.innerHTML = parts.join('<br>');
+  el.hidden = !parts.length;
+}
+function setRemoteDiag(key, html) {
+  remoteDiagLines.set(key, html);
+  renderRemoteDiag();
+}
+function clearRemoteDiag(key) {
+  remoteDiagLines.delete(key);
+  renderRemoteDiag();
+}
+
 function initSignaling() {
   if (signalingPeer) { try { signalingPeer.destroy(); } catch (e) {} }
   currentRoomCode = getOrCreateRoomCode();
@@ -4175,6 +4196,8 @@ function addRemoteSource(stream, call) {
     if (prev && prev.call && prev.call !== call) { try { prev.call.close(); } catch (e) {} }
     renderSources();
     renderScenes();
+    // Nouveau flux = nouvelle connexion WebRTC → re-diagnostiquer.
+    diagnoseRemoteVideo(existing.videoEl, existing.label, call, deviceKey);
     return;
   }
 
@@ -4207,13 +4230,14 @@ function addRemoteSource(stream, call) {
   // Diagnostic : confirmer qu'une vraie image vidéo arrive (et pas seulement
   // l'audio → tuile noire). On signale la résolution reçue, ou un avertissement
   // si la vidéo reste à 0×0 (piste absente ou « née noire » côté téléphone).
-  diagnoseRemoteVideo(videoEl, source.label);
+  diagnoseRemoteVideo(videoEl, source.label, call, deviceKey);
 }
 
-function diagnoseRemoteVideo(videoEl, label) {
+function diagnoseRemoteVideo(videoEl, label, call, key) {
   const vTracks = videoEl.srcObject ? videoEl.srcObject.getVideoTracks() : [];
   if (!vTracks.length) {
     toast(`⚠️ ${label} : aucune piste vidéo reçue (audio seul)`);
+    setRemoteDiag(key, `<span class="diag-err">✖ ${escapeHtml(label)} : aucune piste vidéo (le téléphone n'envoie pas d'image)</span>`);
     return;
   }
   let resolved = false;
@@ -4230,6 +4254,81 @@ function diagnoseRemoteVideo(videoEl, label) {
   setTimeout(() => {
     if (!resolved) toast(`⚠️ ${label} : vidéo reçue mais image noire (0×0)`);
   }, 4000);
+
+  // Sonde réseau : distingue les 3 causes possibles d'une tuile noire.
+  probeRemoteStats(call, videoEl, label, key);
+}
+
+// Analyse la connexion WebRTC d'une caméra-téléphone et dit OÙ ça bloque.
+// Trois pannes donnent la même tuile noire, mais se corrigent différemment :
+//   1. aucune route ICE établie      → NAT/pare-feu/isolation wifi → relais TURN
+//   2. route établie, 0 octet reçu   → le média est bloqué en chemin → relais TURN
+//   3. octets reçus, 0 frame décodée → le téléphone envoie une piste « noire »
+// Le résultat s'affiche sous le code de salle (persistant) et en console.
+async function probeRemoteStats(call, videoEl, label, key) {
+  const pc = call && call.peerConnection;
+  if (!pc || typeof pc.getStats !== 'function') return;
+
+  const sample = async () => {
+    const stats = await pc.getStats();
+    let inbound = null, pair = null;
+    stats.forEach((r) => {
+      if (r.type === 'inbound-rtp' && (r.kind === 'video' || r.mediaType === 'video')) inbound = r;
+      // Le pair sélectionné : selected (Firefox) ou nominated+succeeded (Chrome)
+      if (r.type === 'candidate-pair' && (r.selected || (r.nominated && r.state === 'succeeded'))) pair = r;
+    });
+    let route = null;
+    if (pair) {
+      const local = stats.get(pair.localCandidateId);
+      const remote = stats.get(pair.remoteCandidateId);
+      const lt = local && local.candidateType, rt = remote && remote.candidateType;
+      if (lt === 'relay' || rt === 'relay') route = 'relais TURN';
+      else if (lt === 'host' && rt === 'host') route = 'réseau local';
+      else route = 'direct (STUN)';
+    }
+    return {
+      route,
+      bytes: (inbound && inbound.bytesReceived) || 0,
+      frames: (inbound && inbound.framesDecoded) || 0,
+      connState: pc.connectionState,
+      iceState: pc.iceConnectionState,
+    };
+  };
+
+  const t0 = await sample().catch(() => null);
+  // ~7 s : laisse le temps à ICE d'aboutir et à quelques frames d'arriver.
+  await new Promise(r => setTimeout(r, 7000));
+  const t1 = await sample().catch(() => null);
+  if (!t1) return;
+
+  const dBytes = t1.bytes - ((t0 && t0.bytes) || 0);
+  const dFrames = t1.frames - ((t0 && t0.frames) || 0);
+  const dims = (videoEl.videoWidth && videoEl.videoHeight)
+    ? `${videoEl.videoWidth}×${videoEl.videoHeight}` : '0×0';
+  const fps = Math.round(dFrames / 7);
+
+  console.log(`[Cam] ${label} — diagnostic`, {
+    route: t1.route, iceState: t1.iceState, connState: t1.connState,
+    bytesRecus: t1.bytes, octetsSur7s: dBytes, framesDecodees: t1.frames, framesSur7s: dFrames, dims
+  });
+
+  let html;
+  if (!t1.route) {
+    html = `<span class="diag-err">✖ ${escapeHtml(label)} : aucune route réseau établie (ICE ${t1.iceState}).</span>`
+         + ` Le téléphone et le Studio ne se joignent pas → il faut un relais TURN (voir /api/turn).`;
+    toast(`✖ ${label} : pas de route réseau (TURN requis)`, true);
+  } else if (dBytes <= 0) {
+    html = `<span class="diag-err">✖ ${escapeHtml(label)} : connecté via ${t1.route} mais 0 octet vidéo reçu.</span>`
+         + ` Média bloqué en chemin (pare-feu / isolation wifi) → relais TURN requis.`;
+    toast(`✖ ${label} : 0 octet reçu (${t1.route})`, true);
+  } else if (dFrames <= 0) {
+    html = `<span class="diag-warn">⚠ ${escapeHtml(label)} : ${Math.round(dBytes / 1024)} ko reçus via ${t1.route} mais 0 image décodée.</span>`
+         + ` La piste part noire du téléphone (canvas figé ou écran en veille).`;
+    toast(`⚠️ ${label} : données reçues mais image noire`, true);
+  } else {
+    html = `<span class="diag-ok">✔ ${escapeHtml(label)} : ${dims}, ~${fps} img/s via ${t1.route}.</span>`;
+  }
+  setRemoteDiag(key, html);
 }
 
 function removeRemoteCall(call) {
@@ -4248,6 +4347,7 @@ function removeRemoteCall(call) {
     sources.splice(idx, 1);
   }
   remoteCalls.delete(key);
+  clearRemoteDiag(key);
   renderSources();
   renderScenes();
   if (src && (programScene.primaryId === src.id || programScene.secondaryId === src.id)) {
