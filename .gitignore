@@ -16,3 +16,16 @@ __pycache__/
 # Node.js relay (relay/)
 relay/node_modules/
 relay/.certs/
+
+# Médias de travail — volontairement hors dépôt.
+# Les vidéos de projection vivent dans la bibliothèque du Studio (IndexedDB),
+# pas dans git : un fichier lourd commité ne se retire plus jamais de
+# l'historique et alourdit chaque clone.
+*.mp4
+*.mov
+*.m4v
+
+# Captures d'écran macOS (apostrophe typographique ET droite, selon la version)
+Capture d’écran*.png
+Capture d'écran*.png
+Screenshot*.png
