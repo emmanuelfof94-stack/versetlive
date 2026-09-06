@@ -3,7 +3,7 @@
 // (rarement modifiés) + network-first avec fallback cache pour le reste
 // (les mises à jour arrivent immédiatement en ligne, et l'app reste utilisable hors-ligne).
 
-const CACHE_VERSION = 'v32';
+const CACHE_VERSION = 'v33';
 const CACHE_NAME = `versetlive-${CACHE_VERSION}`;
 
 // Cache SÉPARÉ et NON versionné pour les ressources tierces indispensables à une

@@ -1100,9 +1100,12 @@ function setLiveMove(on) {
   }
   if (programCanvas) programCanvas.style.cursor = liveMoveOn ? 'grab' : '';
   if (!liveMoveOn) { liveDrag = null; hideLiveMoveBox(); }
-  toast(liveMoveOn
-    ? 'Déplacement à l\'antenne ARMÉ — maintiens une image et pose-la. Molette = taille.'
-    : 'Déplacement à l\'antenne désarmé.');
+  if (!liveMoveOn) { toast('Déplacement à l\'antenne désarmé.'); return; }
+  // Armé : autant savoir SUR LE CHAMP si la scène en cours offre quelque chose.
+  const n = liveMovableCount();
+  toast(n
+    ? `Déplacement ARMÉ — ${n} élément${n > 1 ? 's' : ''} saisissable${n > 1 ? 's' : ''}. Maintiens et pose. Molette = taille.`
+    : `Déplacement ARMÉ, mais rien à saisir : ${liveNothingReason()}`, !n);
 }
 
 // Zone RÉELLEMENT occupée par une couche, en fractions 0..1 du programme.
@@ -1152,6 +1155,23 @@ function liveHitLayer(nx, ny) {
   return null;
 }
 
+// Ce que la scène à l'antenne offre à saisir, ici et maintenant.
+function liveMovableCount() {
+  return sceneToLayers(programScene).filter(l => l && !l.hidden && liveLayerBox(l)).length;
+}
+
+// Pourquoi il n'y a rien à attraper. Dire « rien ne bouge » sans dire pourquoi,
+// c'est laisser l'opérateur cliquer dans le vide en plein culte.
+function liveNothingReason() {
+  const k = (programScene && programScene.kind) || 'black';
+  if (k === 'black') return 'écran noir à l\'antenne : envoie d\'abord une image ou une scène.';
+  if (k === 'camera' || k === 'camera+verse') return 'une caméra en plein écran ne se déplace pas (elle occupe déjà tout l\'écran).';
+  if (k === 'pip') return 'la vignette PiP a une position fixe ; passe par une scène composée pour la déplacer.';
+  if (k === 'card') return 'une carte 🎴 se modifie dans son éditeur, pas au doigt.';
+  if (k === 'verse' || k === 'video' || k === 'video+verse') return 'cette scène n\'a pas d\'élément positionnable.';
+  return 'aucun élément positionnable dans cette scène.';
+}
+
 function liveMoveNorm(e) {
   const b = programCanvas.getBoundingClientRect();
   return { nx: (e.clientX - b.left) / b.width, ny: (e.clientY - b.top) / b.height };
@@ -1176,7 +1196,21 @@ function liveMovePointerDown(e) {
   if (!liveMoveOn) return;
   const { nx, ny } = liveMoveNorm(e);
   const box = liveHitLayer(nx, ny);
-  if (!box) return;
+  if (!box) {
+    const now = performance.now();
+    if (now - (liveMovePointerDown._lastWarn || 0) > 2500) {
+      liveMovePointerDown._lastWarn = now;
+      const n = liveMovableCount();
+      toast(n
+        ? 'Rien à cet endroit précis — vise l\'image elle-même, pas la bande vide autour.'
+        : `Rien à déplacer : ${liveNothingReason()}`, true);
+      console.log('[déplacement] rien sous le pointeur', {
+        scene: programScene && programScene.kind, saisissables: n,
+        couches: sceneToLayers(programScene).map(l => l && l.type),
+      });
+    }
+    return;
+  }
   liveDrag = {
     layer: box.layer,
     img: box.img,
@@ -1195,7 +1229,10 @@ function liveMovePointerMove(e) {
   const { nx, ny } = liveMoveNorm(e);
   if (!liveDrag) {
     const over = liveHitLayer(nx, ny);
-    programCanvas.style.cursor = over ? 'grab' : 'default';
+    // 'crosshair' hors élément : le mode armé DOIT se voir, sinon on croit que
+    // le bouton n'a rien fait — c'est exactement ce qui s'est produit au premier
+    // essai, sur une scène sans élément positionnable.
+    programCanvas.style.cursor = over ? 'grab' : 'crosshair';
     showLiveMoveBox(over);
     return;
   }
