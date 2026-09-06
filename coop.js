@@ -27,34 +27,48 @@
   // TURN Cloudflare éphémères via /api/turn. Le résultat est mis en cache pour
   // toute la session (un seul appel réseau, partagé host + copilotes).
   //
-  // Renvoie une promesse vers un objet RTCConfiguration { iceServers: [...] } :
-  // Cloudflare si /api/turn répond, sinon le repli public ci-dessous.
+  // Renvoie une promesse vers un objet RTCConfiguration { iceServers: [...] }.
   //
-  // Repli sans compte (Open Relay Project) : utilisé quand /api/turn est
-  // indisponible (variables d'env Vercel absentes). Ça évite la tuile noire
-  // « sans rien configurer », mais la bande passante n'est PAS garantie :
-  // pour un direct, configurer Cloudflare reste la bonne solution.
-  const FALLBACK_ICE_SERVERS = [
+  // Ordre des sources de relais :
+  //   1. /api/turn          → Cloudflare TURN (variables d'env Vercel) — la bonne
+  //   2. TURN manuel        → identifiants collés dans le Studio (localStorage),
+  //                           dépannage sans redéploiement
+  //   3. STUN seul          → PAS de relais : marche uniquement si les deux
+  //                           appareils peuvent se joindre directement.
+  //
+  // ⚠️ L'ancien repli « Open Relay Project » (openrelay.metered.ca) a été retiré :
+  // le service gratuit a fermé, ses serveurs ne répondent plus. Le garder ne
+  // servait à rien et rallongeait la phase de collecte ICE de plusieurs secondes.
+  const STUN_ONLY = [
     { urls: 'stun:stun.l.google.com:19302' },
     { urls: 'stun:stun1.l.google.com:19302' },
-    {
-      urls: [
-        'turn:openrelay.metered.ca:80',
-        'turn:openrelay.metered.ca:443',
-        'turn:openrelay.metered.ca:443?transport=tcp',
-      ],
-      username: 'openrelayproject',
-      credential: 'openrelayproject',
-    },
-    {
-      urls: [
-        'turn:staticauth.openrelay.metered.ca:80',
-        'turn:staticauth.openrelay.metered.ca:443',
-      ],
-      username: 'openrelayproject',
-      credential: 'openrelayproject',
-    },
   ];
+
+  // TURN saisi à la main (dépannage) : { urls, username, credential } en JSON.
+  const TURN_LS_KEY = 'versetlive:turn-manuel';
+  function readManualTurn() {
+    let raw = null;
+    try { raw = localStorage.getItem(TURN_LS_KEY); } catch (e) {}
+    if (!raw) return null;
+    try {
+      const parsed = JSON.parse(raw);
+      const list = Array.isArray(parsed) ? parsed : [parsed];
+      const ok = list.filter(s => s && s.urls);
+      return ok.length ? ok : null;
+    } catch (e) { return null; }
+  }
+  function setManualTurn(servers) {
+    try {
+      if (!servers) localStorage.removeItem(TURN_LS_KEY);
+      else localStorage.setItem(TURN_LS_KEY, JSON.stringify(servers));
+    } catch (e) {}
+    _iceConfigPromise = null; // forcer un rechargement à la prochaine connexion
+  }
+
+  // État du relais, lisible par le Studio pour avertir l'opérateur AVANT le culte
+  // (sinon on ne découvre l'absence de relais qu'en voyant une tuile noire).
+  //   source : 'cloudflare' | 'manuel' | 'aucun'
+  const iceStatus = { source: null, hasTurn: false, reason: '' };
 
   let _iceConfigPromise = null;
   function loadIceConfig() {
@@ -74,10 +88,25 @@
         if (!servers.length) throw new Error('aucun serveur ICE renvoyé');
         // STUN Google en secours (en plus du STUN/TURN Cloudflare).
         servers.push({ urls: 'stun:stun.l.google.com:19302' });
+        iceStatus.source = 'cloudflare';
+        iceStatus.hasTurn = true;
+        iceStatus.reason = '';
         return { iceServers: servers };
       } catch (e) {
-        console.warn('[Coop] TURN Cloudflare indisponible (' + (e && e.message || e) + ') → repli TURN public (fiabilité non garantie)');
-        return { iceServers: FALLBACK_ICE_SERVERS };
+        const why = (e && e.message) || String(e);
+        const manual = readManualTurn();
+        if (manual) {
+          console.warn('[ICE] /api/turn indisponible (' + why + ') → TURN manuel (localStorage)');
+          iceStatus.source = 'manuel';
+          iceStatus.hasTurn = true;
+          iceStatus.reason = why;
+          return { iceServers: manual.concat(STUN_ONLY) };
+        }
+        console.warn('[ICE] AUCUN relais TURN (' + why + ') → seuls les appareils qui se joignent directement passeront');
+        iceStatus.source = 'aucun';
+        iceStatus.hasTurn = false;
+        iceStatus.reason = why;
+        return { iceServers: STUN_ONLY };
       }
     })();
     return _iceConfigPromise;
@@ -552,5 +581,8 @@
   // réutilise le MÊME relais TURN pour la réception des caméras-téléphone, sinon
   // une caméra sur un autre réseau (4G, autre wifi) se connecte mais reste noire
   // (signalisation OK, média bloqué par le NAT faute de relais).
-  window.VLCoop = { startHost, joinAsCoPilot, generateCode, loadIceConfig, peerOptionsWith };
+  window.VLCoop = {
+    startHost, joinAsCoPilot, generateCode, loadIceConfig, peerOptionsWith,
+    iceStatus, readManualTurn, setManualTurn,
+  };
 })();

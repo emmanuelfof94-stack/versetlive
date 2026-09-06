@@ -760,11 +760,16 @@ async function fetchChapter(translation, bookId, chapter) {
   return data;
 }
 
+// Recherche plein texte. ATTENTION à l'URL : /v2/find/ n'existe plus côté
+// bolls.life (404 → page HTML), c'est /find/ qui répond. L'API renvoie un
+// TABLEAU de versets, pas un objet { results: [...] }.
 async function searchBible(translation, query) {
-  const url = `https://bolls.life/v2/find/${translation}/?search=${encodeURIComponent(query)}&match_case=0&match_whole=0`;
+  const url = `https://bolls.life/find/${translation}/?search=${encodeURIComponent(query)}&match_case=0&match_whole=0`;
   const res = await fetch(url);
   if (!res.ok) throw new Error('Erreur recherche: ' + res.status);
-  return await res.json();
+  const data = await res.json();
+  // Tolérant aux deux formes, au cas où l'API rebasculerait sur un objet.
+  return Array.isArray(data) ? data : (data && data.results) || [];
 }
 
 function cleanVerseHtml(html) {
@@ -894,8 +899,8 @@ async function doSearch() {
 
   // Recherche par mot-clé
   try {
-    const data = await searchBible(els.translation.value, q);
-    const results = (data.results || []).slice(0, 50).map(r => {
+    const data = await searchBible(els.translation.value, q); // toujours un tableau
+    const results = data.slice(0, 50).map(r => {
       const book = BIBLE_BOOKS.find(b => b.id == r.book);
       return {
         reference: `${book ? book.name : '?'} ${r.chapter}:${r.verse}`,

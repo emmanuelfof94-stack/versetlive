@@ -473,6 +473,10 @@
     </div>
   </div>
   <script src="obs.js"></script>
+  <!-- Écran de sortie (source navigateur OBS / projection) : pas de rechargement
+       auto ni bannière. Sans ça, un déploiement en cours d'événement faisait
+       recharger la page projetée → écran noir de quelques secondes à l'antenne. -->
+  <script>window.VL_NO_AUTORELOAD = true;</script>
   <script src="/sw-register.js"></script>
   <script defer src="/_vercel/insights/script.js"></script>
 </body>
