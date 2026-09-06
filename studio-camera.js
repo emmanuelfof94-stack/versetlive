@@ -5,6 +5,11 @@
 // → canvas.captureStream() → MediaStreamTrack envoyé via peer.call().
 // Le canvas tourne à 30 fps via requestAnimationFrame et applique le zoom + miroir.
 // L'audio reste sur la track audio brute de la caméra (pas de re-encodage).
+//
+// RACCOURCI FAIBLE LATENCE : le canvas ne sert QU'À recadrer en 16:9 et zoomer.
+// Quand la caméra sort déjà du 16:9 et que le zoom est à 1×, il ne fait qu'une
+// copie pixel pour pixel — on envoie alors la piste caméra telle quelle. Voir
+// shouldSendRaw() / syncVideoSendMode().
 
 const PEER_PREFIX = 'versetlive-studio-';
 
@@ -120,6 +125,9 @@ function setZoom(z, source) {
   showZoomBadge();
   zoomInBtn.disabled = zoom >= ZOOM_MAX - 1e-3;
   zoomOutBtn.disabled = zoom <= ZOOM_MIN + 1e-3;
+  // Zoom ≠ 1× → il faut repasser par le canvas (c'est lui qui recadre) ;
+  // retour à 1× → on redonne la piste caméra directe.
+  syncVideoSendMode('zoom ' + zoom.toFixed(2));
 }
 function showZoomBadge() {
   zoomBadge.classList.add('show');
@@ -365,14 +373,33 @@ async function startSession() {
   startBgRenderLoop();
   startAudioKeepAlive();
 
-  // Construire le flux sortant : vidéo issue du canvas + audio brut de la caméra
-  const canvasStream = previewCanvas.captureStream(30);
-  const outVideoTracks = canvasStream.getVideoTracks();
-  if (!outVideoTracks.length) {
-    showError('Capture vidéo impossible sur ce navigateur (canvas.captureStream).');
+  // Construire le flux sortant : vidéo (canvas OU caméra brute) + audio de la caméra.
+  //
+  // Le chemin le plus court est le moins lent. Passer par le canvas impose DEUX
+  // ré-échantillonnages non synchronisés — caméra → canvas (grille 30 fps), puis
+  // canvas → captureStream(30) — qui ajoutent chacun jusqu'à une image de retard
+  // et, surtout, dupliquent ou sautent des images quand les cadences battent
+  // (la saccade régulière visible sur un plan qui bouge). Quand le canvas ne fait
+  // qu'une copie (caméra déjà 16:9 + zoom 1×), on saute les deux : la piste caméra
+  // part telle quelle, avec ses horodatages d'origine. Bonus : le téléphone ne
+  // dessine plus rien pour l'antenne, donc il chauffe moins et se throttle moins.
+  canvasVideoTrack = previewCanvas.captureStream(30).getVideoTracks()[0] || null;
+  rawVideoTrack = cameraStream.getVideoTracks()[0] || null;
+  cropIsIdentity = isCropIdentity();
+  if (!canvasVideoTrack) {
+    // Certains navigateurs (vieilles WebView, Safari iOS ancien) ne savent pas
+    // capturer un canvas. Avant, on affichait une erreur PUIS on envoyait quand
+    // même un flux sans piste vidéo → tuile noire garantie côté Studio.
+    console.warn('[Cam] canvas.captureStream muet → caméra brute imposée');
+    rawForced = true;
+    showLiveToast('Recadrage indisponible ici : envoi de la caméra brute');
   }
+  usingRawTrack = shouldSendRaw();
+  const outTrack = usingRawTrack ? rawVideoTrack : canvasVideoTrack;
+  tuneOutgoingTrack(outTrack);
+  console.log('[Cam] piste envoyée au démarrage :', usingRawTrack ? 'caméra brute (directe)' : 'canvas (recadrage/zoom)');
   outgoingStream = new MediaStream([
-    ...outVideoTracks,
+    ...(outTrack ? [outTrack] : []),
     ...cameraStream.getAudioTracks(),
   ]);
 
@@ -390,34 +417,40 @@ async function startSession() {
   await connectToStudio();
 }
 
-// Config ICE (TURN) : sans relais TURN, un téléphone sur un autre réseau que le
-// Studio (4G, autre wifi, NAT strict) se connecte au signaling mais son flux
-// vidéo ne traverse pas le NAT → le Studio affiche une tuile NOIRE. On récupère
-// des identifiants TURN Cloudflare éphémères via /api/turn (même relais que la
-// coop). Si /api/turn est indisponible (variables d'env absentes), on retombe
-// sur un TURN public sans compte (Open Relay) : mieux que rien, mais bande
-// passante non garantie — configurer Cloudflare reste la bonne solution.
-const FALLBACK_ICE_SERVERS = [
+// Config ICE (TURN) : sans relais TURN, un téléphone qui ne peut pas joindre
+// DIRECTEMENT le Studio se connecte quand même au signaling (qui passe par le
+// cloud PeerJS) mais son flux vidéo ne passe pas → tuile NOIRE côté Studio.
+// Ça arrive sur un autre réseau (4G, wifi invité) MAIS AUSSI sur le même wifi si
+// le routeur isole les clients entre eux (« isolation AP / client isolation »,
+// activée par défaut sur beaucoup de wifi publics et d'églises).
+//
+// Sources de relais, dans l'ordre :
+//   1. /api/turn      → Cloudflare TURN (variables d'env Vercel)
+//   2. TURN manuel    → identifiants en localStorage (dépannage sans redéploiement)
+//   3. STUN seul      → pas de relais du tout
+//
+// L'ancien repli « Open Relay » (openrelay.metered.ca) a été retiré : le service
+// gratuit a fermé, ses serveurs ne répondent plus (vérifié : timeout sur 80/443).
+const STUN_ONLY = [
   { urls: 'stun:stun.l.google.com:19302' },
   { urls: 'stun:stun1.l.google.com:19302' },
-  {
-    urls: [
-      'turn:openrelay.metered.ca:80',
-      'turn:openrelay.metered.ca:443',
-      'turn:openrelay.metered.ca:443?transport=tcp',
-    ],
-    username: 'openrelayproject',
-    credential: 'openrelayproject',
-  },
-  {
-    urls: [
-      'turn:staticauth.openrelay.metered.ca:80',
-      'turn:staticauth.openrelay.metered.ca:443',
-    ],
-    username: 'openrelayproject',
-    credential: 'openrelayproject',
-  },
 ];
+
+const TURN_LS_KEY = 'versetlive:turn-manuel';
+function readManualTurn() {
+  let raw = null;
+  try { raw = localStorage.getItem(TURN_LS_KEY); } catch (e) {}
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw);
+    const list = Array.isArray(parsed) ? parsed : [parsed];
+    const ok = list.filter(s => s && s.urls);
+    return ok.length ? ok : null;
+  } catch (e) { return null; }
+}
+
+// Renseigné par loadIceConfig ; sert au diagnostic affiché à l'opérateur.
+let iceSource = null; // 'cloudflare' | 'manuel' | 'aucun'
 
 let _iceConfigPromise = null;
 function loadIceConfig() {
@@ -436,10 +469,19 @@ function loadIceConfig() {
       else if (ice) servers.push(ice);
       if (!servers.length) throw new Error('aucun serveur ICE renvoyé');
       servers.push({ urls: 'stun:stun.l.google.com:19302' });
+      iceSource = 'cloudflare';
       return { iceServers: servers };
     } catch (e) {
-      console.warn('[Cam] TURN Cloudflare indisponible (' + (e && e.message || e) + ') → repli TURN public (fiabilité non garantie)');
-      return { iceServers: FALLBACK_ICE_SERVERS };
+      const why = (e && e.message) || String(e);
+      const manual = readManualTurn();
+      if (manual) {
+        console.warn('[Cam] /api/turn indisponible (' + why + ') → TURN manuel (localStorage)');
+        iceSource = 'manuel';
+        return { iceServers: manual.concat(STUN_ONLY) };
+      }
+      console.warn('[Cam] AUCUN relais TURN (' + why + ') → le flux ne passera que si le Studio est joignable directement');
+      iceSource = 'aucun';
+      return { iceServers: STUN_ONLY };
     }
   })();
   return _iceConfigPromise;
@@ -471,9 +513,10 @@ async function connectToStudio() {
     });
 
     if (call.peerConnection) {
+      tuneSenderForMotion(call.peerConnection);
       call.peerConnection.addEventListener('connectionstatechange', () => {
         const s = call.peerConnection.connectionState;
-        if (s === 'connected') setLiveStatus('● En direct', 'live');
+        if (s === 'connected') { setLiveStatus('● En direct', 'live'); tuneSenderForMotion(call.peerConnection); }
         else if (s === 'disconnected' || s === 'failed') setLiveStatus('Connexion perdue', 'err');
         else if (s === 'closed') setLiveStatus('Fermé', 'err');
       });
@@ -500,6 +543,93 @@ async function connectToStudio() {
     setLiveStatus('Déconnecté — reconnexion…', 'err');
     setTimeout(() => peer && !peer.destroyed && peer.reconnect(), 2000);
   });
+}
+
+// ===== Quelle piste vidéo part à l'antenne : caméra directe ou canvas ? =====
+let canvasVideoTrack = null;  // piste du canvas (recadrage 16:9 + zoom numérique)
+let rawVideoTrack = null;     // piste caméra telle quelle
+let usingRawTrack = false;    // ce qui est réellement envoyé en ce moment
+let rawForced = false;        // repli d'urgence : ne JAMAIS revenir au canvas
+let cropIsIdentity = false;   // la caméra est déjà en 16:9 → le canvas ne recadre rien
+
+// Le canvas est en 16:9. Si la caméra l'est aussi, son recadrage « cover » ne
+// retire pas un seul pixel : ce que l'opérateur voit sur le téléphone est
+// exactement ce que le Studio recevrait. On peut donc court-circuiter le canvas
+// sans changer le cadrage. 1,5 % de tolérance : 1280×720, 1920×1080, 1024×576…
+const AR_16_9 = 16 / 9;
+function isCropIdentity() {
+  const t = rawVideoTrack;
+  if (!t || typeof t.getSettings !== 'function') return false;
+  const st = t.getSettings();
+  if (!st.width || !st.height) return false;
+  return Math.abs((st.width / st.height) / AR_16_9 - 1) < 0.015;
+}
+
+function shouldSendRaw() {
+  if (!rawVideoTrack || rawVideoTrack.readyState !== 'live') return false;
+  if (rawForced) return true;        // canvas hors service
+  if (!canvasVideoTrack) return true;
+  return cropIsIdentity && zoom <= 1.001;
+}
+
+// Dit à l'encodeur que c'est de la vidéo de MOUVEMENT : quand le réseau se serre,
+// il baisse la définition et garde les 30 img/s, au lieu de garder une belle
+// image qui saccade. C'est le bon compromis pour un direct filmé.
+function tuneOutgoingTrack(track) {
+  if (!track) return;
+  try { track.contentHint = 'motion'; } catch (e) {}
+}
+async function tuneSenderForMotion(pc) {
+  if (!pc || typeof pc.getSenders !== 'function') return;
+  try {
+    const sender = pc.getSenders().find(s => s.track && s.track.kind === 'video');
+    if (!sender || typeof sender.getParameters !== 'function') return;
+    const params = sender.getParameters();
+    params.degradationPreference = 'maintain-framerate';
+    if (!params.encodings || !params.encodings.length) params.encodings = [{}];
+    params.encodings[0].maxFramerate = 30;
+    await sender.setParameters(params);
+    console.log('[Cam] encodeur réglé : priorité à la fluidité (30 img/s)');
+  } catch (e) { console.warn('[Cam] réglage encodeur ignoré', e); }
+}
+
+// Bascule la piste envoyée SANS couper la connexion (replaceTrack) : pas de
+// renégociation, pas de coupure d'image côté Studio.
+let sendModeSwitching = false;
+async function syncVideoSendMode(why) {
+  const wantRaw = shouldSendRaw();
+  if (sendModeSwitching || wantRaw === usingRawTrack) return;
+  const pc = call && call.peerConnection;
+  const next = wantRaw ? rawVideoTrack : canvasVideoTrack;
+  if (!pc || typeof pc.getSenders !== 'function') return;
+  if (!next || next.readyState !== 'live') return;
+  const sender = pc.getSenders().find(s => s.track && s.track.kind === 'video');
+  if (!sender || typeof sender.replaceTrack !== 'function') return;
+  sendModeSwitching = true;
+  try {
+    tuneOutgoingTrack(next);
+    await sender.replaceTrack(next);
+    usingRawTrack = wantRaw;
+    console.log('[Cam] piste envoyée →', wantRaw ? 'caméra brute (directe)' : 'canvas (recadrage/zoom)', '·', why);
+  } catch (e) {
+    console.warn('[Cam] bascule de piste impossible', e);
+  } finally {
+    sendModeSwitching = false;
+  }
+}
+
+// Repli d'urgence : forcer la piste caméra BRUTE quand le canvas n'émet plus
+// rien (captureStream muet, page gelée par le système, piste « née noire »).
+// On perd le recadrage et le zoom, mais l'image repart — c'est ce qui compte en
+// plein direct. Une seule tentative (rawForced ne redescend jamais).
+async function fallbackToRawCameraTrack(activeCall, why) {
+  if (rawForced) return false;
+  if (!rawVideoTrack || rawVideoTrack.readyState !== 'live') return false;
+  rawForced = true; // avant l'await : pas de double tentative si la sonde re-tique
+  if (usingRawTrack) return false; // déjà en direct : le canvas n'était pas en cause
+  await syncVideoSendMode('repli — ' + why);
+  if (usingRawTrack) showLiveToast('↻ Repli caméra brute (image sans recadrage)');
+  return usingRawTrack;
 }
 
 // Sonde les statistiques d'envoi : dit si la vidéo sort réellement du téléphone
@@ -550,16 +680,28 @@ async function probeOutgoingStats(activeCall) {
     prev = cur;
 
     console.log('[Cam] envoi — diagnostic', {
-      route: cur.route, iceState: cur.iceState,
+      route: cur.route, iceState: cur.iceState, relais: iceSource,
       octetsSurPeriode: dBytes, framesSurPeriode: dFrames,
+      pisteEnvoyee: usingRawTrack ? 'caméra brute' : 'canvas',
     });
 
     if (!cur.route) {
-      setLiveStatus('⚠️ Pas de route réseau vers le Studio', 'err');
+      // Aucune route ICE : le média ne peut physiquement pas passer. Si en plus
+      // aucun relais TURN n'est configuré, c'est LA cause — le dire précisément.
+      setLiveStatus(iceSource === 'aucun'
+        ? '⚠️ Pas de route réseau — aucun relais TURN configuré'
+        : '⚠️ Pas de route réseau vers le Studio', 'err');
+    } else if (dFrames <= 0) {
+      // Route établie mais aucune image ne part. Si on passait par le canvas,
+      // c'est lui le suspect → repli sur la caméra brute. Si on envoyait DÉJÀ la
+      // caméra directe, le canvas est hors de cause : c'est la caméra ou le
+      // système qui a coupé, et il faut le dire au lieu de promettre un repli.
+      setLiveStatus(usingRawTrack
+        ? '⚠️ Aucune image envoyée — caméra bloquée par le téléphone ?'
+        : '⚠️ Aucune image envoyée — repli en cours…', 'err');
+      fallbackToRawCameraTrack(activeCall, 'aucune frame envoyée');
     } else if (dBytes <= 0) {
       setLiveStatus('⚠️ Vidéo non transmise (0 octet)', 'err');
-    } else if (dFrames <= 0) {
-      setLiveStatus('⚠️ Image figée (aucune frame envoyée)', 'err');
     } else {
       setLiveStatus(`● En direct — ${Math.round(dFrames / PERIOD_S)} img/s (${cur.route})`, 'live');
     }
@@ -584,8 +726,16 @@ async function switchCamera() {
     srcVideo.srcObject = cameraStream;
     await srcVideo.play().catch(() => {});
     applyPreviewTransform(); // ré-applique miroir (selfie) + rotation courante
-    // Le canvas continue à pomper les frames de srcVideo : aucun replaceTrack
-    // sur la RTCPeerConnection nécessaire (le track sortant reste celui du canvas).
+    // L'ancienne piste caméra vient d'être arrêtée. Si c'était ELLE qu'on
+    // envoyait (mode direct), la connexion tient une piste morte → image figée
+    // côté Studio. On republie donc la nouvelle piste sans attendre.
+    rawVideoTrack = newVideoTrack;
+    cropIsIdentity = isCropIdentity();
+    tuneOutgoingTrack(rawVideoTrack);
+    if (usingRawTrack) {
+      usingRawTrack = false; // force syncVideoSendMode à repousser une piste
+      await syncVideoSendMode('bascule caméra');
+    }
     setZoom(1.0); // reset zoom après bascule caméra
   } catch (e) {
     showLiveToast('Bascule caméra impossible : ' + e.message);

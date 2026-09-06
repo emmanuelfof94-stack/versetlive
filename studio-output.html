@@ -11,7 +11,9 @@
     body { display: flex; align-items: center; justify-content: center; }
     /* En 16:9 natif (pas de bandes), on garde un fond noir pur — plus propre. */
     body[data-aspect="16:9"] { background: #000; }
-    video {
+    /* Le canvas miroir et la vidéo occupent la même place et se comportent
+       pareil (letterbox par object-fit). Un seul des deux est visible. */
+    video, canvas#mirror {
       width: 100%; height: 100%; object-fit: contain;
       background: transparent;
     }
@@ -49,18 +51,103 @@
 </head>
 <body data-aspect="16:9">
   <video id="output" autoplay playsinline></video>
+  <canvas id="mirror" width="1920" height="1080" hidden></canvas>
   <iframe id="iframeOverlay" hidden allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen
     style="position:fixed; inset:0; width:100%; height:100%; border:0; background:#000; z-index:10;"></iframe>
   <div class="ratio-toast" id="ratioToast" aria-hidden="true"></div>
 
   <script>
     const video = document.getElementById('output');
+    const mirror = document.getElementById('mirror');
+    const mctx = mirror.getContext('2d', { alpha: false });
     const iframeOverlay = document.getElementById('iframeOverlay');
+
+    // ====== Chemin faible latence : recopie directe du canvas du Studio ======
+    // Le Studio nous passe SON canvas programme. Même origine + fenêtre ouverte
+    // par lui ⇒ même processus de rendu : drawImage reste une copie GPU, sans
+    // passer par captureStream ni par un élément <video>. On économise ainsi les
+    // 2 à 4 images de tampon d'un flux média (~70 à 130 ms au projecteur) et le
+    // ré-échantillonnage qui hachait les mouvements.
+    // La balise <video> reste en place, mais ne sert plus qu'à l'AUDIO : la
+    // fenêtre projecteur est parfois la sortie son de la salle.
+    let mirrorSrc = null;
+    let mirrorRaf = 0;
+
+    function attachAudioOnly(stream) {
+      const next = (stream && stream.getAudioTracks) ? (stream.getAudioTracks()[0] || null) : null;
+      const cur = (video.srcObject && video.srcObject.getAudioTracks)
+        ? (video.srcObject.getAudioTracks()[0] || null) : null;
+      if (next === cur) return;              // rien à faire : pas de coupure son
+      video.srcObject = stream || null;
+      if (stream) video.play().catch(() => {});
+    }
+
+    function mirrorDraw() {
+      const src = mirrorSrc;
+      if (!src || !src.width || !src.height) return;
+      try {
+        if (mirror.width !== src.width || mirror.height !== src.height) {
+          mirror.width = src.width;
+          mirror.height = src.height;
+        }
+        mctx.drawImage(src, 0, 0);
+      } catch (e) {
+        // Canvas devenu inaccessible (Studio rechargé, fenêtre détachée) :
+        // on repasse au flux média plutôt que de laisser l'écran figé.
+        console.warn('[Projecteur] recopie directe interrompue → repli flux', e);
+        cancelAnimationFrame(mirrorRaf); mirrorRaf = 0; mirrorSrc = null;
+        mirror.hidden = true; video.hidden = false;
+        try {
+          if (window.opener && !window.opener.closed && window.opener.projectorNeedsStream) {
+            window.opener.projectorNeedsStream();
+          }
+        } catch (e2) {}
+      }
+    }
+
+    function mirrorLoop() {
+      mirrorRaf = requestAnimationFrame(mirrorLoop);
+      mirrorDraw();
+    }
+
+    // Filet anti-gel. Contrairement à une balise <video>, un canvas recopié ne
+    // se rafraîchit que si NOTRE boucle tourne : si le navigateur considère
+    // cette fenêtre comme masquée (autre bureau macOS, fenêtre recouverte), il
+    // gèle requestAnimationFrame et la projection resterait sur la dernière
+    // image. Un tick porté par un Web Worker échappe au throttling agressif des
+    // pages en arrière-plan et prend le relais — même parade que le Studio et la
+    // page caméra. Repli sur un setInterval si les workers sont indisponibles.
+    setInterval(() => { if (document.hidden && mirrorSrc) mirrorDraw(); }, 33);
+    try {
+      const workerSrc = 'var h=null;onmessage=function(e){var ms=(e.data&&e.data.ms)||33;'
+        + 'if(h)clearInterval(h);h=setInterval(function(){postMessage(1);},ms);};';
+      const workerUrl = URL.createObjectURL(new Blob([workerSrc], { type: 'application/javascript' }));
+      const mirrorWorker = new Worker(workerUrl);
+      mirrorWorker.onmessage = () => { if (document.hidden && mirrorSrc) mirrorDraw(); };
+      mirrorWorker.postMessage({ ms: 33 });
+    } catch (e) { /* pas de worker : le setInterval ci-dessus assure le repli */ }
+
+    // Appelé par studio.js. Renvoie true si la recopie directe est en place.
+    window.setProgramSource = function (canvas, audioStream) {
+      if (!canvas || !canvas.width || typeof canvas.getContext !== 'function') return false;
+      mirrorSrc = canvas;
+      attachAudioOnly(audioStream);
+      video.hidden = true;     // display:none — l'audio continue de jouer
+      mirror.hidden = false;
+      if (!mirrorRaf) mirrorRaf = requestAnimationFrame(mirrorLoop);
+      return true;
+    };
 
     // Appelé par la fenêtre parente (studio.js). On évite de réassigner srcObject
     // si c'est déjà le même flux : ça causait un saut/flicker à chaque toggle
     // audio/record/stream côté studio. La projection reste continue.
     window.setProgramStream = function (stream) {
+      // Repli : image ET son par le flux média. Coupe la recopie directe si elle
+      // tournait, sinon les deux se superposeraient.
+      if (mirrorRaf) { cancelAnimationFrame(mirrorRaf); mirrorRaf = 0; }
+      mirrorSrc = null;
+      mirror.hidden = true;
+      video.hidden = false;
       if (video.srcObject === stream) return;
       video.srcObject = stream;
       video.play().catch(() => {});

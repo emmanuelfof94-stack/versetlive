@@ -1754,6 +1754,7 @@ function setProgramScene(scene) {
   previousProgramScene = programScene;
   programScene = scene;
   transitionStart = performance.now();
+  driveRenderFromProgramSource(); // cale la boucle sur la caméra de cette scène
   renderScenes();
   // Trigger audio MP3 de l'intro/outro si applicable
   if (window.IntroOutro) window.IntroOutro.onSceneChange(scene);
@@ -1989,7 +1990,12 @@ let frameCounter = 0;
 function previewDividerForLoad() {
   if (!smoothPriorityOn) return 1;
   const load = getEncoderLoad();
-  return load >= 3 ? 4 : load >= 2 ? 3 : load >= 1 ? 2 : 1;
+  // Même à vide, l'aperçu était redessiné 30 fois par seconde en pleine
+  // définition : autant de travail que le programme lui-même, pour un moniteur
+  // affiché grand comme une vignette. 15 fps suffisent largement pour préparer
+  // un cadre, et le programme (donc le projecteur) récupère la moitié du CPU.
+  // Décocher « priorité fluidité » redonne un aperçu à 30 fps.
+  return load >= 3 ? 4 : load >= 2 ? 3 : load >= 1 ? 2 : 2;
 }
 
 function drawProgramFrame() {
@@ -2120,11 +2126,16 @@ function tickerSetPaused(p) {
 let perfFramesDrawn = 0;
 let perfLateFrames = 0;
 let perfLastDrawTs = 0;
-function renderTick() {
+// fromVideoFrame = true quand l'appel vient d'une IMAGE CAMÉRA fraîchement
+// décodée (requestVideoFrameCallback) : on dessine dans la foulée et la phase de
+// la boucle suit la caméra, au lieu de rester collée à une grille indépendante.
+function renderTick(fromVideoFrame) {
   const ts = performance.now();
   const elapsed = ts - lastRenderTime;
-  if (elapsed < RENDER_INTERVAL_MS - 2) return false;
-  lastRenderTime = ts - (elapsed % RENDER_INTERVAL_MS);
+  // Seuil abaissé sur image caméra (23 ms) : une caméra 30 img/s passe toujours,
+  // une source 60 img/s reste plafonnée à ~30 dessins/s.
+  if (elapsed < (fromVideoFrame ? RENDER_INTERVAL_MS - 10 : RENDER_INTERVAL_MS - 2)) return false;
+  lastRenderTime = fromVideoFrame ? ts : ts - (elapsed % RENDER_INTERVAL_MS);
   // Isolé : un dessin qui plante ne doit jamais interrompre la cadence ni, via
   // renderFrame, tuer la boucle rAF. On loggue une fois pour diagnostiquer.
   try {
@@ -2141,6 +2152,70 @@ function renderTick() {
   // activeCtx en interne et le restaure, indépendant du dessin programme.
   if (sceneEditor) { try { renderSceneEditorPreview(); } catch (e) {} }
   return true;
+}
+
+// ===== Calage du rendu sur les images de la caméra (anti-saccade) =====
+// La boucle dessine sur une grille fixe de 30 fps, indépendante de la caméra.
+// Une caméra qui produit elle aussi 30 images/s mais décalée en phase se fait
+// alors échantillonner n'importe quand : certaines images sont dessinées deux
+// fois, d'autres jamais → le battement typique « ça sautille toutes les 2 s »,
+// visible surtout sur un panoramique ou quelqu'un qui marche.
+// requestVideoFrameCallback nous prévient à CHAQUE image réellement décodée de
+// la caméra qui est à l'antenne : on dessine dans la foulée. Résultat : une image
+// caméra = une image programme, et jusqu'à 33 ms de retard en moins.
+// Repli silencieux sur la boucle rAF si le navigateur ne connaît pas l'API.
+let vfcToken = 0;
+// Caméra « meneuse » de la scène programme : le gabarit classique (primaryId) ou,
+// pour une scène composée en couches, la première couche caméra rencontrée.
+function programPrimaryVideoEl() {
+  const sc = programScene;
+  if (!sc) return null;
+  let src = getSourceForScene(sc, 'primary');
+  if (!src && Array.isArray(sc.layers)) {
+    const layer = sc.layers.find(l => l && (l.type === 'camera' || l.type === 'pipCorner') && l.sourceId);
+    if (layer) src = sources.find(x => x.id === layer.sourceId);
+  }
+  return (src && src.videoEl) || null;
+}
+function driveRenderFromProgramSource() {
+  vfcToken++;                        // invalide la boucle précédente
+  const token = vfcToken;
+  const el = programPrimaryVideoEl();
+  if (!el || typeof el.requestVideoFrameCallback !== 'function') return;
+  const onFrame = () => {
+    if (token !== vfcToken) return;  // scène changée : cette boucle est périmée
+    // Trace unique : permet de vérifier en console que le calage est bien actif
+    // (sur un navigateur sans requestVideoFrameCallback, ce log n'apparaît jamais
+    // et la boucle rAF 30 fps prend le relais — sans rien casser).
+    if (!driveRenderFromProgramSource._logged) {
+      driveRenderFromProgramSource._logged = true;
+      console.log('[render] rendu calé sur les images caméra (une image caméra = une image programme)');
+    }
+    try { renderTick(true); } catch (e) {}
+    try { el.requestVideoFrameCallback(onFrame); } catch (e) {}
+  };
+  try { el.requestVideoFrameCallback(onFrame); } catch (e) {}
+}
+
+// ===== Tampon de gigue des caméras distantes (téléphones, co-pilotes) =====
+// Par défaut, Chrome dimensionne son tampon de réception pour la SÉCURITÉ : sur
+// un wifi d'église chargé il monte volontiers à 300-500 ms, et TOUT le direct
+// (studio, projecteur, enregistrement, RTMP) hérite de ce retard. En salle,
+// l'image doit coller au son qu'on entend en vrai : on demande un tampon court.
+// C'est une cible, pas un ordre — si le réseau tremble vraiment, Chrome le
+// rallonge tout seul plutôt que de hacher l'image.
+const CAM_JITTER_TARGET_MS = 120;
+function tuneIncomingLatency(pc, label) {
+  if (!pc || typeof pc.getReceivers !== 'function') return;
+  let done = 0;
+  for (const r of pc.getReceivers()) {
+    if (!r.track || r.track.kind !== 'video') continue;
+    try {
+      if ('jitterBufferTarget' in r) { r.jitterBufferTarget = CAM_JITTER_TARGET_MS; done++; }
+      else if ('playoutDelayHint' in r) { r.playoutDelayHint = CAM_JITTER_TARGET_MS / 1000; done++; } // ancien Chrome
+    } catch (e) { console.warn('[Cam] tampon de gigue non réglable —', label, e); }
+  }
+  if (done) console.log('[Cam] tampon de gigue visé à ' + CAM_JITTER_TARGET_MS + ' ms —', label);
 }
 
 // ===== Charge des encodeurs (record + stream RTMP + replay buffer) =====
@@ -2653,10 +2728,8 @@ function rebuildProgramStream() {
     if (newAudio) programStream.addTrack(newAudio);
   }
 
-  // Si la fenêtre projecteur est ouverte, lui pousser le stream (no-op si déjà attaché)
-  if (outputWindow && !outputWindow.closed && outputWindow.setProgramStream) {
-    outputWindow.setProgramStream(programStream);
-  }
+  // Si la fenêtre projecteur est ouverte, lui (re)donner la source du programme.
+  pushProgramToOutput();
 
   // Si la TV reçoit la vidéo, refaire l'appel avec le nouveau stream (vidéo seule)
   if (tvMediaCall && tvPeerId && signalingPeer && !signalingPeer.disconnected) {
@@ -2730,6 +2803,38 @@ window.onProjectorAspectChange = function (info) {
   }
 };
 
+// Donne le programme à la fenêtre projecteur, en préférant la RECOPIE DIRECTE
+// du canvas. La fenêtre est de même origine et ouverte par nous : elle partage
+// notre processus de rendu, donc elle peut dessiner notre canvas telle quelle.
+// L'ancien chemin (captureStream → <video srcObject>) faisait transiter l'image
+// par un flux média : 2 à 4 images de retard sur le projecteur, plus un
+// ré-échantillonnage qui hachait les mouvements. On ne garde le flux que pour
+// l'AUDIO (le projecteur peut être la sortie son de la salle) — et comme repli
+// complet si la recopie n'est pas possible (vieille version de la page en cache).
+function pushProgramToOutput() {
+  if (!outputWindow || outputWindow.closed) return;
+  const audio = (programStream && programStream.getAudioTracks().length)
+    ? new MediaStream(programStream.getAudioTracks())
+    : null;
+  try {
+    if (typeof outputWindow.setProgramSource === 'function'
+        && outputWindow.setProgramSource(programCanvas, audio)) return;
+  } catch (e) {
+    console.warn('[Projecteur] recopie directe indisponible → repli flux média', e);
+  }
+  if (typeof outputWindow.setProgramStream === 'function' && programStream) {
+    outputWindow.setProgramStream(programStream);
+  }
+}
+
+// Appelé PAR la fenêtre projecteur si sa recopie directe s'interrompt.
+window.projectorNeedsStream = function () {
+  if (!programStream) rebuildProgramStream();
+  if (outputWindow && !outputWindow.closed && outputWindow.setProgramStream) {
+    outputWindow.setProgramStream(programStream);
+  }
+};
+
 function openProjector() {
   if (!programStream) rebuildProgramStream();
   startKeepAlive();
@@ -2744,8 +2849,8 @@ function openProjector() {
     return;
   }
   const tryAttach = () => {
-    if (outputWindow.setProgramStream) {
-      outputWindow.setProgramStream(programStream);
+    if (outputWindow.setProgramSource || outputWindow.setProgramStream) {
+      pushProgramToOutput();
       // Si la scène courante est un iframe (YouTube/Vimeo), réémet l'URL.
       if (programScene.kind === 'iframe' && outputWindow.setIframeUrl) {
         outputWindow.setIframeUrl(programScene.url);
@@ -4212,6 +4317,7 @@ function addRemoteSource(stream, call) {
   // MediaStream au fur et à mesure que ses pistes s'ajoutent.
   if (existing && existing.stream === stream) {
     existing.videoEl.play().catch(() => {});
+    tuneIncomingLatency(call.peerConnection, existing.label);
     renderSources();
     return;
   }
@@ -4233,6 +4339,7 @@ function addRemoteSource(stream, call) {
     // Pointer la clé vers le NOUVEL appel AVANT de fermer l'ancien : la fermeture
     // de l'ancien appel (parfois synchrone) déclenche removeRemoteCall, qui ne
     // doit pas retirer la source qu'on vient de réutiliser.
+    tuneIncomingLatency(call.peerConnection, existing.label);
     const prev = remoteCalls.get(deviceKey);
     remoteCalls.set(deviceKey, { call, sourceId: existing.id });
     if (prev && prev.call && prev.call !== call) { try { prev.call.close(); } catch (e) {} }
@@ -4264,6 +4371,7 @@ function addRemoteSource(stream, call) {
   };
   sources.push(source);
   remoteCalls.set(deviceKey, { call, sourceId: source.id });
+  tuneIncomingLatency(call.peerConnection, source.label);
 
   renderSources();
   renderScenes();
@@ -6000,6 +6108,7 @@ function addCoopCameraSource(stream, info, call) {
   };
   sources.push(source);
   coopCameraCalls.set(call.peer, { call, sourceId: source.id });
+  tuneIncomingLatency(call.peerConnection, label);
 
   call.on('close', () => removeCoopCameraSource(call));
   call.on('error', () => removeCoopCameraSource(call));
