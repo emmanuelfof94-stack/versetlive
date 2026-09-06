@@ -1062,6 +1062,210 @@ function editorPointerUp(e) {
   if (canvas) { try { canvas.releasePointerCapture(e.pointerId); } catch (err) {} }
 }
 
+// ===== Déplacement à l'antenne (drag direct sur le moniteur programme) =====
+// La composition libre (drag/resize) était volontairement cantonnée à l'éditeur :
+// déplacer une couche par erreur sur le programme, c'est la déplacer devant
+// l'assemblée. Mais en plein culte, ouvrir l'éditeur pour recentrer une annonce
+// n'est pas tenable. D'où ce mode, ARMÉ EXPLICITEMENT par un bouton et remis à
+// zéro à chaque ouverture du Studio — on ne laisse pas une souris qui traîne
+// pousser une image pendant la prédication.
+//
+// Deux façons d'être positionné, selon la scène :
+//   - couche avec rect (scène composée dans l'éditeur) → on déplace son rect ;
+//   - gabarit image (🖼 image, 🖼+verset) → la couche n'a pas de rect : la
+//     position vit sur l'IMAGE elle-même (offsetX/offsetY/scale), là où les
+//     curseurs « Taille / Position » du panneau Images écrivent déjà. On écrit
+//     donc au même endroit : le réglage survit au redémarrage et se retrouve
+//     partout où l'image sert.
+//
+// Une caméra en plein écran n'est pas déplaçable (ça n'aurait pas de sens) ;
+// une caméra placée dans une scène composée l'est, puisqu'elle a un rect.
+let liveMoveOn = false;   // jamais persisté : désarmé à chaque chargement
+let liveDrag = null;
+
+function lmClamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+
+function setLiveMove(on) {
+  liveMoveOn = !!on;
+  const btn = $('liveMoveBtn');
+  if (btn) {
+    btn.classList.toggle('active', liveMoveOn);
+    // Style posé en dur : `.btn.active` n'est défini que pour les préréglages du
+    // minuteur, l'état armé ne se verrait pas ici. Or c'est LE bouton dont on doit
+    // savoir d'un coup d'œil s'il est armé — il agit sur ce qui est à l'antenne.
+    btn.style.background = liveMoveOn ? '#fbbf24' : '';
+    btn.style.color = liveMoveOn ? '#131536' : '';
+    btn.style.fontWeight = liveMoveOn ? '800' : '';
+    btn.textContent = liveMoveOn ? '✋ Déplacement ACTIF' : '✋ Déplacer à l\'antenne';
+  }
+  if (programCanvas) programCanvas.style.cursor = liveMoveOn ? 'grab' : '';
+  if (!liveMoveOn) { liveDrag = null; hideLiveMoveBox(); }
+  toast(liveMoveOn
+    ? 'Déplacement à l\'antenne ARMÉ — maintiens une image et pose-la. Molette = taille.'
+    : 'Déplacement à l\'antenne désarmé.');
+}
+
+// Zone RÉELLEMENT occupée par une couche, en fractions 0..1 du programme.
+// Pour une image on reproduit le calcul de drawImageContain et on renvoie les
+// pixels vraiment dessinés, pas la boîte théorique : sinon on attraperait une
+// image en cliquant dans ses bandes vides, et on ne pourrait plus saisir celle
+// qui est dessous.
+function liveLayerBox(layer) {
+  if (!layer) return null;
+  if (layer.type === 'image') {
+    const img = imageSources.find(i => i.id === layer.imageId);
+    if (!img || !img.imgEl || !img.imgEl.naturalWidth) return null;
+    let bx, by, bw, bh;
+    if (layer.rect) {
+      bx = layer.rect.x; by = layer.rect.y; bw = layer.rect.w; bh = layer.rect.h;
+    } else {
+      const sc = lmClamp(img.scale != null ? img.scale : fullImageScale, 0.1, 1);
+      bw = sc; bh = sc;
+      bx = (1 - sc) / 2 + lmClamp(img.offsetX != null ? img.offsetX : 0, -0.5, 0.5);
+      by = (1 - sc) / 2 + lmClamp(img.offsetY != null ? img.offsetY : 0, -0.5, 0.5);
+    }
+    const sAR = img.imgEl.naturalWidth / img.imgEl.naturalHeight;
+    const dAR = (bw * OUTPUT_W) / (bh * OUTPUT_H);
+    let dw, dh;
+    if (sAR > dAR) { dw = bw; dh = (bw * OUTPUT_W / sAR) / OUTPUT_H; }
+    else           { dh = bh; dw = (bh * OUTPUT_H * sAR) / OUTPUT_W; }
+    return { x: bx + (bw - dw) / 2, y: by + (bh - dh) / 2, w: dw, h: dh, img, layer };
+  }
+  if (layer.type === 'camera' && layer.rect) {
+    return { x: layer.rect.x, y: layer.rect.y, w: layer.rect.w, h: layer.rect.h, img: null, layer };
+  }
+  return null;
+}
+
+// Élément déplaçable le plus en AVANT sous le pointeur (on parcourt la pile de
+// haut en bas, comme le ferait l'œil).
+function liveHitLayer(nx, ny) {
+  const layers = sceneToLayers(programScene);
+  for (let i = layers.length - 1; i >= 0; i--) {
+    const l = layers[i];
+    if (!l || l.hidden) continue;
+    if (l.type !== 'image' && l.type !== 'camera') continue;
+    const box = liveLayerBox(l);
+    if (!box) continue;
+    if (nx >= box.x && nx <= box.x + box.w && ny >= box.y && ny <= box.y + box.h) return box;
+  }
+  return null;
+}
+
+function liveMoveNorm(e) {
+  const b = programCanvas.getBoundingClientRect();
+  return { nx: (e.clientX - b.left) / b.width, ny: (e.clientY - b.top) / b.height };
+}
+
+// Cadre de survol : positionné par rapport au CANVAS et non au cadre, car le
+// canvas peut être letterboxé dans son conteneur selon le ratio de sortie.
+function showLiveMoveBox(box) {
+  const el = $('liveMoveBox');
+  if (!el) return;
+  if (!box || !liveMoveOn) { el.hidden = true; return; }
+  const cw = programCanvas.offsetWidth, ch = programCanvas.offsetHeight;
+  el.style.left   = (programCanvas.offsetLeft + box.x * cw) + 'px';
+  el.style.top    = (programCanvas.offsetTop  + box.y * ch) + 'px';
+  el.style.width  = (box.w * cw) + 'px';
+  el.style.height = (box.h * ch) + 'px';
+  el.hidden = false;
+}
+function hideLiveMoveBox() { const el = $('liveMoveBox'); if (el) el.hidden = true; }
+
+function liveMovePointerDown(e) {
+  if (!liveMoveOn) return;
+  const { nx, ny } = liveMoveNorm(e);
+  const box = liveHitLayer(nx, ny);
+  if (!box) return;
+  liveDrag = {
+    layer: box.layer,
+    img: box.img,
+    startNX: nx, startNY: ny,
+    startOX: (box.img && !box.layer.rect) ? (box.img.offsetX || 0) : 0,
+    startOY: (box.img && !box.layer.rect) ? (box.img.offsetY || 0) : 0,
+    startRect: box.layer.rect ? { ...box.layer.rect } : null,
+  };
+  try { programCanvas.setPointerCapture(e.pointerId); } catch (err) {}
+  programCanvas.style.cursor = 'grabbing';
+  e.preventDefault();
+}
+
+function liveMovePointerMove(e) {
+  if (!liveMoveOn) return;
+  const { nx, ny } = liveMoveNorm(e);
+  if (!liveDrag) {
+    const over = liveHitLayer(nx, ny);
+    programCanvas.style.cursor = over ? 'grab' : 'default';
+    showLiveMoveBox(over);
+    return;
+  }
+  const dnx = nx - liveDrag.startNX, dny = ny - liveDrag.startNY;
+  if (liveDrag.startRect) {
+    const s = liveDrag.startRect;
+    // Mutation directe : le programme se redessine au tick suivant, donc
+    // l'image suit le doigt à l'antenne sans reconstruire quoi que ce soit.
+    liveDrag.layer.rect = {
+      x: lmClamp(s.x + dnx, 0, 1 - s.w),
+      y: lmClamp(s.y + dny, 0, 1 - s.h),
+      w: s.w, h: s.h,
+    };
+  } else if (liveDrag.img) {
+    liveDrag.img.offsetX = lmClamp(liveDrag.startOX + dnx, -0.5, 0.5);
+    liveDrag.img.offsetY = lmClamp(liveDrag.startOY + dny, -0.5, 0.5);
+  }
+  showLiveMoveBox(liveLayerBox(liveDrag.layer));
+  e.preventDefault();
+}
+
+function liveMovePointerUp(e) {
+  if (liveDrag) {
+    // On ne persiste qu'au RELÂCHEMENT : écrire dans localStorage à chaque
+    // pixel parcouru saccaderait le direct.
+    if (liveDrag.startRect) {
+      saveUserScenes();
+      if (typeof coopBroadcast === 'function') coopBroadcast();
+    } else if (liveDrag.img) {
+      saveImgIndex();
+      renderImages(); // resynchronise les curseurs Taille/Position du panneau
+    }
+    liveDrag = null;
+    programCanvas.style.cursor = liveMoveOn ? 'grab' : '';
+  }
+  try { programCanvas.releasePointerCapture(e.pointerId); } catch (err) {}
+}
+
+// Molette = taille, pour les images du gabarit (celles qui portent scale).
+// Une couche placée par rect se redimensionne dans l'éditeur, avec ses poignées.
+let liveWheelTimer = null;
+function liveMoveWheel(e) {
+  if (!liveMoveOn) return;
+  const { nx, ny } = liveMoveNorm(e);
+  const box = liveHitLayer(nx, ny);
+  if (!box || !box.img || box.layer.rect) return;
+  e.preventDefault();
+  const cur = box.img.scale != null ? box.img.scale : lmClamp(fullImageScale, 0.1, 1);
+  box.img.scale = lmClamp(cur + (e.deltaY < 0 ? 0.02 : -0.02), 0.1, 1);
+  showLiveMoveBox(liveLayerBox(box.layer));
+  if (liveWheelTimer) clearTimeout(liveWheelTimer);
+  liveWheelTimer = setTimeout(() => {
+    liveWheelTimer = null;
+    saveImgIndex();
+    renderImages();
+  }, 400);
+}
+
+function bindLiveMoveUi() {
+  const btn = $('liveMoveBtn');
+  if (btn) btn.addEventListener('click', () => setLiveMove(!liveMoveOn));
+  if (!programCanvas) return;
+  programCanvas.addEventListener('pointerdown', liveMovePointerDown);
+  programCanvas.addEventListener('pointermove', liveMovePointerMove);
+  programCanvas.addEventListener('pointerup', liveMovePointerUp);
+  programCanvas.addEventListener('pointercancel', liveMovePointerUp);
+  programCanvas.addEventListener('pointerleave', () => { if (!liveDrag) hideLiveMoveBox(); });
+  programCanvas.addEventListener('wheel', liveMoveWheel, { passive: false });
+}
+
 function bindSceneEditorUi() {
   const nb = $('newSceneBtn');
   if (nb) nb.addEventListener('click', createEmptyUserScene);
@@ -7100,6 +7304,7 @@ async function init() {
   bindImagesUi();
   bindCardsUi();
   bindSceneEditorUi();
+  bindLiveMoveUi();
   bindStudioModeUi();
   bindTransitionUi();
   bindCoopUi();

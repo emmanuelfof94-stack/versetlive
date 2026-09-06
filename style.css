@@ -4067,6 +4067,11 @@ body.safe-zones-on .studio-safe-zones { display: block; }
   object-fit: contain;
 }
 .studio-monitor-frame { position: relative; }
+/* Bouton « Déplacer à l'antenne » : le label parent est en majuscules et
+   inherit text-transform — on le laisse lisible. Masqué pour un copilote, dont
+   le moniteur programme est un flux vidéo (canvas caché) : rien à saisir. */
+#liveMoveBtn { text-transform: none; letter-spacing: 0; }
+body.coop-mode #liveMoveBtn { display: none; }
 body.coop-mode .studio-coop-video { display: block; }
 body.coop-mode #programCanvas, body.coop-mode #previewCanvas { visibility: hidden; }
 body.coop-mode .studio-col-left { display: none; }

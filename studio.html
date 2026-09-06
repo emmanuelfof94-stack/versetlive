@@ -335,12 +335,18 @@
           <button class="btn btn-primary studio-take-btn" id="takeBtn" title="Envoie la preview vers le programme (Entrée)">▶ Envoyer en direct (Entrée)</button>
         </div>
         <div class="studio-monitor studio-monitor-program">
-          <div class="studio-monitor-label studio-program-label">
+          <div class="studio-monitor-label studio-program-label" style="display:flex; align-items:center; gap:8px;">
             <span class="studio-live-dot"></span>
             PROGRAMME — en direct
+            <button class="btn btn-sm" id="liveMoveBtn" style="margin-left:auto; padding:2px 9px; font-size:11px;"
+              title="Déplacer une image DIRECTEMENT sur le direct : maintiens-la et pose-la où tu veux. Molette = taille. Désarmé à chaque ouverture du Studio.">✋ Déplacer à l'antenne</button>
           </div>
           <div class="studio-monitor-frame">
             <canvas id="programCanvas" width="1280" height="720"></canvas>
+            <!-- Cadre de sélection du mode déplacement. C'est un <div> POSÉ SUR le
+                 moniteur, jamais un dessin dans le canvas : tout ce qui est dessiné
+                 dans le canvas part à l'antenne. -->
+            <div id="liveMoveBox" hidden style="position:absolute; border:2px dashed #fbbf24; border-radius:3px; pointer-events:none; z-index:6;"></div>
             <div id="perfHud" hidden style="position:absolute; top:8px; left:8px; z-index:5; background:rgba(0,0,0,0.6); color:#cfc; font:11px/1.4 ui-monospace,monospace; padding:5px 8px; border-radius:5px; pointer-events:none; white-space:pre;">perf</div>
             <video id="coopProgramVideo" class="studio-coop-video" autoplay playsinline muted></video>
             <div class="studio-safe-zones" aria-hidden="true">
