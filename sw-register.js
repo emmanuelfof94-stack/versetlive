@@ -66,9 +66,69 @@
     (document.body || document.documentElement).appendChild(bar);
   }
 
+  // Registration conservée pour la vérification manuelle (bouton du Studio).
+  var swReg = null;
+
+  // Vérification À LA DEMANDE. Le contrôle automatique n'a lieu qu'au chargement
+  // et au retour sur l'onglet : un poste laissé au premier plan pendant tout un
+  // culte ne voit jamais passer une nouvelle version. D'où ce déclencheur manuel.
+  //
+  // Renvoie une promesse vers :
+  //   'maj'          → une nouvelle version a été trouvée et s'installe. La suite
+  //                    est gérée par controllerchange : bannière si la page est
+  //                    occupée, rechargement auto sinon.
+  //   'a-jour'       → rien de neuf.
+  //   'indisponible' → pas de Service Worker (navigateur non compatible, incognito).
+  //   'erreur'       → réseau coupé, ou /sw.js injoignable.
+  function checkForUpdate() {
+    // La registration n'existe qu'après l'événement 'load' : si l'opérateur
+    // clique dans la seconde qui suit l'ouverture, on va la chercher plutôt que
+    // de répondre « indisponible » à tort.
+    var ready = swReg
+      ? Promise.resolve(swReg)
+      : navigator.serviceWorker.getRegistration().catch(function () { return null; });
+    return ready.then(function (reg) {
+      if (!reg) return 'indisponible';
+      swReg = reg;
+      return runCheck();
+    });
+  }
+
+  function runCheck() {
+    var found = !!(swReg.installing || swReg.waiting);
+    var onFound = function () { found = true; };
+    swReg.addEventListener('updatefound', onFound);
+    return swReg.update()
+      // update() se résout dès que la requête aboutit, AVANT que 'updatefound'
+      // n'ait forcément été émis : on laisse au navigateur le temps de le dire.
+      .then(function () { return new Promise(function (r) { setTimeout(r, 1500); }); })
+      .then(function () {
+        swReg.removeEventListener('updatefound', onFound);
+        return (found || swReg.installing || swReg.waiting) ? 'maj' : 'a-jour';
+      })
+      .catch(function () {
+        swReg.removeEventListener('updatefound', onFound);
+        return 'erreur';
+      });
+  }
+
+  // Version réellement active sur CE poste (lue dans le nom du cache).
+  function currentVersion() {
+    if (!('caches' in window)) return Promise.resolve(null);
+    return caches.keys().then(function (names) {
+      var versions = names
+        .map(function (n) { var m = /versetlive-v(\d+)/.exec(n); return m ? parseInt(m[1], 10) : null; })
+        .filter(function (v) { return v != null; });
+      return versions.length ? 'v' + Math.max.apply(null, versions) : null;
+    }).catch(function () { return null; });
+  }
+
+  window.VLUpdate = { check: checkForUpdate, version: currentVersion };
+
   window.addEventListener('load', function () {
     navigator.serviceWorker.register('/sw.js')
       .then(function (reg) {
+        swReg = reg;
         // Vérifie une mise à jour à l'ouverture, puis à chaque retour sur l'onglet.
         reg.update().catch(function () {});
         document.addEventListener('visibilitychange', function () {
@@ -86,13 +146,8 @@
   });
 
   function showVersionBadge() {
-    if (!('caches' in window)) return;
-    caches.keys().then(function (names) {
-      var versions = names
-        .map(function (n) { var m = /versetlive-v(\d+)/.exec(n); return m ? parseInt(m[1], 10) : null; })
-        .filter(function (v) { return v != null; });
-      if (!versions.length) return;
-      var ver = 'v' + Math.max.apply(null, versions);
+    currentVersion().then(function (ver) {
+      if (!ver) return;
       var el = document.getElementById('vlVersionBadge');
       if (!el) {
         el = document.createElement('div');
@@ -108,6 +163,6 @@
         (document.body || document.documentElement).appendChild(el);
       }
       el.textContent = 'VersetLive ' + ver;
-    }).catch(function () {});
+    });
   }
 })();

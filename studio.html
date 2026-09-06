@@ -907,6 +907,15 @@
           </div>
         </div>
         <div class="section" style="margin-bottom:14px;">
+          <div class="section-title"><span>🔄 Version &amp; mises à jour</span></div>
+          <div class="studio-hint">Ce poste ne cherche une nouvelle version qu'à l'ouverture de la page et au retour sur l'onglet. Laissé au premier plan tout un culte, il ne verra rien passer : ce bouton force le contrôle.</div>
+          <div class="studio-settings-row">
+            <button class="btn" id="updateCheckBtn">🔄 Vérifier les mises à jour</button>
+            <span class="studio-hint" id="updateCheckInfo" style="margin:0;">Version de ce poste : <strong id="updateVersionText">…</strong></span>
+          </div>
+          <div class="studio-hint" style="margin-top:6px;">Si une nouvelle version arrive pendant que des caméras sont configurées, rien ne bouge sans toi : une bannière « Recharger maintenant » s'affiche. <strong>Après le rechargement, referme et rouvre la fenêtre projecteur</strong> — elle ne se recharge jamais toute seule, pour ne pas clignoter en pleine projection.</div>
+        </div>
+        <div class="section" style="margin-bottom:14px;">
           <div class="section-title"><span>📼 Replay buffer</span></div>
           <div class="studio-hint">Capture <em>en boucle</em> les <strong>N dernières secondes</strong> en RAM (ring buffer). Au clic « Sauver », tu télécharges cette fenêtre glissante, puis le buffer continue. Idéal pour rattraper un moment fort. RAM bornée ≈ <code>recordBitrate × N</code>.</div>
           <div class="studio-settings-row">

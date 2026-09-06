@@ -3040,6 +3040,42 @@ function bindSettingsModal() {
     });
   }
 
+  // ===== Vérification manuelle des mises à jour =====
+  const updBtn = $('updateCheckBtn');
+  const updInfo = $('updateCheckInfo');
+  const updVer = $('updateVersionText');
+  if (updVer && window.VLUpdate) {
+    window.VLUpdate.version().then(v => { updVer.textContent = v ? 'VersetLive ' + v : 'inconnue'; });
+  }
+  if (updBtn && !updBtn.dataset.bound) {
+    updBtn.dataset.bound = '1';
+    updBtn.addEventListener('click', async () => {
+      if (!window.VLUpdate) { toast('Vérification indisponible sur ce navigateur.', true); return; }
+      updBtn.disabled = true;
+      const previous = updInfo ? updInfo.innerHTML : '';
+      if (updInfo) updInfo.textContent = 'Vérification en cours…';
+      const res = await window.VLUpdate.check();
+      updBtn.disabled = false;
+      if (res === 'maj') {
+        // La suite est prise en charge par sw-register.js : bannière si des
+        // caméras sont configurées (ou si on enregistre / diffuse), rechargement
+        // automatique sinon. On ne force rien ici : jamais en plein direct.
+        if (updInfo) updInfo.textContent = '✅ Nouvelle version trouvée — installation en cours…';
+        toast('Nouvelle version trouvée. Une bannière « Recharger » va apparaître si le studio est occupé.');
+      } else if (res === 'a-jour') {
+        const v = await window.VLUpdate.version();
+        if (updInfo) updInfo.textContent = 'Ce poste est à jour' + (v ? ' (VersetLive ' + v + ')' : '') + '.';
+        toast('Ce poste est déjà à jour.');
+      } else if (res === 'erreur') {
+        if (updInfo) updInfo.textContent = '⚠️ Vérification impossible — réseau injoignable.';
+        toast('Vérification impossible : réseau injoignable.', true);
+      } else {
+        if (updInfo) updInfo.innerHTML = previous;
+        toast('Ce navigateur ne gère pas les mises à jour hors-ligne.', true);
+      }
+    });
+  }
+
   const nameInp = $('recordNameInput');
   if (nameInp) {
     nameInp.value = recordNamePattern;
